@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semana 10 · Árboles AVL y Montículos — Simulador y Juego</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EAEEF4;--surface:#FFFFFF;--ink:#15233B;--ink-soft:#5B6B82;
+    --line:#C9D3E0;--grid:#D7DEE9;--accent:#5B49F0;--good:#0E9F6E;
+    --warn:#E11D48;--gold:#D97706;--soft-accent:#EEEBFE;
+    --shadow:0 1px 2px rgba(21,35,59,.06),0 8px 24px rgba(21,35,59,.08);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:Inter,system-ui,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100vh}
+  .topbar{display:flex;align-items:center;gap:14px;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .brand{display:flex;flex-direction:column;line-height:1.1}
+  .brand .wk{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;font-weight:700}
+  .brand h1{font-family:'Space Grotesk',sans-serif;font-size:19px;margin:2px 0 0;font-weight:600;letter-spacing:-.01em}
+  .modes{margin-left:auto;display:flex;background:var(--bg);border-radius:10px;padding:4px;gap:4px}
+  .modes button{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;border:0;background:transparent;color:var(--ink-soft);padding:8px 16px;border-radius:7px;cursor:pointer;transition:.18s}
+  .modes button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+  .wrap{flex:1;display:grid;grid-template-columns:1fr 340px;min-height:0}
+  .stage{position:relative;overflow:hidden;background-color:var(--bg);background-image:radial-gradient(var(--grid) 1.4px,transparent 1.4px);background-size:22px 22px;background-position:11px 11px}
+  svg{width:100%;height:100%;display:block}
+  .panel{background:var(--surface);border-left:1px solid var(--line);padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+  .group{display:flex;flex-direction:column;gap:9px}
+  .group h3{font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin:0;font-weight:600}
+  .subtoggle{display:flex;background:var(--bg);border-radius:9px;padding:3px;gap:3px}
+  .subtoggle button{flex:1;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;border:0;background:transparent;color:var(--ink-soft);padding:8px;border-radius:6px;cursor:pointer}
+  .subtoggle button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .btn{font-family:Inter,sans-serif;font-weight:500;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 12px;border-radius:9px;cursor:pointer;transition:.15s;flex:1;text-align:center;white-space:nowrap}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.act{background:var(--soft-accent);border-color:var(--accent);color:var(--accent)}
+  .btn.ghost{background:transparent}
+  .btn.full{flex-basis:100%}
+  .row{display:flex;gap:8px;align-items:center}
+  .row label{font-size:13px;color:var(--ink-soft);flex:1}
+  input[type=number],input[type=text]{font-family:'JetBrains Mono',monospace;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:13px;color:var(--ink);width:100%}
+  .inrow{display:flex;gap:6px}
+  .inrow input{flex:1}
+  .chk{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+  .chk input{width:16px;height:16px;accent-color:var(--accent)}
+  .readout{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:#0F1B2E;color:#D6E2F5;border-radius:10px;padding:12px;min-height:54px;line-height:1.55;white-space:pre-wrap;overflow-x:auto}
+  .readout .hl{color:#8AA0FF}.readout .g{color:#4ADE9A}.readout .w{color:#FB7185}.readout .y{color:#FBBF24}
+  .hint{font-size:12.5px;color:var(--ink-soft);line-height:1.5}
+  .arr{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+  .cell{font-family:'JetBrains Mono',monospace;font-size:13px;border:1px solid var(--line);border-radius:7px;min-width:34px;text-align:center;padding:7px 4px;background:var(--surface);position:relative}
+  .cell.hot{background:var(--soft-accent);border-color:var(--accent);color:var(--accent);font-weight:700}
+  .cell small{position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--ink-soft)}
+  /* svg */
+  .lnk{stroke:var(--line);stroke-width:2.6;transition:all .5s cubic-bezier(.4,0,.2,1)}
+  .nodeG{transition:transform .5s cubic-bezier(.4,0,.2,1)}
+  .nodeG circle{fill:var(--surface);stroke:var(--ink);stroke-width:2.8;transition:fill .3s,stroke .3s}
+  .nodeG.hot circle{fill:var(--accent);stroke:var(--accent);animation:pp 1s ease}
+  .nodeG.ok circle{fill:var(--good);stroke:var(--good)}
+  .nodeG.unbal circle{fill:var(--warn);stroke:var(--warn)}
+  .nodeG text.v{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;transition:fill .3s}
+  .nodeG.hot text.v,.nodeG.ok text.v,.nodeG.unbal text.v{fill:#fff}
+  .nodeG text.bf{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;fill:var(--ink-soft);text-anchor:middle}
+  @keyframes pp{0%{stroke-width:2.8}50%{stroke-width:10}100%{stroke-width:2.8}}
+  .toast{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:#0F1B2E;color:#fff;font-size:13px;padding:9px 16px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transition:.25s;pointer-events:none;font-weight:500}
+  .toast.show{opacity:1}
+  .gamebar{position:absolute;top:14px;left:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;box-shadow:var(--shadow);display:none;gap:18px}
+  .gamebar.show{display:flex}
+  .gamebar .stat{display:flex;flex-direction:column;line-height:1.1}
+  .gamebar .stat b{font-family:'Space Grotesk',sans-serif;font-size:18px}
+  .gamebar .stat span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft)}
+  .gopts{display:flex;flex-direction:column;gap:8px}
+  .gopt{font-family:Inter,sans-serif;font-size:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:12px;border-radius:10px;cursor:pointer;text-align:left;transition:.15s}
+  .gopt:hover{border-color:var(--accent)}
+  .gopt.right{background:#DCFCE7;border-color:var(--good);color:#15803D;font-weight:600}
+  .gopt.wrong{background:#FFE4E6;border-color:var(--warn);color:#BE123C}
+  @media(max-width:820px){.wrap{grid-template-columns:1fr;grid-template-rows:46vh 1fr}.panel{border-left:0;border-top:1px solid var(--line)}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><span class="wk">Semana 10 · Estructuras Discretas</span><h1>Árboles AVL y montículos</h1></div>
+  <div class="modes"><button id="mSim" class="on">Simulador</button><button id="mGame">Juego</button></div>
+</div>
+
+<div class="wrap">
+  <div class="stage">
+    <svg id="svg" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet"></svg>
+    <div id="toast" class="toast"></div>
+    <div id="gamebar" class="gamebar">
+      <div class="stat"><b id="gRound">1</b><span>Ronda</span></div>
+      <div class="stat"><b id="gScore">0</b><span>Aciertos</span></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panelSim">
+    <div class="subtoggle">
+      <button id="tAVL" class="on">Árbol AVL</button>
+      <button id="tHeap">Montículo</button>
+    </div>
+
+    <!-- AVL controls -->
+    <div id="ctlAVL">
+      <div class="group">
+        <h3>Insertar en el AVL</h3>
+        <div class="inrow"><input type="number" id="avlVal" placeholder="valor"><button class="btn sel" id="avlIns" style="flex:0 0 90px">Insertar</button></div>
+        <div class="seg">
+          <button class="btn ghost" id="avlRand">+ Aleatorio</button>
+          <button class="btn ghost" id="avlClear">Vaciar</button>
+        </div>
+        <div class="inrow"><input type="text" id="avlSeq" placeholder="secuencia: 30,20,40,10,25,..."><button class="btn" id="avlBuild" style="flex:0 0 80px">Construir</button></div>
+        <p class="hint">Al insertar, el árbol se reequilibra solo. La rotación aplicada se anuncia abajo y los nodos se mueven a su nueva posición. El número pequeño es el <b>factor de balance</b>.</p>
+      </div>
+      <div class="group">
+        <h3>Recorridos</h3>
+        <div class="seg">
+          <button class="btn" id="avlIn">Inorden</button>
+          <button class="btn" id="avlPre">Preorden</button>
+          <button class="btn" id="avlPost">Posorden</button>
+          <button class="btn" id="avlLvl">Niveles</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Heap controls -->
+    <div id="ctlHeap" style="display:none">
+      <div class="group">
+        <h3>Montículo</h3>
+        <label class="chk"><input type="checkbox" id="heapMax"> Montículo de máximos (por defecto: mínimos)</label>
+        <div class="inrow"><input type="number" id="heapVal" placeholder="valor"><button class="btn sel" id="heapIns" style="flex:0 0 90px">Insertar</button></div>
+        <div class="seg">
+          <button class="btn act full" id="heapPop">Extraer la raíz</button>
+        </div>
+        <div class="seg">
+          <button class="btn ghost" id="heapRand">+ Aleatorio</button>
+          <button class="btn ghost" id="heapClear">Vaciar</button>
+        </div>
+        <div class="inrow"><input type="text" id="heapSeq" placeholder="construir: 5,3,8,1,9,2"><button class="btn" id="heapBuild" style="flex:0 0 80px">Heapify</button></div>
+        <p class="hint">Al insertar, el valor <b>flota</b> hacia arriba (sift-up). Al extraer la raíz, el último elemento sube y <b>se hunde</b> (sift-down). Observa el arreglo: hijo de <i>i</i> está en <i>2i+1</i> y <i>2i+2</i>.</p>
+      </div>
+      <div class="group">
+        <h3>Arreglo subyacente</h3>
+        <div class="arr" id="heapArr"></div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>Lectura</h3>
+      <div class="readout" id="readout">Inserta valores para ver la estructura crecer.</div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="panel" id="panelGame" style="display:none">
+    <div class="group">
+      <h3>Juego · ¿Qué rotación toca?</h3>
+      <p class="hint">Te mostramos un árbol AVL equilibrado y el valor que va a entrar. <b>Predice la rotación</b> que hará falta para reequilibrar (o si no hace falta ninguna).</p>
+      <p class="hint"><b>Recordatorio:</b> el desbalance ocurre en el ancestro más bajo con |FB|=2. <b>LL</b>=rotación derecha · <b>RR</b>=izquierda · <b>LR</b> y <b>RL</b>=dobles.</p>
+    </div>
+    <div class="group">
+      <h3 id="gPrompt">Pulsa “Nueva ronda”.</h3>
+      <div class="gopts" id="gOpts"></div>
+      <div class="readout" id="gFb" style="display:none"></div>
+      <button class="btn sel full" id="gNew">Nueva ronda</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(()=>{
+  const svg=document.getElementById('svg');const NS='http://www.w3.org/2000/svg';
+  const W=900,H=600;
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  function toast(m,ms=1600){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
+  function setRead(h){document.getElementById('readout').innerHTML=h;}
+  // ---------------- AVL core (verified) ----------------
+  function mk(v){return{v,l:null,r:null,h:1};}
+  const Hh=n=>n?n.h:0, upd=n=>{n.h=1+Math.max(Hh(n.l),Hh(n.r));}, bf=n=>n?Hh(n.l)-Hh(n.r):0;
+  function rotR(y){const x=y.l;y.l=x.r;x.r=y;upd(y);upd(x);return x;}
+  function rotL(x){const y=x.r;x.r=y.l;y.l=x;upd(x);upd(y);return y;}
+  let avl=null, lastRot='';
+  function ins(node,v){
+    if(!node)return mk(v);
+    if(v<node.v)node.l=ins(node.l,v);else if(v>node.v)node.r=ins(node.r,v);else{toast('Ese valor ya existe');return node;}
+    upd(node);const b=bf(node);
+    if(b>1&&v<node.l.v){lastRot=`LL en ${node.v} → rotación derecha`;return rotR(node);}
+    if(b<-1&&v>node.r.v){lastRot=`RR en ${node.v} → rotación izquierda`;return rotL(node);}
+    if(b>1&&v>node.l.v){lastRot=`LR en ${node.v} → izq(${node.l.v}) luego der(${node.v})`;node.l=rotL(node.l);return rotR(node);}
+    if(b<-1&&v<node.r.v){lastRot=`RL en ${node.v} → der(${node.r.v}) luego izq(${node.v})`;node.r=rotR(node.r);return rotL(node);}
+    return node;
+  }
+  const trav={in:[],pre:[],post:[]};
+  function order(n,t){if(!n)return;if(t==='pre')trav.pre.push(n.v);order(n.l,t);if(t==='in')trav.in.push(n.v);order(n.r,t);if(t==='post')trav.post.push(n.v);}
+  function getTrav(t){const a=[];(function go(n){if(!n)return;if(t==='pre')a.push(n.v);go(n.l);if(t==='in')a.push(n.v);go(n.r);if(t==='post')a.push(n.v);})(avl);return a;}
+  function levelOrder(){const a=[];if(!avl)return a;const q=[avl];while(q.length){const x=q.shift();a.push(x.v);if(x.l)q.push(x.l);if(x.r)q.push(x.r);}return a;}
+
+  // layout: in-order x, depth y
+  function layoutAVL(){
+    const pos=new Map();let idx=0;const gap=Math.min(78,(W-120)/Math.max(1,countNodes(avl)-1||1));
+    const xs=[];(function go(n,d){if(!n)return;go(n.l,d+1);pos.set(n.v,{x:0,y:60+d*84,d,node:n,i:idx});xs.push(n.v);idx++;go(n.r,d+1);})(avl,0);
+    const total=xs.length;const startX=(W-(total-1)*gap)/2;
+    xs.forEach((v,i)=>{pos.get(v).x=startX+i*gap;});
+    return pos;
+  }
+  function countNodes(n){return n?1+countNodes(n.l)+countNodes(n.r):0;}
+
+  // reconciling render with smooth transitions
+  let gLinks={}, gNodes={};
+  function renderAVL(marks={}){
+    const pos=layoutAVL();
+    ensureLayers();
+    const present=new Set();
+    // links
+    const linkKeys=new Set();
+    pos.forEach((p,v)=>{const n=p.node;['l','r'].forEach(s=>{if(n[s]){const cv=n[s].v;const k=v+'-'+cv;linkKeys.add(k);const cp=pos.get(cv);let ln=gLinks[k];if(!ln){ln=el('line',{class:'lnk'});layerL.appendChild(ln);gLinks[k]=ln;}ln.setAttribute('x1',p.x);ln.setAttribute('y1',p.y);ln.setAttribute('x2',cp.x);ln.setAttribute('y2',cp.y);}});});
+    for(const k in gLinks)if(!linkKeys.has(k)){gLinks[k].remove();delete gLinks[k];}
+    // nodes
+    pos.forEach((p,v)=>{present.add(v);let g=gNodes[v];if(!g){g=el('g',{class:'nodeG'});g.innerHTML=`<circle r="20"></circle><text class="v" y="0">${v}</text><text class="bf" x="26" y="-16"></text>`;layerN.appendChild(g);gNodes[v]=g;}
+      g.setAttribute('transform',`translate(${p.x},${p.y})`);
+      g.querySelector('.bf').textContent=bf(p.node)>0?'+'+bf(p.node):bf(p.node);
+      g.className.baseVal='nodeG'+(marks[v]?' '+marks[v]:'');
+    });
+    for(const v in gNodes)if(!present.has(+v)){gNodes[v].remove();delete gNodes[v];}
+  }
+  let layerL,layerN;
+  function ensureLayers(){if(!layerL){svg.innerHTML='';layerL=el('g',{});layerN=el('g',{});svg.appendChild(layerL);svg.appendChild(layerN);gLinks={};gNodes={};}}
+  function resetLayers(){layerL=null;svg.innerHTML='';}
+  function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+
+  async function doInsert(v){
+    lastRot='';avl=ins(avl,v);renderAVL({[v]:'hot'});
+    setRead(`<span class="hl">Insertado ${v}</span>\n`+(lastRot?`<span class="y">Reequilibrio:</span> ${lastRot}`:`Sin rotación: el árbol seguía equilibrado.`));
+    await sleep(700);renderAVL();
+  }
+  document.getElementById('avlIns').addEventListener('click',()=>{const v=parseInt(document.getElementById('avlVal').value);if(isNaN(v))return toast('Escribe un número');doInsert(v);document.getElementById('avlVal').value='';});
+  document.getElementById('avlVal').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')document.getElementById('avlIns').click();});
+  document.getElementById('avlRand').addEventListener('click',()=>doInsert(Math.floor(Math.random()*99)+1));
+  document.getElementById('avlClear').addEventListener('click',()=>{avl=null;resetLayers();renderAVL();setRead('Árbol vacío.');});
+  document.getElementById('avlBuild').addEventListener('click',async()=>{
+    const seq=document.getElementById('avlSeq').value.split(/[,\s]+/).map(x=>parseInt(x)).filter(x=>!isNaN(x));
+    avl=null;resetLayers();renderAVL();for(const v of seq){await doInsert(v);await sleep(260);}
+  });
+  document.getElementById('avlSeq').addEventListener('keydown',e=>e.stopPropagation());
+  function showTrav(t,name){if(!avl)return toast('Árbol vacío');const a=getTrav(t)||(t==='lvl'?levelOrder():[]);const arr=t==='lvl'?levelOrder():getTrav(t);setRead(`<span class="hl">Recorrido ${name}</span>\n`+arr.join('  →  '));}
+  document.getElementById('avlIn').onclick=()=>showTrav('in','inorden (queda ordenado ✓)');
+  document.getElementById('avlPre').onclick=()=>showTrav('pre','preorden');
+  document.getElementById('avlPost').onclick=()=>showTrav('post','posorden');
+  document.getElementById('avlLvl').onclick=()=>{if(!avl)return toast('Árbol vacío');setRead(`<span class="hl">Recorrido por niveles (anchura)</span>\n`+levelOrder().join('  →  '));};
+
+  // ---------------- HEAP ----------------
+  let heap=[], isMax=false;
+  const better=(a,b)=>isMax?a>b:a<b;
+  function heapLayout(){const pos=[];const n=heap.length;for(let i=0;i<n;i++){const lvl=Math.floor(Math.log2(i+1));const posIn=i-(2**lvl-1);const tot=2**lvl;const x=W*(posIn+0.5)/tot;const y=60+lvl*84;pos.push({x,y});}return pos;}
+  let hLinks={},hNodes={};
+  function renderHeap(marks={}){
+    ensureLayers();const pos=heapLayout();const present=new Set();const lk=new Set();
+    for(let i=1;i<heap.length;i++){const par=Math.floor((i-1)/2);const k=par+'_'+i;lk.add(k);let ln=hLinks[k];if(!ln){ln=el('line',{class:'lnk'});layerL.appendChild(ln);hLinks[k]=ln;}ln.setAttribute('x1',pos[par].x);ln.setAttribute('y1',pos[par].y);ln.setAttribute('x2',pos[i].x);ln.setAttribute('y2',pos[i].y);}
+    for(const k in hLinks)if(!lk.has(k)){hLinks[k].remove();delete hLinks[k];}
+    for(let i=0;i<heap.length;i++){present.add(i);let g=hNodes[i];if(!g){g=el('g',{class:'nodeG'});g.innerHTML=`<circle r="20"></circle><text class="v" y="0"></text><text class="bf" x="0" y="34"></text>`;layerN.appendChild(g);hNodes[i]=g;}
+      g.setAttribute('transform',`translate(${pos[i].x},${pos[i].y})`);g.querySelector('.v').textContent=heap[i];g.querySelector('.bf').textContent='['+i+']';g.className.baseVal='nodeG'+(marks[i]?' '+marks[i]:'');}
+    for(const k in hNodes)if(!present.has(+k)){hNodes[k].remove();delete hNodes[k];}
+    drawArr(marks);
+  }
+  function drawArr(marks={}){const box=document.getElementById('heapArr');box.innerHTML='';heap.forEach((v,i)=>{const c=document.createElement('div');c.className='cell'+(marks[i]?' hot':'');c.innerHTML=`<small>${i}</small>${v}`;box.appendChild(c);});}
+  async function siftUp(i){while(i>0){const p=Math.floor((i-1)/2);if(better(heap[i],heap[p])){renderHeap({[i]:'hot',[p]:'hot'});await sleep(450);[heap[i],heap[p]]=[heap[p],heap[i]];renderHeap({[p]:'hot'});await sleep(250);i=p;}else break;}}
+  async function siftDown(i){const n=heap.length;while(true){let b=i,l=2*i+1,r=2*i+2;if(l<n&&better(heap[l],heap[b]))b=l;if(r<n&&better(heap[r],heap[b]))b=r;if(b===i)break;renderHeap({[i]:'hot',[b]:'hot'});await sleep(450);[heap[i],heap[b]]=[heap[b],heap[i]];renderHeap({[b]:'hot'});await sleep(250);i=b;}}
+  async function heapInsert(v){heap.push(v);renderHeap({[heap.length-1]:'hot'});setRead(`<span class="hl">Insertado ${v}</span> al final, ahora flota hacia arriba…`);await sleep(400);await siftUp(heap.length-1);renderHeap();setRead(`<span class="g">${v} colocado.</span> El ${isMax?'máximo':'mínimo'} siempre queda en la raíz.`);}
+  async function heapPop(){if(!heap.length)return toast('Montículo vacío');const root=heap[0];setRead(`<span class="hl">Extraída la raíz: ${root}</span>\nEl último sube a la raíz y se hunde…`);heap[0]=heap[heap.length-1];heap.pop();renderHeap(heap.length?{0:'hot'}:{});await sleep(450);await siftDown(0);renderHeap();setRead(`<span class="g">Raíz extraída: ${root}.</span> El montículo quedó reorganizado.`);}
+  document.getElementById('heapMax').addEventListener('change',e=>{isMax=e.target.checked;if(heap.length){const arr=[...heap];heap=[];resetLayers();for(const v of arr){heap.push(v);}buildHeap();renderHeap();}toast(isMax?'Montículo de máximos':'Montículo de mínimos');});
+  document.getElementById('heapIns').addEventListener('click',()=>{const v=parseInt(document.getElementById('heapVal').value);if(isNaN(v))return toast('Escribe un número');heapInsert(v);document.getElementById('heapVal').value='';});
+  document.getElementById('heapVal').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')document.getElementById('heapIns').click();});
+  document.getElementById('heapPop').addEventListener('click',heapPop);
+  document.getElementById('heapRand').addEventListener('click',()=>heapInsert(Math.floor(Math.random()*99)+1));
+  document.getElementById('heapClear').addEventListener('click',()=>{heap=[];resetLayers();renderHeap();setRead('Montículo vacío.');});
+  function buildHeap(){for(let i=Math.floor(heap.length/2)-1;i>=0;i--){let x=i,n=heap.length;while(true){let b=x,l=2*x+1,r=2*x+2;if(l<n&&better(heap[l],heap[b]))b=l;if(r<n&&better(heap[r],heap[b]))b=r;if(b===x)break;[heap[x],heap[b]]=[heap[b],heap[x]];x=b;}}}
+  document.getElementById('heapBuild').addEventListener('click',()=>{const seq=document.getElementById('heapSeq').value.split(/[,\s]+/).map(x=>parseInt(x)).filter(x=>!isNaN(x));heap=seq;resetLayers();buildHeap();renderHeap();setRead(`<span class="hl">Heapify completo</span>\nSe construyó el montículo en O(n) reorganizando de abajo hacia arriba.`);});
+  document.getElementById('heapSeq').addEventListener('keydown',e=>e.stopPropagation());
+
+  // ---------------- sub toggle ----------------
+  let view='avl';
+  function switchView(v){view=v;document.getElementById('tAVL').classList.toggle('on',v==='avl');document.getElementById('tHeap').classList.toggle('on',v==='heap');document.getElementById('ctlAVL').style.display=v==='avl'?'block':'none';document.getElementById('ctlHeap').style.display=v==='heap'?'block':'none';resetLayers();if(v==='avl')renderAVL();else renderHeap();setRead(v==='avl'?'Inserta valores en el AVL.':'Inserta valores en el montículo.');}
+  document.getElementById('tAVL').onclick=()=>switchView('avl');
+  document.getElementById('tHeap').onclick=()=>switchView('heap');
+
+  // ---------------- GAME: predict rotation ----------------
+  // Build a balanced AVL from a base set, then choose an insert that triggers a known rotation
+  function rotationOf(tree,v){
+    // simulate insertion on a deep clone, capturing the FIRST rotation
+    let cap='';
+    function cl(n){return n?{v:n.v,l:cl(n.l),r:cl(n.r),h:n.h}:null;}
+    function Hx(n){return n?n.h:0;} function ux(n){n.h=1+Math.max(Hx(n.l),Hx(n.r));} function bx(n){return n?Hx(n.l)-Hx(n.r):0;}
+    function rR(y){const x=y.l;y.l=x.r;x.r=y;ux(y);ux(x);return x;} function rL(x){const y=x.r;x.r=y.l;y.l=x;ux(x);ux(y);return y;}
+    function go(node){
+      if(!node)return mk(v);
+      if(v<node.v)node.l=go(node.l);else if(v>node.v)node.r=go(node.r);else return node;
+      ux(node);const b=bx(node);
+      if(b>1&&v<node.l.v){if(!cap)cap='LL';return rR(node);}
+      if(b<-1&&v>node.r.v){if(!cap)cap='RR';return rL(node);}
+      if(b>1&&v>node.l.v){if(!cap)cap='LR';node.l=rL(node.l);return rR(node);}
+      if(b<-1&&v<node.r.v){if(!cap)cap='RL';node.r=rR(node.r);return rL(node);}
+      return node;
+    }
+    go(cl(tree));return cap||'NONE';
+  }
+  let gameTree=null,gameV=0,gScore=0,gRound=0,gAns='';
+  function buildSmallAVL(){let t=null;const used=new Set();const k=3+Math.floor(Math.random()*2);while(used.size<k){const x=10+Math.floor(Math.random()*80);if(used.has(x))continue;used.add(x);
+    // insert with rebalancing into t
+    t=(function insLocal(node,v){if(!node)return mk(v);if(v<node.v)node.l=insLocal(node.l,v);else if(v>node.v)node.r=insLocal(node.r,v);else return node;upd(node);const b=bf(node);if(b>1&&v<node.l.v)return rotR(node);if(b<-1&&v>node.r.v)return rotL(node);if(b>1&&v>node.l.v){node.l=rotL(node.l);return rotR(node);}if(b<-1&&v<node.r.v){node.r=rotR(node.r);return rotL(node);}return node;})(t,x);}
+    return t;}
+  function allValues(n,a=[]){if(n){allValues(n.l,a);a.push(n.v);allValues(n.r,a);}return a;}
+  function newRound(){
+    document.getElementById('gFb').style.display='none';
+    // try to find an insert producing a non-trivial rotation often
+    let tries=0,t,v,r;
+    do{t=buildSmallAVL();const vals=allValues(t);const set=new Set(vals);do{v=5+Math.floor(Math.random()*90);}while(set.has(v));r=rotationOf(t,v);tries++;}while(r==='NONE'&&tries<40&&Math.random()<0.7);
+    gameTree=t;gameV=v;gAns=r;gRound++;
+    gNodes={};hNodes={};resetLayers();
+    // render gameTree using AVL renderer
+    const save=avl;avl=t;renderAVL();avl=save;
+    document.getElementById('gRound').textContent=gRound;
+    document.getElementById('gPrompt').innerHTML=`Va a entrar el valor <b style="color:var(--accent)">${v}</b>. ¿Qué rotación se necesita?`;
+    const opts=['LL (derecha)','RR (izquierda)','LR (izq–der)','RL (der–izq)','Ninguna'];
+    const map={'LL (derecha)':'LL','RR (izquierda)':'RR','LR (izq–der)':'LR','RL (der–izq)':'RL','Ninguna':'NONE'};
+    const box=document.getElementById('gOpts');box.innerHTML='';
+    opts.forEach(o=>{const b=document.createElement('button');b.className='gopt';b.textContent=o;b.onclick=()=>answer(map[o],b);box.appendChild(b);});
+  }
+  function answer(choice,btn){
+    document.querySelectorAll('.gopt').forEach(b=>b.onclick=null);
+    const fb=document.getElementById('gFb');fb.style.display='block';
+    const names={LL:'LL · rotación simple a la derecha',RR:'RR · rotación simple a la izquierda',LR:'LR · doble (izquierda en el hijo, luego derecha)',RL:'RL · doble (derecha en el hijo, luego izquierda)',NONE:'Ninguna · el árbol seguía equilibrado'};
+    if(choice===gAns){btn.classList.add('right');gScore++;fb.innerHTML=`<span class="g">¡Correcto!</span> La respuesta era <b>${names[gAns]}</b>.`;}
+    else{btn.classList.add('wrong');document.querySelectorAll('.gopt').forEach(b=>{const m={'LL (derecha)':'LL','RR (izquierda)':'RR','LR (izq–der)':'LR','RL (der–izq)':'RL','Ninguna':'NONE'}[b.textContent];if(m===gAns)b.classList.add('right');});fb.innerHTML=`<span class="w">No exactamente.</span> Era <b>${names[gAns]}</b>. Inserta ${gameV} y observa dónde se rompe el balance.`;}
+    document.getElementById('gScore').textContent=gScore;
+    // animate the real insertion on the shown tree
+    avl=gameTree;setTimeout(()=>{doInsert(gameV);},700);
+  }
+  document.getElementById('gNew').addEventListener('click',newRound);
+
+  // ---------------- top mode ----------------
+  document.getElementById('mSim').addEventListener('click',()=>{document.getElementById('mSim').classList.add('on');document.getElementById('mGame').classList.remove('on');document.getElementById('panelSim').style.display='flex';document.getElementById('panelGame').style.display='none';document.getElementById('gamebar').classList.remove('show');resetLayers();switchView(view);});
+  document.getElementById('mGame').addEventListener('click',()=>{document.getElementById('mGame').classList.add('on');document.getElementById('mSim').classList.remove('on');document.getElementById('panelGame').style.display='flex';document.getElementById('panelSim').style.display='none';document.getElementById('gamebar').classList.add('show');gScore=0;gRound=0;document.getElementById('gScore').textContent=0;newRound();});
+
+  // init demo
+  document.getElementById('avlSeq').value='30,20,40,10,25,35,50,5';
+  document.getElementById('avlBuild').click();
+})();
+</script>
+</body>
+</html>

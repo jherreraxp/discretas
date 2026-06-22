@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSA · César · Afín — La evolución de los cifrados</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(91,73,240,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(91,73,240,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0}.-top-16{top:-4rem}.left-0{left:0}.left-1\/2{left:50%}.left-6{left:1.5rem}.right-6{right:1.5rem}.top-1\/2{top:50%}.top-4{top:1rem}.top-\[15\%\]{top:15%}.-z-10{z-index:-10}.z-20{z-index:20}.z-30{z-index:30}.z-40{z-index:40}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.my-4{margin-top:1rem;margin-bottom:1rem}.mb-12{margin-bottom:3rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.mt-2{margin-top:.5rem}.mt-8{margin-top:2rem}.flex{display:flex}.grid{display:grid}.h-0\.5{height:.125rem}.h-10{height:2.5rem}.h-12{height:3rem}.h-2{height:.5rem}.h-3{height:.75rem}.h-40{height:10rem}.h-96{height:24rem}.h-full{height:100%}.h-px{height:1px}.min-h-screen{min-height:100vh}.w-12{width:3rem}.w-40{width:10rem}.w-80{width:20rem}.w-full{width:100%}.max-w-4xl{max-width:56rem}.max-w-6xl{max-width:72rem}.max-w-lg{max-width:32rem}.flex-1{flex:1 1 0%}.-translate-x-1\/2{--tw-translate-x:-50%}.-translate-x-1\/2,.-translate-y-1\/2{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-translate-y-1\/2{--tw-translate-y:-50%}.scale-100{--tw-scale-x:1;--tw-scale-y:1}.scale-100,.scale-110{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.scale-110{--tw-scale-x:1.1;--tw-scale-y:1.1}.scale-125{--tw-scale-x:1.25;--tw-scale-y:1.25}.scale-125,.transform{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes bounce{0%,to{transform:translateY(-25%);animation-timing-function:cubic-bezier(.8,0,1,1)}50%{transform:none;animation-timing-function:cubic-bezier(0,0,.2,1)}}.animate-bounce{animation:bounce 1s infinite}.cursor-pointer{cursor:pointer}.appearance-none{-webkit-appearance:none;-moz-appearance:none;appearance:none}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-2{gap:.5rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}.space-y-3>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.75rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.75rem*var(--tw-space-y-reverse))}.space-y-4>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem*var(--tw-space-y-reverse))}.space-y-6>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem*var(--tw-space-y-reverse))}.space-y-8>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(2rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(2rem*var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.rounded{border-radius:.25rem}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-\[2\.5rem\]{border-radius:2.5rem}.rounded-\[2rem\]{border-radius:2rem}.rounded-\[3rem\]{border-radius:3rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-4{border-width:4px}.border-8{border-width:8px}.border-y{border-top-width:1px;border-bottom-width:1px}.border-dashed{border-style:dashed}.border-amber-300{--tw-border-opacity:1;border-color:rgb(252 211 77/var(--tw-border-opacity,1))}.border-amber-400{--tw-border-opacity:1;border-color:rgb(251 191 36/var(--tw-border-opacity,1))}.border-blue-100{--tw-border-opacity:1;border-color:rgb(219 234 254/var(--tw-border-opacity,1))}.border-blue-200{--tw-border-opacity:1;border-color:rgb(191 219 254/var(--tw-border-opacity,1))}.border-blue-500{--tw-border-opacity:1;border-color:rgb(125 111 245/var(--tw-border-opacity,1))}.border-emerald-100{--tw-border-opacity:1;border-color:rgb(209 250 229/var(--tw-border-opacity,1))}.border-emerald-300{--tw-border-opacity:1;border-color:rgb(110 231 183/var(--tw-border-opacity,1))}.border-green-200{--tw-border-opacity:1;border-color:rgb(187 247 208/var(--tw-border-opacity,1))}.border-indigo-300{--tw-border-opacity:1;border-color:rgb(165 180 252/var(--tw-border-opacity,1))}.border-indigo-400{--tw-border-opacity:1;border-color:rgb(129 140 248/var(--tw-border-opacity,1))}.border-red-200{--tw-border-opacity:1;border-color:rgb(254 202 202/var(--tw-border-opacity,1))}.border-red-500{--tw-border-opacity:1;border-color:rgb(239 68 68/var(--tw-border-opacity,1))}.border-slate-100{--tw-border-opacity:1;border-color:rgb(241 245 249/var(--tw-border-opacity,1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240/var(--tw-border-opacity,1))}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85/var(--tw-border-opacity,1))}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59/var(--tw-border-opacity,1))}.border-slate-900{--tw-border-opacity:1;border-color:rgb(15 23 42/var(--tw-border-opacity,1))}.bg-amber-200{--tw-bg-opacity:1;background-color:rgb(253 230 138/var(--tw-bg-opacity,1))}.bg-amber-500{--tw-bg-opacity:1;background-color:rgb(245 158 11/var(--tw-bg-opacity,1))}.bg-amber-600{--tw-bg-opacity:1;background-color:rgb(217 119 6/var(--tw-bg-opacity,1))}.bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255/var(--tw-bg-opacity,1))}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(91 73 240/var(--tw-bg-opacity,1))}.bg-blue-900{--tw-bg-opacity:1;background-color:rgb(30 58 138/var(--tw-bg-opacity,1))}.bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245/var(--tw-bg-opacity,1))}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129/var(--tw-bg-opacity,1))}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105/var(--tw-bg-opacity,1))}.bg-emerald-700{--tw-bg-opacity:1;background-color:rgb(4 120 87/var(--tw-bg-opacity,1))}.bg-green-50{--tw-bg-opacity:1;background-color:rgb(240 253 244/var(--tw-bg-opacity,1))}.bg-indigo-500{--tw-bg-opacity:1;background-color:rgb(99 102 241/var(--tw-bg-opacity,1))}.bg-indigo-600{--tw-bg-opacity:1;background-color:rgb(79 70 229/var(--tw-bg-opacity,1))}.bg-red-50{--tw-bg-opacity:1;background-color:rgb(254 242 242/var(--tw-bg-opacity,1))}.bg-red-600{--tw-bg-opacity:1;background-color:rgb(220 38 38/var(--tw-bg-opacity,1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249/var(--tw-bg-opacity,1))}.bg-slate-200{--tw-bg-opacity:1;background-color:rgb(226 232 240/var(--tw-bg-opacity,1))}.bg-slate-300{--tw-bg-opacity:1;background-color:rgb(203 213 225/var(--tw-bg-opacity,1))}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252/var(--tw-bg-opacity,1))}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59/var(--tw-bg-opacity,1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42/var(--tw-bg-opacity,1))}.bg-slate-950{--tw-bg-opacity:1;background-color:rgb(2 6 23/var(--tw-bg-opacity,1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity,1))}.bg-white\/95{background-color:hsla(0,0%,100%,.95)}.bg-\[radial-gradient\(\#5B49F0_2px\2c transparent_2px\)\]{background-image:radial-gradient(#5B49F0 2px,transparent 0)}.p-1{padding:.25rem}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-8{padding-left:2rem;padding-right:2rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-4{padding-top:1rem;padding-bottom:1rem}.text-center{text-align:center}.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace}.font-sans{font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-5xl{font-size:3rem;line-height:1}.text-\[10px\]{font-size:10px}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.uppercase{text-transform:uppercase}.leading-relaxed{line-height:1.625}.tracking-\[0\.3em\]{letter-spacing:.3em}.tracking-tight{letter-spacing:-.025em}.tracking-tighter{letter-spacing:-.05em}.tracking-widest{letter-spacing:.1em}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6/var(--tw-text-opacity,1))}.text-blue-500{--tw-text-opacity:1;color:rgb(125 111 245/var(--tw-text-opacity,1))}.text-blue-600{--tw-text-opacity:1;color:rgb(91 73 240/var(--tw-text-opacity,1))}.text-blue-800{--tw-text-opacity:1;color:rgb(30 64 175/var(--tw-text-opacity,1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153/var(--tw-text-opacity,1))}.text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105/var(--tw-text-opacity,1))}.text-green-600{--tw-text-opacity:1;color:rgb(22 163 74/var(--tw-text-opacity,1))}.text-green-800{--tw-text-opacity:1;color:rgb(22 101 52/var(--tw-text-opacity,1))}.text-red-500{--tw-text-opacity:1;color:rgb(239 68 68/var(--tw-text-opacity,1))}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38/var(--tw-text-opacity,1))}.text-red-800{--tw-text-opacity:1;color:rgb(153 27 27/var(--tw-text-opacity,1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184/var(--tw-text-opacity,1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139/var(--tw-text-opacity,1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105/var(--tw-text-opacity,1))}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59/var(--tw-text-opacity,1))}.text-slate-900{--tw-text-opacity:1;color:rgb(15 23 42/var(--tw-text-opacity,1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}.accent-amber-600{accent-color:#d97706}.opacity-10{opacity:.1}.opacity-70{opacity:.7}.opacity-80{opacity:.8}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgba(0,0,0,.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-\[0_0_40px_rgba\(245\2c 158\2c 11\2c 0\.6\)\]{--tw-shadow:0 0 40px rgba(245,158,11,.6);--tw-shadow-colored:0 0 40px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-\[0_0_40px_rgba\(79\2c 70\2c 229\2c 0\.6\)\]{--tw-shadow:0 0 40px rgba(79,70,229,.6);--tw-shadow-colored:0 0 40px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-\[0_30px_60px_rgba\(0\2c 0\2c 0\2c 0\.5\)\]{--tw-shadow:0 30px 60px rgba(0,0,0,.5);--tw-shadow-colored:0 30px 60px var(--tw-shadow-color)}.shadow-\[0_30px_60px_rgba\(0\2c 0\2c 0\2c 0\.5\)\],.shadow-inner{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgba(0,0,0,.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color),0 4px 6px -4px var(--tw-shadow-color)}.shadow-lg,.shadow-md{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color),0 2px 4px -2px var(--tw-shadow-color)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgba(0,0,0,.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color)}.shadow-sm,.shadow-xl{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgba(0,0,0,.1),0 8px 10px -6px rgba(0,0,0,.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color),0 8px 10px -6px var(--tw-shadow-color)}.drop-shadow-\[0_0_10px_rgba\(239\2c 68\2c 68\2c 0\.8\)\]{--tw-drop-shadow:drop-shadow(0 0 10px rgba(239,68,68,.8));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.duration-1000{transition-duration:1s}.duration-500{transition-duration:.5s}.duration-\[5000ms\]{transition-duration:5s}.ease-in-out{transition-timing-function:cubic-bezier(.4,0,.2,1)}.\[background-size\:30px_30px\]{background-size:30px 30px}.hover\:bg-slate-50:hover{--tw-bg-opacity:1;background-color:rgb(248 250 252/var(--tw-bg-opacity,1))}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59/var(--tw-bg-opacity,1))}.focus\:border-blue-500:focus{--tw-border-opacity:1;border-color:rgb(125 111 245/var(--tw-border-opacity,1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.disabled\:opacity-20:disabled{opacity:.2}.disabled\:opacity-30:disabled{opacity:.3}@media (min-width:768px){.md\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.md\:flex-row{flex-direction:row}.md\:p-8{padding:2rem}}@media (min-width:1024px){.lg\:col-span-3{grid-column:span 3/span 3}.lg\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}}</style>
+<style>html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif}#root{min-height:100vh}</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="vendor/react.min.js"></script>
+<script src="vendor/react-dom.min.js"></script>
+<script>window.react=window.React;</script>
+<script src="vendor/lucide-react.min.js"></script>
+<script>
+const {
+  useState,
+  useEffect,
+  useMemo
+} = React;
+const {
+  Lock,
+  Unlock,
+  Key,
+  RefreshCw,
+  ArrowRight,
+  Info,
+  Zap,
+  ShieldCheck,
+  ChevronRight,
+  Binary,
+  Package,
+  Send,
+  CheckCircle2,
+  AlertTriangle,
+  Cpu,
+  HelpCircle,
+  Skull,
+  Layers,
+  ShieldAlert,
+  Eye,
+  Monitor,
+  Laptop,
+  Mail,
+  Search,
+  VenetianMask,
+  FastForward
+} = LucideReact;
+const App = () => {
+  // --- Estados de la Aplicación ---
+  const [mode, setMode] = useState('rsa'); // 'rsa' | 'caesar' | 'affine'
+  const [p, setP] = useState(17);
+  const [q, setQ] = useState(19);
+  const [e, setE] = useState(7);
+  const [caesarShift, setCaesarShift] = useState(3);
+
+  // Estados para Afín (siguiendo la imagen: a=5, b=2, m=27)
+  const [affineA, setAffineA] = useState(5);
+  const [affineB, setAffineB] = useState(2);
+  const [alphabetSize, setAlphabetSize] = useState(27); // m = 27 (alfabeto castellano)
+
+  const [inputText, setInputText] = useState("HOLA");
+  const [step, setStep] = useState(1);
+  const [animStage, setAnimStage] = useState('idle');
+  const [showResult, setShowResult] = useState(false);
+
+  // --- Utilidades Matemáticas ---
+  const gcd = (a, b) => {
+    while (b) {
+      a %= b;
+      [a, b] = [b, a];
+    }
+    return a;
+  };
+  const findInverse = (a, m) => {
+    for (let x = 1; x < m; x++) {
+      if (BigInt(a) * BigInt(x) % BigInt(m) === BigInt(1)) return x;
+    }
+    return null;
+  };
+
+  // --- Cálculos RSA ---
+  const n = useMemo(() => p * q, [p, q]);
+  const phi = useMemo(() => (p - 1) * (q - 1), [p, q]);
+  const dRSA = useMemo(() => findInverse(e, phi), [e, phi]);
+
+  // --- Cálculos Afín ---
+  const aInverse = useMemo(() => findInverse(affineA, alphabetSize), [affineA, alphabetSize]);
+  const powerMod = (base, exp, mod) => {
+    let res = BigInt(1);
+    let b = BigInt(base);
+    let ex = BigInt(exp);
+    let m = BigInt(mod);
+    const zero = BigInt(0);
+    const one = BigInt(1);
+    const two = BigInt(2);
+    while (ex > zero) {
+      if (ex % two === one) res = res * b % m;
+      b = b * b % m;
+      ex = ex / two;
+    }
+    return Number(res);
+  };
+
+  // Mapeo de letras para el modo Afín (0-26 como en la imagen)
+  const getAlphabetIndex = char => {
+    const code = char.toUpperCase().charCodeAt(0);
+    if (code >= 65 && code <= 78) return code - 65; // A-N -> 0-13
+    if (code === 209 || code === 241) return 14; // Ñ
+    if (code >= 79 && code <= 90) return code - 64; // O-Z -> 15-26
+    return 0;
+  };
+  const getCharFromIndex = idx => {
+    const i = (idx + 27) % 27;
+    if (i <= 13) return String.fromCharCode(65 + i);
+    if (i === 14) return 'Ñ';
+    return String.fromCharCode(64 + i);
+  };
+
+  // --- Procesamiento de Datos ---
+  const processedData = useMemo(() => {
+    return inputText.split('').map(char => {
+      const mVal = mode === 'affine' ? getAlphabetIndex(char) : char.charCodeAt(0);
+      let cVal, decodedVal, decodedChar;
+      if (mode === 'rsa') {
+        cVal = powerMod(mVal, e, n);
+        decodedVal = powerMod(cVal, dRSA, n);
+        decodedChar = String.fromCharCode(decodedVal);
+      } else if (mode === 'affine') {
+        // C(x) = (ax + b) mod m
+        cVal = (affineA * mVal + affineB) % alphabetSize;
+        // x = a^-1 * (C - b) mod m
+        decodedVal = aInverse * (cVal - affineB + alphabetSize) % alphabetSize;
+        decodedChar = getCharFromIndex(decodedVal);
+      } else {
+        // César
+        cVal = (mVal + caesarShift) % 256;
+        decodedVal = (cVal - caesarShift + 256) % 256;
+        decodedChar = String.fromCharCode(decodedVal);
+      }
+      return {
+        char,
+        mVal,
+        cVal,
+        decodedVal,
+        decodedChar,
+        isValid: mode === 'rsa' ? mVal < n : true
+      };
+    });
+  }, [inputText, mode, e, dRSA, n, caesarShift, affineA, affineB, alphabetSize, aInverse]);
+  const startTransfer = () => {
+    setShowResult(false);
+    setAnimStage('packing');
+    setTimeout(() => setAnimStage('encrypting'), 1200);
+    setTimeout(() => setAnimStage('traveling'), 4000);
+    setTimeout(() => setAnimStage('decrypting'), 9500);
+    setTimeout(() => setAnimStage('unpacking'), 12500);
+    setTimeout(() => {
+      setAnimStage('done');
+      setShowResult(true);
+    }, 14500);
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "min-h-screen bg-slate-100 p-4 md:p-8 font-sans text-slate-800"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-6xl mx-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex bg-white p-1 rounded-2xl shadow-sm mb-8 max-w-lg mx-auto border border-slate-200"
+  }, [{
+    id: 'caesar',
+    label: 'César',
+    icon: /*#__PURE__*/React.createElement(Layers, {
+      size: 14
+    }),
+    color: 'bg-amber-600'
+  }, {
+    id: 'affine',
+    label: 'Afín',
+    icon: /*#__PURE__*/React.createElement(FastForward, {
+      size: 14
+    }),
+    color: 'bg-emerald-600'
+  }, {
+    id: 'rsa',
+    label: 'RSA',
+    icon: /*#__PURE__*/React.createElement(ShieldCheck, {
+      size: 14
+    }),
+    color: 'bg-blue-600'
+  }].map(m => /*#__PURE__*/React.createElement("button", {
+    key: m.id,
+    onClick: () => {
+      setMode(m.id);
+      setStep(1);
+      setAnimStage('idle');
+      setShowResult(false);
+      if (m.id === 'affine') setInputText("HOLA");
+    },
+    className: `flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${mode === m.id ? `${m.color} text-white shadow-md` : 'text-slate-500 hover:bg-slate-50'}`
+  }, m.icon, " ", m.label))), /*#__PURE__*/React.createElement("header", {
+    className: "mb-8 text-center"
+  }, /*#__PURE__*/React.createElement("h1", {
+    className: "text-3xl font-extrabold text-slate-900 flex items-center justify-center gap-2"
+  }, mode === 'rsa' ? /*#__PURE__*/React.createElement(ShieldCheck, {
+    className: "text-blue-600"
+  }) : mode === 'affine' ? /*#__PURE__*/React.createElement(FastForward, {
+    className: "text-emerald-600"
+  }) : /*#__PURE__*/React.createElement(ShieldAlert, {
+    className: "text-amber-600"
+  }), mode === 'rsa' ? 'Cifrado RSA (Asimétrico)' : mode === 'affine' ? 'Cifrado Afín (Función Lineal)' : 'Cifrado César (Sustitución)'), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-500 mt-2"
+  }, mode === 'rsa' ? 'Seguridad avanzada con Inverso Modular en un módulo secreto.' : mode === 'affine' ? 'Evolución del César usando multiplicación y suma modular.' : 'La base de la criptografía: un simple desplazamiento.')), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between mb-12 relative px-4 max-w-4xl mx-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-1/2 left-0 w-full h-0.5 bg-slate-300 -z-10 -translate-y-1/2"
+  }), [1, 2, 3].map(s => /*#__PURE__*/React.createElement("button", {
+    key: s,
+    onClick: () => {
+      setStep(s);
+      setAnimStage('idle');
+      setShowResult(false);
+    },
+    className: `w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all ${step >= s ? (mode === 'rsa' ? 'bg-blue-600' : mode === 'affine' ? 'bg-emerald-600' : 'bg-amber-600') + ' text-white scale-110 shadow-lg' : 'bg-slate-300 text-slate-500'}`
+  }, s))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 lg:grid-cols-4 gap-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-3 space-y-6"
+  }, step === 1 && /*#__PURE__*/React.createElement("div", {
+    className: "bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200 animate-in fade-in"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl font-bold mb-6 flex items-center gap-2 uppercase tracking-tight"
+  }, /*#__PURE__*/React.createElement(Cpu, {
+    size: 20,
+    className: "text-slate-600"
+  }), "Configuraci\xF3n de Par\xE1metros"), mode === 'rsa' && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-600"
+  }, "RSA: Universo ", /*#__PURE__*/React.createElement("b", null, "n"), " generado por el producto de dos primos."), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-4 bg-slate-50 rounded-2xl border"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "text-[10px] font-bold text-slate-400 uppercase"
+  }, "Primo P"), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-2 mt-2"
+  }, [11, 13, 17, 19].map(v => /*#__PURE__*/React.createElement("button", {
+    key: v,
+    onClick: () => setP(v),
+    className: `px-2 py-1 rounded font-mono ${p === v ? 'bg-blue-600 text-white' : 'bg-white border'}`
+  }, v)))), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 bg-slate-50 rounded-2xl border"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "text-[10px] font-bold text-slate-400 uppercase"
+  }, "Primo Q"), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-2 mt-2"
+  }, [17, 19, 23, 29].map(v => /*#__PURE__*/React.createElement("button", {
+    key: v,
+    onClick: () => setQ(v),
+    disabled: v === p,
+    className: `px-2 py-1 rounded font-mono ${q === v ? 'bg-blue-600 text-white' : 'bg-white border disabled:opacity-20'}`
+  }, v))))), /*#__PURE__*/React.createElement("div", {
+    className: "p-6 bg-blue-900 text-white rounded-3xl text-center shadow-inner"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm opacity-70 uppercase font-bold tracking-widest"
+  }, "Universo n = P \xD7 Q"), /*#__PURE__*/React.createElement("div", {
+    className: "text-5xl font-black"
+  }, n))), mode === 'affine' && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-600"
+  }, "Af\xEDn: Usamos la funci\xF3n ", /*#__PURE__*/React.createElement("b", null, "C(x) = ax + b (mod m)"), ". ", /*#__PURE__*/React.createElement("br", null), "Condici\xF3n obligatoria: ", /*#__PURE__*/React.createElement("b", null, "mcd(a, m) = 1"), "."), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-3 gap-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-4 bg-slate-50 rounded-2xl border"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "text-[10px] font-bold text-slate-400 uppercase"
+  }, "Multiplicador (a)"), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-2 mt-2"
+  }, [2, 4, 5, 7, 8].map(v => /*#__PURE__*/React.createElement("button", {
+    key: v,
+    onClick: () => setAffineA(v),
+    className: `px-2 py-1 rounded font-mono ${affineA === v ? 'bg-emerald-600 text-white' : 'bg-white border'}`
+  }, v)))), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 bg-slate-50 rounded-2xl border"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "text-[10px] font-bold text-slate-400 uppercase"
+  }, "Clave (b)"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: affineB,
+    onChange: e => setAffineB(parseInt(e.target.value)),
+    className: "w-full mt-2 p-1 border rounded text-center font-mono"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 bg-slate-50 rounded-2xl border"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "text-[10px] font-bold text-slate-400 uppercase"
+  }, "Alfabeto (m)"), /*#__PURE__*/React.createElement("div", {
+    className: "text-2xl font-black text-center mt-2"
+  }, alphabetSize))), gcd(affineA, alphabetSize) !== 1 && /*#__PURE__*/React.createElement("div", {
+    className: "bg-red-50 text-red-600 p-3 rounded-xl text-xs font-bold flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement(AlertTriangle, {
+    size: 14
+  }), " \xA1Error! 'a' debe ser coprimo con ", alphabetSize, ". Selecciona otro valor."), /*#__PURE__*/React.createElement("div", {
+    className: "p-6 bg-emerald-700 text-white rounded-3xl text-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm opacity-70 uppercase font-bold tracking-widest"
+  }, "Funci\xF3n Aplicada"), /*#__PURE__*/React.createElement("div", {
+    className: "text-4xl font-black"
+  }, "C(x) = ", affineA, "x + ", affineB, " (mod ", alphabetSize, ")"))), mode === 'caesar' && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-600"
+  }, "Ajusta el desplazamiento fijo (K) para el cifrado C\xE9sar:"), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: "1",
+    max: "25",
+    value: caesarShift,
+    onChange: e => setCaesarShift(parseInt(e.target.value)),
+    className: "w-full h-3 bg-amber-200 rounded-lg appearance-none cursor-pointer accent-amber-600"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "p-6 bg-amber-600 text-white rounded-3xl text-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm opacity-70 uppercase font-bold tracking-widest"
+  }, "K = ", caesarShift), /*#__PURE__*/React.createElement("div", {
+    className: "text-5xl font-black"
+  }, caesarShift))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setStep(2),
+    disabled: mode === 'affine' && gcd(affineA, alphabetSize) !== 1,
+    className: "mt-8 w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all disabled:opacity-30"
+  }, "Siguiente Paso ", /*#__PURE__*/React.createElement(ArrowRight, {
+    size: 18
+  }))), step === 2 && /*#__PURE__*/React.createElement("div", {
+    className: "bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200 animate-in slide-in-from-right"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl font-bold mb-6 flex items-center gap-2 uppercase tracking-tight"
+  }, /*#__PURE__*/React.createElement(Key, {
+    size: 20,
+    className: "text-slate-600"
+  }), "Generaci\xF3n de Llaves"), mode === 'rsa' ? /*#__PURE__*/React.createElement("div", {
+    className: "space-y-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-4 bg-blue-50 border border-blue-100 rounded-2xl text-xs text-center"
+  }, "La llave ", /*#__PURE__*/React.createElement("b", null, "d"), " es el inverso modular de ", /*#__PURE__*/React.createElement("b", null, "e"), " sobre ", /*#__PURE__*/React.createElement("b", null, "\u03C6(", phi, ")"), "."), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col md:flex-row items-center gap-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 p-6 bg-amber-500 text-white rounded-3xl text-center shadow-lg w-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-bold uppercase opacity-80 mb-2"
+  }, "Llave P\xFAblica (e)"), /*#__PURE__*/React.createElement("div", {
+    className: "text-5xl font-black"
+  }, e)), /*#__PURE__*/React.createElement(RefreshCw, {
+    size: 40,
+    className: "text-blue-500 animate-spin-slow"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 p-6 bg-indigo-600 text-white rounded-3xl text-center shadow-lg w-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-bold uppercase opacity-80 mb-2"
+  }, "Llave Privada (d)"), /*#__PURE__*/React.createElement("div", {
+    className: "text-5xl font-black"
+  }, dRSA)))) : mode === 'affine' ? /*#__PURE__*/React.createElement("div", {
+    className: "space-y-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-xs text-center"
+  }, "Para descifrar, necesitamos el ", /*#__PURE__*/React.createElement("b", null, "Inverso Modular de a (", affineA, ")"), " m\xF3dulo ", alphabetSize, "."), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col md:flex-row items-center gap-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 p-6 bg-emerald-500 text-white rounded-3xl text-center shadow-lg w-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-bold uppercase opacity-80 mb-2"
+  }, "Valor de 'a'"), /*#__PURE__*/React.createElement("div", {
+    className: "text-5xl font-black"
+  }, affineA)), /*#__PURE__*/React.createElement(RefreshCw, {
+    size: 40,
+    className: "text-emerald-400 animate-spin-slow"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 p-6 bg-indigo-600 text-white rounded-3xl text-center shadow-lg w-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-bold uppercase opacity-80 mb-2"
+  }, "Inverso (a*)"), /*#__PURE__*/React.createElement("div", {
+    className: "text-5xl font-black"
+  }, aInverse))), /*#__PURE__*/React.createElement("p", {
+    className: "text-center text-xs font-mono"
+  }, "(", affineA, " \xD7 ", aInverse, ") mod ", alphabetSize, " = 1")) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-8 text-center"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-500"
+  }, "En C\xE9sar, el emisor y el receptor comparten la misma llave simple."), /*#__PURE__*/React.createElement("div", {
+    className: "w-40 h-40 bg-amber-600 text-white rounded-full flex flex-col items-center justify-center shadow-2xl border-8 border-amber-400 mx-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-bold uppercase opacity-80"
+  }, "LLAVE"), /*#__PURE__*/React.createElement("div", {
+    className: "text-5xl font-black"
+  }, caesarShift))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setStep(3),
+    className: "mt-8 w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800"
+  }, "Ver Laboratorio de Env\xEDo ", /*#__PURE__*/React.createElement(ArrowRight, {
+    size: 18
+  }))), step === 3 && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 flex gap-4"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: inputText,
+    onChange: e => setInputText(e.target.value.toUpperCase().slice(0, 6)),
+    className: "flex-1 p-4 text-2xl font-black rounded-2xl border-2 focus:border-blue-500 focus:outline-none tracking-widest uppercase",
+    placeholder: "MENSAJE"
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: startTransfer,
+    disabled: animStage !== 'idle' && animStage !== 'done',
+    className: `px-8 rounded-2xl font-bold text-white shadow-lg flex items-center gap-2 ${mode === 'rsa' ? 'bg-blue-600' : mode === 'affine' ? 'bg-emerald-600' : 'bg-amber-600'}`
+  }, /*#__PURE__*/React.createElement(Send, {
+    size: 20
+  }), " ENVIAR")), /*#__PURE__*/React.createElement("div", {
+    className: "relative h-96 bg-slate-950 rounded-[3rem] overflow-hidden shadow-2xl border-8 border-slate-900"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 opacity-10 bg-[radial-gradient(#5B49F0_2px,transparent_2px)] [background-size:30px_30px]"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-1/2 left-0 w-full h-2 bg-slate-800 -translate-y-1/2 border-y border-dashed border-slate-700"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "absolute left-6 top-1/2 -translate-y-1/2 z-20 text-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `p-4 rounded-3xl border-4 transition-all duration-500 ${animStage === 'encrypting' ? 'bg-amber-500 border-amber-300 scale-110 shadow-[0_0_40px_rgba(245,158,11,0.6)]' : 'bg-slate-900 border-slate-800'}`
+  }, /*#__PURE__*/React.createElement(Monitor, {
+    size: 48,
+    className: "text-white"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "absolute right-6 top-1/2 -translate-y-1/2 z-20 text-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `p-4 rounded-3xl border-4 transition-all duration-500 ${animStage === 'decrypting' || animStage === 'done' ? 'bg-indigo-600 border-indigo-400 scale-110 shadow-[0_0_40px_rgba(79,70,229,0.6)]' : 'bg-slate-900 border-slate-800'}`
+  }, /*#__PURE__*/React.createElement(Laptop, {
+    size: 48,
+    className: "text-white"
+  }))), animStage === 'traveling' && /*#__PURE__*/React.createElement("div", {
+    className: "absolute left-1/2 top-[15%] -translate-x-1/2 z-40 text-center animate-in fade-in duration-1000"
+  }, /*#__PURE__*/React.createElement(VenetianMask, {
+    size: 60,
+    className: "text-red-500 mb-2 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "bg-red-600 text-[10px] text-white px-3 py-1 rounded-full font-black uppercase shadow-lg"
+  }, "Espiando...")), animStage !== 'idle' && /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "relative w-full h-full"
+  }, processedData.map((item, idx) => /*#__PURE__*/React.createElement("div", {
+    key: idx,
+    className: "absolute top-1/2 -translate-y-1/2 transition-all duration-[5000ms] ease-in-out",
+    style: {
+      left: animStage === 'packing' || animStage === 'encrypting' ? '120px' : animStage === 'traveling' ? `${40 + idx * 8}%` : animStage === 'decrypting' || animStage === 'unpacking' || animStage === 'done' ? 'calc(100% - 240px)' : '120px',
+      opacity: animStage === 'packing' ? 0.3 : 1,
+      zIndex: 30 + idx
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `relative flex flex-col items-center group transition-transform ${animStage === 'traveling' ? 'scale-125' : 'scale-100'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `w-12 h-10 rounded-lg flex items-center justify-center border-2 shadow-xl ${mode === 'rsa' ? 'bg-indigo-500 border-indigo-300' : mode === 'affine' ? 'bg-emerald-500 border-emerald-300' : 'bg-amber-500 border-amber-300'}`
+  }, /*#__PURE__*/React.createElement(Mail, {
+    size: 24,
+    className: "text-white"
+  })), animStage === 'traveling' && /*#__PURE__*/React.createElement("div", {
+    className: "absolute -top-16 left-1/2 -translate-x-1/2 bg-white p-2 rounded-xl border-2 border-red-500 shadow-2xl animate-bounce",
+    style: {
+      animationDelay: `${idx * 0.2}s`
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-lg font-black text-slate-900 font-mono"
+  }, item.cVal))))))), (animStage === 'encrypting' || animStage === 'decrypting') && /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-4 left-1/2 -translate-x-1/2 w-80 bg-white/95 backdrop-blur-md p-4 rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] border-4 border-blue-500 z-50 animate-in zoom-in"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 font-black text-[10px] uppercase mb-2 text-slate-500 tracking-widest"
+  }, /*#__PURE__*/React.createElement(Cpu, {
+    size: 14
+  }), " ", animStage === 'encrypting' ? 'Fase de Cifrado' : 'Fase de Descifrado'), /*#__PURE__*/React.createElement("div", {
+    className: "font-mono text-xs leading-relaxed p-3 bg-slate-50 rounded-xl border border-slate-100"
+  }, animStage === 'encrypting' ? mode === 'rsa' ? /*#__PURE__*/React.createElement("b", null, "C = M^", e, " mod ", n) : mode === 'affine' ? /*#__PURE__*/React.createElement("b", null, "C = (", affineA, " \xB7 M + ", affineB, ") mod ", alphabetSize) : /*#__PURE__*/React.createElement("b", null, "C = (M + ", caesarShift, ") mod 256") : mode === 'rsa' ? /*#__PURE__*/React.createElement("b", null, "M = C^", dRSA, " mod ", n) : mode === 'affine' ? /*#__PURE__*/React.createElement("b", null, "M = ", aInverse, " \xB7 (C - ", affineB, ") mod ", alphabetSize) : /*#__PURE__*/React.createElement("b", null, "M = (C - ", caesarShift, ") mod 256")))), showResult && /*#__PURE__*/React.createElement("div", {
+    className: "bg-white p-8 rounded-[3rem] shadow-sm border border-slate-200 animate-in zoom-in"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-center font-black text-slate-400 uppercase tracking-[0.3em] mb-8 text-sm"
+  }, "Detalle de Operaci\xF3n por Letra"), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 md:grid-cols-3 gap-6"
+  }, processedData.map((item, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex flex-col items-center text-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-4xl font-black text-slate-900 mb-2"
+  }, item.char), /*#__PURE__*/React.createElement("div", {
+    className: "w-full h-px bg-slate-200 my-4"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3 w-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between text-[10px] font-bold uppercase text-slate-400"
+  }, /*#__PURE__*/React.createElement("span", null, "Entrada"), /*#__PURE__*/React.createElement("span", null, item.mVal)), /*#__PURE__*/React.createElement("div", {
+    className: "p-2 bg-white rounded-lg border text-sm font-mono font-bold text-blue-600"
+  }, mode === 'rsa' ? `${item.mVal}^${e} mod ${n}` : mode === 'affine' ? `(${affineA}·${item.mVal}+${affineB}) mod ${alphabetSize}` : `${item.mVal}+${caesarShift}`), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between text-[10px] font-bold uppercase text-slate-400"
+  }, /*#__PURE__*/React.createElement("span", null, "Cifrado"), /*#__PURE__*/React.createElement("span", null, item.cVal)), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between text-[10px] font-bold uppercase text-slate-400"
+  }, /*#__PURE__*/React.createElement("span", null, "Final"), /*#__PURE__*/React.createElement("span", {
+    className: "text-green-600"
+  }, item.decodedChar))))))))), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-bold text-slate-800 mb-4 flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement(Search, {
+    size: 18,
+    className: "text-blue-500"
+  }), " Resumen del Algoritmo"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4 text-xs text-slate-600 leading-relaxed"
+  }, mode === 'rsa' ? /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, "RSA:"), " Usa la asimetr\xEDa de primos. El hacker ve n\xFAmeros ca\xF3ticos. Solo el inverso privado puede \"abrir\" la potencia.") : mode === 'affine' ? /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, "AF\xCDN:"), " Multiplica y suma. Es m\xE1s robusto que el C\xE9sar pero a\xFAn vulnerable a an\xE1lisis de frecuencia. Requiere que ", /*#__PURE__*/React.createElement("i", null, "a"), " e ", /*#__PURE__*/React.createElement("i", null, "m"), " sean coprimos.") : /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, "C\xC9SAR:"), " Simple suma. Muy predecible. El hacker solo tiene que probar restas peque\xF1as para leer el mensaje."))), /*#__PURE__*/React.createElement("div", {
+    className: `p-6 rounded-[2rem] border-4 shadow-xl ${mode === 'rsa' ? 'bg-green-50 border-green-200 text-green-800' : mode === 'affine' ? 'bg-blue-50 border-blue-200 text-blue-800' : 'bg-red-50 border-red-200 text-red-800'}`
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-bold mb-3 flex items-center gap-2 uppercase tracking-tighter"
+  }, mode === 'rsa' ? /*#__PURE__*/React.createElement(ShieldCheck, null) : mode === 'affine' ? /*#__PURE__*/React.createElement(FastForward, null) : /*#__PURE__*/React.createElement(Skull, null), "Seguridad"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-medium leading-relaxed"
+  }, mode === 'rsa' ? "Prácticamente irrompible sin conocer la factorización de n." : mode === 'affine' ? "Más seguro que César, pero vulnerable a ataques estadísticos si el texto es largo." : "Inseguro. Se rompe en segundos mediante fuerza bruta."))))), /*#__PURE__*/React.createElement("style", {
+    dangerouslySetInnerHTML: {
+      __html: `
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin-slow 15s linear infinite; }
+      `
+    }
+  }));
+};
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>

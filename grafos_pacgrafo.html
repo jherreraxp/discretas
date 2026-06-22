@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Grafo: Arcade de Grafos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #111827; 
+            color: #f3f4f6; 
+            margin: 0;
+            overflow: hidden; 
+        }
+        
+        .pacman-font {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        #gameCanvas {
+            background-color: #000;
+            border-radius: 0.5rem;
+            box-shadow: 0 0 30px rgba(234, 179, 8, 0.3);
+            outline: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        
+        kbd {
+            background-color: #374151;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-family: monospace;
+            font-size: 0.9em;
+            border: 1px solid #4b5563;
+            box-shadow: 0 2px 0 #1f2937;
+        }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row h-screen">
+
+    <!-- Panel Lateral de Estudio -->
+    <div class="w-full md:w-1/3 lg:w-1/4 bg-gray-800 border-b md:border-b-0 md:border-r border-gray-700 flex flex-col p-6 overflow-y-auto z-10 shadow-xl">
+        <h1 class="text-2xl text-yellow-400 pacman-font mb-4 text-center leading-tight">PAC-GRAFO<br><span class="text-xs text-white">ARCADE</span></h1>
+        
+        <div class="bg-gray-900 p-4 rounded-lg mb-6 border border-gray-700 shadow-inner">
+            <h2 class="text-2xl font-bold mb-2 text-yellow-400 pacman-font">SCORE: <span id="scoreDisplay">0</span></h2>
+            <p class="text-sm text-gray-400">Usa las flechas <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> para moverte. ¡Come todos los quesos!</p>
+        </div>
+
+        <h3 class="text-lg font-bold mb-3 border-b border-gray-600 pb-1">Selecciona el Nivel:</h3>
+        
+        <div class="flex flex-col gap-3 mb-6">
+            <button onclick="setMode('simple')" id="btn-simple" class="mode-btn text-left px-4 py-3 rounded bg-blue-600 hover:bg-blue-500 transition border-2 border-blue-400 font-bold shadow">
+                1. Grafo Simple
+            </button>
+            <button onclick="setMode('weighted')" id="btn-weighted" class="mode-btn text-left px-4 py-3 rounded bg-gray-700 hover:bg-gray-600 transition border-2 border-transparent shadow">
+                2. Grafo Ponderado (Quesos)
+            </button>
+            <button onclick="setMode('directed')" id="btn-directed" class="mode-btn text-left px-4 py-3 rounded bg-gray-700 hover:bg-gray-600 transition border-2 border-transparent shadow">
+                3. Grafo Dirigido (Flechas)
+            </button>
+        </div>
+
+        <div id="explanation" class="bg-indigo-900/40 p-4 rounded-lg border border-indigo-500/30 text-sm leading-relaxed mb-6">
+            <!-- Content injected by JS -->
+        </div>
+        
+        <button onclick="resetGame()" class="mt-auto w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded shadow-lg transition pacman-font text-xs">
+            REINICIAR NIVEL
+        </button>
+    </div>
+
+    <!-- Área del Juego (Canvas) -->
+    <div class="w-full md:w-2/3 lg:w-3/4 flex items-center justify-center p-4 bg-gray-900 relative">
+        <!-- tabindex="0" allows canvas to receive keyboard events -->
+        <canvas id="gameCanvas" width="600" height="600" tabindex="0"></canvas>
+        
+        <!-- Overlay Mensajes -->
+        <div id="messageScreen" class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center hidden z-10 backdrop-blur-sm">
+            <h2 id="messageText" class="text-4xl pacman-font text-red-500 mb-6 text-center drop-shadow-lg">¡ATRAPADO!</h2>
+            <button onclick="resetGame()" class="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded shadow-[0_4px_0_#b45309] active:translate-y-1 active:shadow-none transition pacman-font text-sm">
+                JUGAR DE NUEVO
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Enfocar el canvas automáticamente para leer el teclado
+        canvas.focus();
+        canvas.addEventListener('click', () => canvas.focus());
+
+        const COLS = 5;
+        const ROWS = 5;
+        const PADDING = 60;
+        const NODE_RADIUS = 10;
+        
+        let nodes = [];
+        let edges = []; 
+        let mode = 'simple'; 
+        let score = 0;
+        let gameState = 'playing'; // 'playing', 'gameover', 'win'
+        
+        // Entidades (Pac-Man y Fantasma)
+        const pacman = {
+            currentNode: 0,
+            targetNode: 0,
+            progress: 0, // 0.0 to 1.0 between nodes
+            baseSpeed: 0.08,
+            nextDir: null, // 'up', 'down', 'left', 'right'
+            currentDir: 'right',
+            x: 0, y: 0
+        };
+
+        const ghost = {
+            currentNode: 24,
+            targetNode: 24,
+            progress: 0,
+            baseSpeed: 0.045, // Un poco más lento que pacman
+            path: [], // Ruta planeada por Dijkstra
+            x: 0, y: 0
+        };
+
+        let animationFrameId;
+
+        const modeInfo = {
+            'simple': {
+                title: "Grafo Simple",
+                desc: "Todos los pasillos tienen peso 1 (1 queso). Pac-Man se mueve a velocidad constante en todas partes. El fantasma busca la ruta con menos esquinas."
+            },
+            'weighted': {
+                title: "Grafo Ponderado (Costo de Viaje)",
+                desc: "Cada pasillo tiene entre 1 y 5 quesos (peso). <b>¡Los pasillos con más quesos te ralentizan!</b> El costo es el tiempo. El fantasma usará Dijkstra para buscar la ruta más rápida (menor suma de pesos)."
+            },
+            'directed': {
+                title: "Grafo Dirigido",
+                desc: "Las flechas azules indican calles de un solo sentido. ¡Cuidado con quedarte sin salida! El fantasma también debe respetar las señales de tráfico."
+            }
+        };
+
+        // --- SISTEMA DE CONTROLES ---
+        window.addEventListener('keydown', (e) => {
+            // Evitar scroll de la página con flechas
+            if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].indexOf(e.code) > -1) {
+                e.preventDefault();
+            }
+            if (gameState !== 'playing') return;
+
+            switch(e.key) {
+                case 'ArrowUp': case 'w': case 'W': pacman.nextDir = 'up'; break;
+                case 'ArrowDown': case 's': case 'S': pacman.nextDir = 'down'; break;
+                case 'ArrowLeft': case 'a': case 'A': pacman.nextDir = 'left'; break;
+                case 'ArrowRight': case 'd': case 'D': pacman.nextDir = 'right'; break;
+            }
+        });
+
+        // --- CONSTRUCCIÓN DEL GRAFO ---
+        function initNodes() {
+            nodes = [];
+            const stepX = (canvas.width - PADDING * 2) / (COLS - 1);
+            const stepY = (canvas.height - PADDING * 2) / (ROWS - 1);
+
+            let id = 0;
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    nodes.push({
+                        id: id++,
+                        col: x, row: y,
+                        x: PADDING + x * stepX,
+                        y: PADDING + y * stepY
+                    });
+                }
+            }
+        }
+
+        function initEdges() {
+            edges = [];
+            // Crear cuadrícula básica
+            for (let i = 0; i < nodes.length; i++) {
+                const node = nodes[i];
+                if (node.col < COLS - 1 && Math.random() > 0.15) {
+                    edges.push(createEdge(node.id, node.id + 1));
+                }
+                if (node.row < ROWS - 1 && Math.random() > 0.15) {
+                    edges.push(createEdge(node.id, node.id + COLS));
+                }
+            }
+            ensureConnectivity();
+        }
+
+        function createEdge(from, to) {
+            let weight = 1;
+            let directed = false;
+
+            if (mode === 'weighted') {
+                weight = Math.floor(Math.random() * 5) + 1; // 1 a 5 quesos
+            } else if (mode === 'directed') {
+                weight = Math.floor(Math.random() * 3) + 1; 
+                if (Math.random() < 0.45) {
+                    directed = true;
+                    if (Math.random() < 0.5) [from, to] = [to, from]; // Invertir aleatoriamente
+                }
+            }
+
+            // Crear el array de quesitos para comer visualmente
+            // Si el peso es N, dibujamos N quesos en la línea
+            const cheesesArray = new Array(weight).fill(true);
+
+            return { from, to, weight, directed, cheeses: cheesesArray };
+        }
+
+        function ensureConnectivity() {
+            const add = (from, to) => {
+                if (!edges.some(e => (e.from === from && e.to === to) || (!e.directed && e.from === to && e.to === from))) {
+                    edges.push(createEdge(from, to));
+                }
+            };
+            for (let i = 0; i < COLS - 1; i++) { add(i, i+1); add((ROWS-1)*COLS+i, (ROWS-1)*COLS+i+1); }
+            for (let i = 0; i < ROWS - 1; i++) { add(i*COLS, (i+1)*COLS); add(i*COLS+(COLS-1), (i+1)*COLS+(COLS-1)); }
+        }
+
+        // --- LÓGICA DE RUTAS Y VECINOS ---
+        function getNeighbors(nodeId) {
+            let neighbors = [];
+            edges.forEach(e => {
+                if (e.from === nodeId) neighbors.push({ id: e.to, edge: e });
+                else if (!e.directed && e.to === nodeId) neighbors.push({ id: e.from, edge: e });
+            });
+            return neighbors;
+        }
+
+        function getNeighborInDirection(nodeId, dir) {
+            const node = nodes[nodeId];
+            let targetId = null;
+            if (dir === 'up') targetId = nodeId - COLS;
+            if (dir === 'down') targetId = nodeId + COLS;
+            if (dir === 'left') targetId = nodeId - 1;
+            if (dir === 'right') targetId = nodeId + 1;
+
+            // Check if valid neighbor logically and physically
+            const neighbors = getNeighbors(nodeId);
+            const valid = neighbors.find(n => n.id === targetId);
+            
+            // Prevent wrapping around rows
+            if (dir === 'left' && node.col === 0) return null;
+            if (dir === 'right' && node.col === COLS - 1) return null;
+
+            return valid ? valid : null;
+        }
+
+        // Dijkstra para el Fantasma
+        function calculateGhostPath() {
+            const distances = {};
+            const previous = {};
+            const queue = [];
+
+            nodes.forEach(n => {
+                distances[n.id] = Infinity;
+                previous[n.id] = null;
+                queue.push(n.id);
+            });
+
+            distances[ghost.targetNode] = 0; // Calculamos desde el próximo nodo que pisará el fantasma
+
+            while (queue.length > 0) {
+                queue.sort((a, b) => distances[a] - distances[b]);
+                const currentId = queue.shift();
+
+                // Intentamos interceptar a Pacman hacia donde se dirige
+                if (currentId === pacman.targetNode) break; 
+                if (distances[currentId] === Infinity) break;
+
+                const neighbors = getNeighbors(currentId);
+                for (let neighbor of neighbors) {
+                    if (!queue.includes(neighbor.id)) continue;
+                    
+                    // El costo real para el fantasma es el peso del camino
+                    const alt = distances[currentId] + neighbor.edge.weight;
+                    if (alt < distances[neighbor.id]) {
+                        distances[neighbor.id] = alt;
+                        previous[neighbor.id] = currentId;
+                    }
+                }
+            }
+
+            const path = [];
+            let curr = pacman.targetNode;
+            while (curr !== null) {
+                path.unshift(curr);
+                curr = previous[curr];
+            }
+            ghost.path = (path[0] === ghost.targetNode) ? path : [];
+        }
+
+        // --- BUCLE PRINCIPAL DEL JUEGO (UPDATE) ---
+        function update() {
+            if (gameState !== 'playing') return;
+
+            // === LÓGICA DE PAC-MAN ===
+            if (pacman.progress === 0) {
+                // Pacman está exactamente sobre un nodo. Intentamos cambiar de dirección.
+                let nextTarget = pacman.nextDir ? getNeighborInDirection(pacman.currentNode, pacman.nextDir) : null;
+                
+                if (nextTarget) {
+                    pacman.targetNode = nextTarget.id;
+                    pacman.currentDir = pacman.nextDir;
+                } else if (pacman.currentNode !== pacman.targetNode) {
+                    // Si no puede girar, intenta seguir recto si ya tenía un target (caso raro aquí por cómo reseteamos)
+                } else {
+                    // Intenta seguir en la dirección actual si no hay comando
+                    let fwdTarget = getNeighborInDirection(pacman.currentNode, pacman.currentDir);
+                    if (fwdTarget) {
+                        pacman.targetNode = fwdTarget.id;
+                    }
+                }
+            }
+
+            // Movimiento de Pac-Man
+            if (pacman.currentNode !== pacman.targetNode) {
+                const currentEdge = getNeighbors(pacman.currentNode).find(n => n.id === pacman.targetNode).edge;
+                
+                // LA MAGIA DE LA PONDERACIÓN:
+                // La velocidad de progreso disminuye cuanta más ponderación (quesos) tiene el borde.
+                // Si weight=1, velocidad normal. Si weight=5, avanza 5 veces más lento.
+                const speedMod = pacman.baseSpeed / currentEdge.weight;
+                pacman.progress += speedMod;
+
+                // Comer quesos a medida que avanzamos
+                const cheeseIndex = Math.floor(pacman.progress * currentEdge.weight);
+                if (cheeseIndex >= 0 && cheeseIndex < currentEdge.weight && currentEdge.cheeses[cheeseIndex]) {
+                    currentEdge.cheeses[cheeseIndex] = false;
+                    score += 10;
+                    document.getElementById('scoreDisplay').innerText = score;
+                    checkWin();
+                }
+
+                if (pacman.progress >= 1) {
+                    pacman.currentNode = pacman.targetNode;
+                    pacman.progress = 0;
+                }
+            }
+
+            // Actualizar Coordenadas reales de Pac-Man (Interpolación)
+            const pNode1 = nodes[pacman.currentNode];
+            const pNode2 = nodes[pacman.targetNode];
+            pacman.x = pNode1.x + (pNode2.x - pNode1.x) * pacman.progress;
+            pacman.y = pNode1.y + (pNode2.y - pNode1.y) * pacman.progress;
+
+
+            // === LÓGICA DEL FANTASMA ===
+            if (ghost.progress === 0) {
+                calculateGhostPath();
+                if (ghost.path.length > 1) {
+                    ghost.targetNode = ghost.path[1];
+                } else {
+                    // Si no hay ruta, deambula hacia donde pueda (o se queda quieto)
+                    const gNeighbors = getNeighbors(ghost.currentNode);
+                    if (gNeighbors.length > 0) {
+                        ghost.targetNode = gNeighbors[Math.floor(Math.random() * gNeighbors.length)].id;
+                    }
+                }
+            }
+
+            if (ghost.currentNode !== ghost.targetNode) {
+                const currentEdge = getNeighbors(ghost.currentNode).find(n => n.id === ghost.targetNode)?.edge;
+                
+                if(currentEdge) {
+                    // El fantasma también sufre la penalización por peso (es justo)
+                    const gSpeedMod = ghost.baseSpeed / currentEdge.weight;
+                    ghost.progress += gSpeedMod;
+
+                    if (ghost.progress >= 1) {
+                        ghost.currentNode = ghost.targetNode;
+                        ghost.progress = 0;
+                    }
+                } else {
+                    ghost.progress = 0; // Failsafe
+                }
+            }
+
+            const gNode1 = nodes[ghost.currentNode];
+            const gNode2 = nodes[ghost.targetNode];
+            ghost.x = gNode1.x + (gNode2.x - gNode1.x) * ghost.progress;
+            ghost.y = gNode1.y + (gNode2.y - gNode1.y) * ghost.progress;
+
+            // === COLISIÓN ===
+            const dist = Math.hypot(pacman.x - ghost.x, pacman.y - ghost.y);
+            if (dist < 15) {
+                gameState = 'gameover';
+                document.getElementById('messageText').innerText = "¡ATRAPADO!";
+                document.getElementById('messageText').className = "text-5xl pacman-font text-red-500 mb-6 text-center drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]";
+                document.getElementById('messageScreen').classList.remove('hidden');
+            }
+        }
+
+        function checkWin() {
+            // Verificar si quedan quesos en cualquier borde
+            let remaining = false;
+            edges.forEach(e => {
+                if (e.cheeses.some(c => c === true)) remaining = true;
+            });
+            
+            if (!remaining) {
+                gameState = 'win';
+                score += 500; // Bono de victoria
+                document.getElementById('scoreDisplay').innerText = score;
+                document.getElementById('messageText').innerText = "¡NIVEL LIMPIO!";
+                document.getElementById('messageText').className = "text-4xl pacman-font text-yellow-400 mb-6 text-center drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]";
+                document.getElementById('messageScreen').classList.remove('hidden');
+            }
+        }
+
+        // --- MOTOR DE RENDERIZADO (DRAW) ---
+        function draw() {
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Dibujar Camino de Dijkstra (El Cerebro del Fantasma)
+            if (ghost.path.length > 0 && gameState === 'playing') {
+                ctx.beginPath();
+                ctx.moveTo(ghost.x, ghost.y);
+                for (let i = 1; i < ghost.path.length; i++) {
+                    const n = nodes[ghost.path[i]];
+                    ctx.lineTo(n.x, n.y);
+                }
+                ctx.lineTo(pacman.x, pacman.y);
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.2)'; // Línea roja translúcida
+                ctx.lineWidth = 14;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+            }
+
+            // 2. Dibujar Pasillos (Edges) y Quesos (Ponderación)
+            edges.forEach(e => {
+                const n1 = nodes[e.from];
+                const n2 = nodes[e.to];
+
+                // Línea del pasillo
+                ctx.beginPath();
+                ctx.moveTo(n1.x, n1.y);
+                ctx.lineTo(n2.x, n2.y);
+                ctx.strokeStyle = '#1e3a8a'; // Azul oscuro laberinto
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                // Flechas para dirigidos
+                if (e.directed) {
+                    const midX = (n1.x + n2.x) / 2;
+                    const midY = (n1.y + n2.y) / 2;
+                    const angle = Math.atan2(n2.y - n1.y, n2.x - n1.x);
+                    
+                    ctx.save();
+                    ctx.translate(midX, midY);
+                    ctx.rotate(angle);
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0); ctx.lineTo(-10, -6); ctx.lineTo(-10, 6);
+                    ctx.fillStyle = '#3b82f6'; // Flecha azul brillante
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // Dibujar Quesitos (Pesos)
+                for (let i = 0; i < e.weight; i++) {
+                    if (e.cheeses[i]) {
+                        // Distribuir equitativamente a lo largo de la línea
+                        const t = (i + 0.5) / e.weight; 
+                        let cx = n1.x + (n2.x - n1.x) * t;
+                        let cy = n1.y + (n2.y - n1.y) * t;
+                        
+                        // Si es dirigido, mover un poquito el queso para no tapar la flecha del centro
+                        if (e.directed && Math.abs(t - 0.5) < 0.1) {
+                            cx += (n2.x - n1.x) * 0.15;
+                            cy += (n2.y - n1.y) * 0.15;
+                        }
+
+                        // Dibujar trocito de queso (Triángulo amarillo)
+                        ctx.fillStyle = '#fde047';
+                        ctx.beginPath();
+                        ctx.moveTo(cx, cy - 4);
+                        ctx.lineTo(cx + 4, cy + 4);
+                        ctx.lineTo(cx - 4, cy + 4);
+                        ctx.fill();
+                    }
+                }
+            });
+
+            // 3. Dibujar Nodos (Intersecciones)
+            nodes.forEach(n => {
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#475569';
+                ctx.fill();
+            });
+
+            // 4. Dibujar Fantasma (Blinky)
+            ctx.save();
+            ctx.translate(ghost.x, ghost.y);
+            // Efecto de flotar
+            const floatY = Math.sin(Date.now() / 150) * 2;
+            ctx.translate(0, floatY);
+
+            ctx.beginPath();
+            ctx.arc(0, -2, 12, Math.PI, 0); // Cabeza
+            ctx.lineTo(12, 12); // Derecha
+            ctx.lineTo(6, 9); ctx.lineTo(0, 12); ctx.lineTo(-6, 9); // Patas zigzag
+            ctx.lineTo(-12, 12); // Izquierda
+            ctx.closePath();
+            ctx.fillStyle = '#ef4444'; // Rojo
+            ctx.fill();
+            
+            // Ojos mirando a Pacman
+            const eyeAng = Math.atan2(pacman.y - ghost.y, pacman.x - ghost.x);
+            const ex = Math.cos(eyeAng) * 2;
+            const ey = Math.sin(eyeAng) * 2;
+            
+            ctx.fillStyle = 'white';
+            ctx.beginPath(); ctx.arc(-5 + ex, -5 + ey, 4, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(5 + ex, -5 + ey, 4, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = 'blue';
+            ctx.beginPath(); ctx.arc(-5 + ex*2, -5 + ey*2, 2, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(5 + ex*2, -5 + ey*2, 2, 0, Math.PI*2); ctx.fill();
+            ctx.restore();
+
+            // 5. Dibujar Pac-Man
+            ctx.save();
+            ctx.translate(pacman.x, pacman.y);
+            
+            // Rotar según dirección
+            let angle = 0;
+            if (pacman.currentDir === 'down') angle = Math.PI / 2;
+            if (pacman.currentDir === 'left') angle = Math.PI;
+            if (pacman.currentDir === 'up') angle = -Math.PI / 2;
+            ctx.rotate(angle);
+
+            // Animación de la boca chomp-chomp
+            const time = Date.now() / 150;
+            const mouthOpen = (Math.sin(time) + 1) / 2 * 0.4 + 0.05; // 0.05 to 0.45 PI
+
+            ctx.beginPath();
+            ctx.arc(0, 0, 13, mouthOpen * Math.PI, (2 - mouthOpen) * Math.PI);
+            ctx.lineTo(0, 0);
+            ctx.fillStyle = '#eab308'; // Amarillo Pacman
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- GESTIÓN DE ESTADO ---
+        function setMode(newMode) {
+            mode = newMode;
+            
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'border-blue-400');
+                btn.classList.add('bg-gray-700', 'border-transparent');
+            });
+            document.getElementById(`btn-${mode}`).classList.remove('bg-gray-700', 'border-transparent');
+            document.getElementById(`btn-${mode}`).classList.add('bg-blue-600', 'border-blue-400');
+
+            document.getElementById('explanation').innerHTML = `
+                <strong class="text-blue-300 block mb-1 text-base">${modeInfo[mode].title}</strong>
+                ${modeInfo[mode].desc}
+            `;
+
+            resetGame();
+        }
+
+        function resetGame() {
+            if(animationFrameId) cancelAnimationFrame(animationFrameId);
+            
+            gameState = 'playing';
+            score = 0;
+            document.getElementById('scoreDisplay').innerText = score;
+            document.getElementById('messageScreen').classList.add('hidden');
+            
+            initNodes();
+            initEdges();
+            
+            // Reset Pacman
+            pacman.currentNode = 0;
+            pacman.targetNode = 0;
+            pacman.progress = 0;
+            pacman.currentDir = 'right';
+            pacman.nextDir = null;
+            pacman.x = nodes[0].x;
+            pacman.y = nodes[0].y;
+
+            // Reset Fantasma
+            ghost.currentNode = 24;
+            ghost.targetNode = 24;
+            ghost.progress = 0;
+            ghost.x = nodes[24].x;
+            ghost.y = nodes[24].y;
+            ghost.path = [];
+
+            canvas.focus(); // Asegurar controles teclado
+            gameLoop();
+        }
+
+        // Iniciar
+        setMode('weighted'); // Iniciar en el modo que pidió el usuario
+
+    </script>
+</body>
+</html>

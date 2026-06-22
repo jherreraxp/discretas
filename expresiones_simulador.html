@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semana 11 · Expresiones y Pilas — Simulador y Juego</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#EAEEF4;--surface:#FFFFFF;--ink:#15233B;--ink-soft:#5B6B82;--line:#C9D3E0;--grid:#D7DEE9;--accent:#5B49F0;--good:#0E9F6E;--warn:#E11D48;--gold:#D97706;--soft-accent:#EEEBFE;--shadow:0 1px 2px rgba(21,35,59,.06),0 8px 24px rgba(21,35,59,.08)}
+  *{box-sizing:border-box}html,body{margin:0;height:100%}
+  body{font-family:Inter,system-ui,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100vh}
+  .topbar{display:flex;align-items:center;gap:14px;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .brand{display:flex;flex-direction:column;line-height:1.1}
+  .brand .wk{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;font-weight:700}
+  .brand h1{font-family:'Space Grotesk',sans-serif;font-size:19px;margin:2px 0 0;font-weight:600;letter-spacing:-.01em}
+  .modes{margin-left:auto;display:flex;background:var(--bg);border-radius:10px;padding:4px;gap:4px}
+  .modes button{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;border:0;background:transparent;color:var(--ink-soft);padding:8px 16px;border-radius:7px;cursor:pointer;transition:.18s}
+  .modes button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+  .wrap{flex:1;display:grid;grid-template-columns:1fr 360px;min-height:0}
+  .stage{position:relative;overflow:hidden;background-color:var(--bg);background-image:radial-gradient(var(--grid) 1.4px,transparent 1.4px);background-size:22px 22px;background-position:11px 11px;display:flex;flex-direction:column}
+  svg{width:100%;flex:1;display:block}
+  .panel{background:var(--surface);border-left:1px solid var(--line);padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+  .group{display:flex;flex-direction:column;gap:9px}
+  .group h3{font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin:0;font-weight:600}
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .btn{font-family:Inter,sans-serif;font-weight:500;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 12px;border-radius:9px;cursor:pointer;transition:.15s;flex:1;text-align:center;white-space:nowrap}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.act{background:var(--soft-accent);border-color:var(--accent);color:var(--accent)}
+  .btn.ghost{background:transparent}.btn.full{flex-basis:100%}
+  input[type=text]{font-family:'JetBrains Mono',monospace;border:1px solid var(--line);border-radius:8px;padding:9px;font-size:14px;color:var(--ink);width:100%}
+  .inrow{display:flex;gap:6px}.inrow input{flex:1}
+  .readout{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:#0F1B2E;color:#D6E2F5;border-radius:10px;padding:12px;line-height:1.6;white-space:pre-wrap;overflow-x:auto}
+  .readout .hl{color:#8AA0FF}.readout .g{color:#4ADE9A}.readout .w{color:#FB7185}.readout .y{color:#FBBF24}.readout .lbl{color:#94A3B8}
+  .hint{font-size:12.5px;color:var(--ink-soft);line-height:1.5}
+  .chips{display:flex;gap:5px;flex-wrap:wrap;min-height:38px;padding:6px;border:1px dashed var(--line);border-radius:9px;background:var(--bg)}
+  .chip{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;padding:7px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--line);cursor:pointer;transition:.12s}
+  .chip:hover{border-color:var(--accent);color:var(--accent)}
+  .chip.op{background:var(--soft-accent);border-color:#cdc6fb;color:var(--accent)}
+  .ans{display:flex;gap:5px;flex-wrap:wrap;min-height:42px;padding:7px;border:1.5px solid var(--accent);border-radius:9px;background:#fff}
+  .ans .chip{cursor:default;background:var(--accent);color:#fff;border-color:var(--accent)}
+  /* token / stack / queue panels */
+  .sy{display:flex;flex-direction:column;gap:10px}
+  .sy .lab{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:600}
+  .stack{display:flex;flex-direction:column-reverse;gap:4px;min-height:46px;border-bottom:3px solid var(--ink);padding-bottom:4px;align-items:flex-start}
+  .sitem{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;background:var(--gold);color:#fff;border-radius:7px;padding:6px 13px;animation:pop .25s ease}
+  .queue{display:flex;gap:4px;flex-wrap:wrap;min-height:36px}
+  .qitem{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;background:var(--good);color:#fff;border-radius:7px;padding:6px 11px;animation:pop .25s ease}
+  .curtok{display:inline-block;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;color:var(--accent);background:var(--soft-accent);padding:4px 14px;border-radius:8px;min-width:40px;text-align:center}
+  @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  /* svg tree */
+  .lnk{stroke:var(--line);stroke-width:2.6}
+  .tn circle,.tn rect{fill:var(--surface);stroke:var(--ink);stroke-width:2.8}
+  .tn.op circle{fill:var(--soft-accent);stroke:var(--accent)}
+  .tn text{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+  .tn.op text{fill:var(--accent)}
+  .toast{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:#0F1B2E;color:#fff;font-size:13px;padding:9px 16px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transition:.25s;pointer-events:none;font-weight:500}
+  .toast.show{opacity:1}
+  .gamebar{position:absolute;top:14px;left:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;box-shadow:var(--shadow);display:none;gap:18px}
+  .gamebar.show{display:flex}
+  .gamebar .stat{display:flex;flex-direction:column;line-height:1.1}.gamebar .stat b{font-family:'Space Grotesk',sans-serif;font-size:18px}.gamebar .stat span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft)}
+  .expr-banner{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:18px;text-align:center;padding:10px;color:var(--ink)}
+  @media(max-width:820px){.wrap{grid-template-columns:1fr;grid-template-rows:44vh 1fr}.panel{border-left:0;border-top:1px solid var(--line)}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><span class="wk">Semana 11 · Estructuras Discretas</span><h1>Árbol de expresión y pilas</h1></div>
+  <div class="modes"><button id="mSim" class="on">Simulador</button><button id="mGame">Juego</button></div>
+</div>
+
+<div class="wrap">
+  <div class="stage">
+    <div class="expr-banner" id="banner"></div>
+    <svg id="svg" viewBox="0 0 900 520" preserveAspectRatio="xMidYMid meet"></svg>
+    <div id="toast" class="toast"></div>
+    <div id="gamebar" class="gamebar">
+      <div class="stat"><b id="gRound">1</b><span>Ronda</span></div>
+      <div class="stat"><b id="gScore">0</b><span>Puntos</span></div>
+      <div class="stat"><b id="gStreak">0</b><span>Racha</span></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panelSim">
+    <div class="group">
+      <h3>Expresión infija</h3>
+      <div class="inrow"><input type="text" id="exprIn" value="3 + 4 * 2 / ( 1 - 5 )"><button class="btn sel" id="buildBtn" style="flex:0 0 80px">Construir</button></div>
+      <div class="seg">
+        <button class="btn ghost" data-ex="( a + b ) * c">(a+b)*c</button>
+        <button class="btn ghost" data-ex="a + b * c - d">a+b*c−d</button>
+        <button class="btn ghost" data-ex="2 ^ 3 ^ 2">2^3^2</button>
+      </div>
+      <p class="hint">Soporta + − * / ^ y paréntesis; usa letras o números. El árbol resuelve la <b>ambigüedad</b>: la jerarquía de operadores queda fija en su estructura.</p>
+    </div>
+
+    <div class="group">
+      <h3>Recorridos del árbol</h3>
+      <div class="readout" id="travOut">Construye una expresión.</div>
+    </div>
+
+    <div class="group">
+      <h3>Conversión infija → posfija (con pila)</h3>
+      <div class="seg">
+        <button class="btn act" id="syStep">Paso a paso ▸</button>
+        <button class="btn" id="syAuto">Automático ▶</button>
+        <button class="btn ghost" id="syReset">Reiniciar</button>
+      </div>
+      <div class="sy">
+        <div><span class="lab">Token actual</span><br><span class="curtok" id="curTok">·</span></div>
+        <div><span class="lab">Pila de operadores</span><div class="stack" id="opStack"></div></div>
+        <div><span class="lab">Salida (posfija)</span><div class="queue" id="outQ"></div></div>
+      </div>
+      <div class="readout" id="syMsg">Pulsa “Paso a paso” para ver cómo la pila ordena los operadores.</div>
+      <div class="seg"><button class="btn full" id="evalBtn">Evaluar la posfija (si es numérica)</button></div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="panel" id="panelGame" style="display:none">
+    <div class="group">
+      <h3>Juego · Arma la posfija</h3>
+      <p class="hint">Toca las fichas en el <b>orden correcto</b> para escribir la notación posfija de la expresión mostrada. Recuerda la jerarquía: <b>^</b> antes que <b>* /</b>, y estos antes que <b>+ −</b>.</p>
+    </div>
+    <div class="group">
+      <h3>Expresión a convertir</h3>
+      <div class="expr-banner" id="gExpr" style="background:var(--bg);border-radius:10px"></div>
+      <span class="lab" style="font-size:11px;color:var(--ink-soft)">Tu respuesta</span>
+      <div class="ans" id="gAns"></div>
+      <span class="lab" style="font-size:11px;color:var(--ink-soft)">Fichas disponibles</span>
+      <div class="chips" id="gChips"></div>
+      <div class="seg">
+        <button class="btn" id="gUndo">Quitar última</button>
+        <button class="btn sel" id="gCheck">Comprobar</button>
+      </div>
+      <div class="readout" id="gFb" style="display:none"></div>
+      <button class="btn ghost full" id="gNew">Nueva expresión</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(()=>{
+  const svg=document.getElementById('svg');const NS='http://www.w3.org/2000/svg';const W=900,H=520;
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  function toast(m,ms=1600){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
+  function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+  const isOperand=t=>/^[0-9a-zA-Z.]+$/.test(t);
+  const prec=o=>o==='+'||o==='-'?1:o==='*'||o==='/'?2:o==='^'?3:0;
+  const rightA=o=>o==='^';
+  function tokenize(s){const t=[];let i=0;while(i<s.length){const c=s[i];if(c===' '){i++;continue;}if(/[0-9a-zA-Z.]/.test(c)){let j=i;while(j<s.length&&/[0-9a-zA-Z.]/.test(s[j]))j++;t.push(s.slice(i,j));i=j;}else{t.push(c);i++;}}return t;}
+  function toPostfix(toks){const out=[],op=[];for(const t of toks){if(isOperand(t))out.push(t);else if(t==='(')op.push(t);else if(t===')'){while(op.length&&op[op.length-1]!=='(')out.push(op.pop());op.pop();}else{while(op.length&&op[op.length-1]!=='('&&(prec(op[op.length-1])>prec(t)||(prec(op[op.length-1])===prec(t)&&!rightA(t))))out.push(op.pop());op.push(t);}}while(op.length)out.push(op.pop());return out;}
+
+  // build expression tree from postfix
+  let idSeq=0;
+  function buildTree(post){const st=[];for(const t of post){if(isOperand(t))st.push({id:idSeq++,val:t,l:null,r:null});else{const r=st.pop(),l=st.pop();st.push({id:idSeq++,val:t,l,r});}}return st.pop();}
+  const inorderP=n=>!n?'':(!n.l&&!n.r)?n.val:'('+inorderP(n.l)+' '+n.val+' '+inorderP(n.r)+')';
+  function pre(n,a=[]){if(n){a.push(n.val);pre(n.l,a);pre(n.r,a);}return a;}
+  function post(n,a=[]){if(n){post(n.l,a);post(n.r,a);a.push(n.val);}return a;}
+  function ino(n,a=[]){if(n){ino(n.l,a);a.push(n.val);ino(n.r,a);}return a;}
+
+  let tree=null,curToks=[],curPost=[];
+  function layout(root){const pos=new Map();let i=0;(function go(n,d){if(!n)return;go(n.l,d+1);pos.set(n.id,{x:0,y:50+d*80,i:i++,n});go(n.r,d+1);})(root,0);const tot=pos.size;const gap=Math.min(80,(W-120)/Math.max(1,tot-1));const sx=(W-(tot-1)*gap)/2;pos.forEach(p=>{p.x=sx+p.i*gap;});return pos;}
+  function renderTree(){svg.innerHTML='';if(!tree)return;const pos=layout(tree);const gL=el('g',{}),gN=el('g',{});pos.forEach((p,id)=>{const n=p.n;['l','r'].forEach(s=>{if(n[s]){const cp=pos.get(n[s].id);gL.appendChild(el('line',{x1:p.x,y1:p.y,x2:cp.x,y2:cp.y,class:'lnk'}));}});});pos.forEach((p,id)=>{const n=p.n;const op=!isOperand(n.val);const g=el('g',{class:'tn'+(op?' op':'')});g.appendChild(el('circle',{cx:p.x,cy:p.y,r:19}));const t=el('text',{x:p.x,y:p.y});t.textContent=n.val;g.appendChild(t);gN.appendChild(g);});svg.appendChild(gL);svg.appendChild(gN);}
+
+  function build(){
+    const s=document.getElementById('exprIn').value.trim();if(!s)return;
+    curToks=tokenize(s);
+    // basic validation
+    let bal=0;for(const t of curToks){if(t==='(')bal++;if(t===')')bal--;if(bal<0){toast('Paréntesis desbalanceados');return;}}
+    if(bal!==0){toast('Paréntesis desbalanceados');return;}
+    curPost=toPostfix(curToks);idSeq=0;tree=buildTree(curPost);
+    document.getElementById('banner').textContent=curToks.join(' ');
+    renderTree();
+    document.getElementById('travOut').innerHTML=
+      `<span class="lbl">Inorden  (infija):</span>  ${inorderP(tree)}\n`+
+      `<span class="lbl">Preorden (prefija):</span> <span class="hl">${pre(tree).join(' ')}</span>\n`+
+      `<span class="lbl">Posorden(posfija):</span> <span class="g">${post(tree).join(' ')}</span>\n`+
+      `<span class="lbl">Anchura(niveles):</span> ${levelOrder(tree).join(' ')}`;
+    resetSY();
+  }
+  function levelOrder(r){const a=[];if(!r)return a;const q=[r];while(q.length){const x=q.shift();a.push(x.val);if(x.l)q.push(x.l);if(x.r)q.push(x.r);}return a;}
+
+  document.getElementById('buildBtn').addEventListener('click',build);
+  document.getElementById('exprIn').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')build();});
+  document.querySelectorAll('[data-ex]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('exprIn').value=b.dataset.ex;build();}));
+
+  // ---- shunting yard step machine ----
+  let syState=null;
+  function resetSY(){syState=null;document.getElementById('opStack').innerHTML='';document.getElementById('outQ').innerHTML='';document.getElementById('curTok').textContent='·';document.getElementById('syMsg').innerHTML='Pulsa “Paso a paso”.';}
+  document.getElementById('syReset').addEventListener('click',resetSY);
+  function initSY(){syState={i:0,op:[],out:[],toks:curToks.slice()};}
+  function drawSY(msg){const st=document.getElementById('opStack');st.innerHTML='';syState.op.forEach(o=>{const d=document.createElement('div');d.className='sitem';d.textContent=o;st.appendChild(d);});const q=document.getElementById('outQ');q.innerHTML='';syState.out.forEach(o=>{const d=document.createElement('div');d.className='qitem';d.textContent=o;q.appendChild(d);});if(msg)document.getElementById('syMsg').innerHTML=msg;}
+  function syNext(){
+    if(!curToks.length){toast('Construye una expresión');return false;}
+    if(!syState)initSY();
+    const S=syState;
+    if(S.i>=S.toks.length){
+      if(S.op.length){const o=S.op.pop();S.out.push(o);document.getElementById('curTok').textContent='fin';drawSY(`<span class="y">Vaciando la pila:</span> sale <b>${o}</b> a la salida.`);return true;}
+      drawSY(`<span class="g">¡Conversión terminada!</span> Posfija: ${S.out.join(' ')}`);return false;
+    }
+    const t=S.toks[S.i];document.getElementById('curTok').textContent=t;
+    let msg='';
+    if(isOperand(t)){S.out.push(t);msg=`<span class="lbl">Operando</span> <b>${t}</b> → va directo a la salida.`;}
+    else if(t==='('){S.op.push(t);msg=`<b>(</b> se apila siempre.`;}
+    else if(t===')'){let popped=[];while(S.op.length&&S.op[S.op.length-1]!=='('){popped.push(S.op.pop());}S.op.pop();S.out=S.out.concat(popped);msg=`<b>)</b> → desapilo hasta <b>(</b>: salen ${popped.join(', ')||'(nada)'}.`;}
+    else{let popped=[];while(S.op.length&&S.op[S.op.length-1]!=='('&&(prec(S.op[S.op.length-1])>prec(t)||(prec(S.op[S.op.length-1])===prec(t)&&!rightA(t)))){popped.push(S.op.pop());}S.out=S.out.concat(popped);S.op.push(t);msg=`Operador <b>${t}</b> (prec ${prec(t)})${rightA(t)?' der.':''} → ${popped.length?'saco '+popped.join(', ')+' y luego ':''}apilo <b>${t}</b>.`;}
+    S.i++;drawSY(msg);return true;
+  }
+  document.getElementById('syStep').addEventListener('click',syNext);
+  document.getElementById('syAuto').addEventListener('click',async()=>{resetSY();initSY();let go=true;while(go){go=syNext();await sleep(750);}});
+
+  // postfix eval with stack
+  document.getElementById('evalBtn').addEventListener('click',async()=>{
+    if(!curPost.length){toast('Construye una expresión');return;}
+    if(!curPost.every(t=>!isOperand(t)||/^[0-9.]+$/.test(t))){document.getElementById('syMsg').innerHTML='<span class="w">La expresión tiene variables; no se puede evaluar numéricamente.</span>';return;}
+    resetSY();const st=[];let log='';
+    for(const t of curPost){document.getElementById('curTok').textContent=t;
+      if(/^[0-9.]+$/.test(t)){st.push(parseFloat(t));log=`Apilo ${t}`;}
+      else{const b=st.pop(),a=st.pop();const r=t==='+'?a+b:t==='-'?a-b:t==='*'?a*b:t==='/'?a/b:Math.pow(a,b);st.push(r);log=`${a} ${t} ${b} = ${r}`;}
+      const st2=document.getElementById('opStack');st2.innerHTML='';st.forEach(x=>{const d=document.createElement('div');d.className='sitem';d.textContent=+x.toFixed(4);st2.appendChild(d);});
+      document.getElementById('syMsg').innerHTML=`<span class="hl">Evaluando posfija:</span> ${log}`;
+      await sleep(700);
+    }
+    document.getElementById('syMsg').innerHTML=`<span class="g">Resultado = ${+st[0].toFixed(6)}</span>`;
+  });
+
+  // ---------------- GAME: build postfix by tapping ----------------
+  const gamePool=['a + b * c','( a + b ) * c','a * b + c * d','a + b - c','( a - b ) / c','a + b * c - d','a * ( b + c )','( a + b ) * ( c - d )','a ^ b + c','a + b ^ c * d'];
+  let gTarget=[],gAnsArr=[],gScore=0,gStreak=0,gRound=0;
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function newGame(){
+    document.getElementById('gFb').style.display='none';
+    const inf=gamePool[Math.floor(Math.random()*gamePool.length)];
+    gTarget=toPostfix(tokenize(inf));gAnsArr=[];gRound++;
+    document.getElementById('gExpr').textContent=inf;
+    document.getElementById('gRound').textContent=gRound;
+    drawGame(shuffle(gTarget));
+  }
+  function drawGame(chips){
+    const cb=document.getElementById('gChips');cb.innerHTML='';
+    // build remaining = target minus used
+    const remaining=[...gTarget];gAnsArr.forEach(x=>{const k=remaining.indexOf(x);if(k>=0)remaining.splice(k,1);});
+    shuffle(remaining).forEach(tok=>{const c=document.createElement('button');c.className='chip'+(isOperand(tok)?'':' op');c.textContent=tok;c.onclick=()=>{gAnsArr.push(tok);drawGame();};cb.appendChild(c);});
+    const ab=document.getElementById('gAns');ab.innerHTML='';gAnsArr.forEach(tok=>{const c=document.createElement('span');c.className='chip';c.textContent=tok;ab.appendChild(c);});
+  }
+  document.getElementById('gUndo').addEventListener('click',()=>{gAnsArr.pop();drawGame();});
+  document.getElementById('gNew').addEventListener('click',newGame);
+  document.getElementById('gCheck').addEventListener('click',()=>{
+    const fb=document.getElementById('gFb');fb.style.display='block';
+    if(gAnsArr.length!==gTarget.length){fb.innerHTML=`<span class="w">Aún faltan fichas.</span> Usa las ${gTarget.length} fichas.`;return;}
+    const ok=gAnsArr.every((x,i)=>x===gTarget[i]);
+    if(ok){const pts=10+gStreak*2;gScore+=pts;gStreak++;fb.innerHTML=`<span class="g">¡Correcto! +${pts} puntos.</span>\nPosfija: ${gTarget.join(' ')}`;toast('¡Bien hecho! 🎉');}
+    else{gStreak=0;fb.innerHTML=`<span class="w">No es correcto.</span>\nTu orden:    ${gAnsArr.join(' ')}\nCorrecto:    ${gTarget.join(' ')}`;}
+    document.getElementById('gScore').textContent=gScore;document.getElementById('gStreak').textContent=gStreak;
+  });
+
+  // ---------------- mode ----------------
+  document.getElementById('mSim').addEventListener('click',()=>{document.getElementById('mSim').classList.add('on');document.getElementById('mGame').classList.remove('on');document.getElementById('panelSim').style.display='flex';document.getElementById('panelGame').style.display='none';document.getElementById('gamebar').classList.remove('show');document.getElementById('banner').textContent=curToks.join(' ');renderTree();});
+  document.getElementById('mGame').addEventListener('click',()=>{document.getElementById('mGame').classList.add('on');document.getElementById('mSim').classList.remove('on');document.getElementById('panelGame').style.display='flex';document.getElementById('panelSim').style.display='none';document.getElementById('gamebar').classList.add('show');svg.innerHTML='';document.getElementById('banner').textContent='';gScore=0;gStreak=0;gRound=0;document.getElementById('gScore').textContent=0;document.getElementById('gStreak').textContent=0;newGame();});
+
+  build();
+})();
+</script>
+</body>
+</html>

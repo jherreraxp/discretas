@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎯 Conteo Master — Matemática Discreta</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #5b49f0 0%, #7d6ff5 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #333;
+  }
+  .container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    max-width: 800px;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  .screen { padding: 40px; display: none; animation: fadeIn 0.5s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+  @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+  @keyframes flash-green { 0%, 100% { background: white; } 50% { background: #d4edda; } }
+  @keyframes flash-red { 0%, 100% { background: white; } 50% { background: #f8d7da; } }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  h1 { color: #5b49f0; font-size: 2.2em; margin-bottom: 10px; text-align: center; }
+  h2 { color: #7d6ff5; font-size: 1.6em; margin-bottom: 15px; }
+  h3 { color: #444; font-size: 1.2em; margin-bottom: 10px; }
+  .subtitle { text-align: center; color: #666; font-size: 1.05em; margin-bottom: 25px; }
+  .hero-emoji { font-size: 4em; text-align: center; margin-bottom: 10px; animation: bounce 2s infinite; }
+
+  .units-list {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin: 20px 0;
+  }
+  .units-list h3 { margin-bottom: 12px; }
+  .units-list ul { list-style: none; }
+  .units-list li { padding: 6px 0; font-size: 1.05em; }
+
+  .warning-box {
+    background: #fff3cd;
+    border-left: 5px solid #ffc107;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 0.95em;
+  }
+  .info-box {
+    background: #d1ecf1;
+    border-left: 5px solid #17a2b8;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 0.95em;
+  }
+
+  .commit-box {
+    background: #f0f4ff;
+    border: 2px solid #5b49f0;
+    border-radius: 12px;
+    padding: 18px;
+    margin: 20px 0;
+  }
+  .commit-box label {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    font-size: 0.97em;
+    line-height: 1.5;
+  }
+  .commit-box input[type="checkbox"] {
+    width: 22px; height: 22px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    cursor: pointer;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.1em;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    margin: 10px 0;
+    transition: border-color 0.3s;
+  }
+  input[type="text"]:focus { outline: none; border-color: #5b49f0; }
+
+  .btn {
+    background: linear-gradient(135deg, #5b49f0 0%, #7d6ff5 100%);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    font-size: 1.1em;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    margin: 5px;
+  }
+  .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-whatsapp { background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4); }
+  .btn-skip { background: #6c757d; box-shadow: none; padding: 10px 20px; font-size: 0.9em; }
+  .btn-center { display: block; margin: 20px auto; }
+
+  .header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .header-item {
+    font-size: 0.95em;
+    font-weight: 600;
+    color: #555;
+  }
+  .header-item .label { color: #888; font-size: 0.8em; font-weight: 400; }
+
+  .progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #5b49f0, #7d6ff5);
+    transition: width 0.4s;
+    border-radius: 4px;
+  }
+
+  .unit-badge {
+    display: inline-block;
+    background: #5b49f0;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    margin-bottom: 12px;
+  }
+
+  .question-text {
+    font-size: 1.15em;
+    margin: 12px 0;
+    line-height: 1.5;
+  }
+
+  .scenario {
+    background: #fff5e6;
+    border-left: 4px solid #ff9800;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-style: italic;
+    margin: 12px 0;
+    color: #5a3a00;
+  }
+
+  .premise {
+    background: #e8f0fe;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.95em;
+    margin: 12px 0;
+    white-space: pre-line;
+  }
+
+  .hint-box {
+    background: #fff9d6;
+    border: 2px dashed #ffc107;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-size: 0.92em;
+  }
+
+  .pencil-box {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+    border-radius: 12px;
+    padding: 18px 22px;
+    text-align: center;
+    font-size: 1.15em;
+    font-weight: 600;
+    margin: 20px 0;
+    animation: pop 1s ease-in-out 2;
+  }
+
+  .options { display: grid; gap: 10px; margin: 15px 0; }
+  .option {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    font-size: 1.02em;
+    transition: all 0.2s;
+    text-align: left;
+  }
+  .option:hover:not(.disabled) { border-color: #5b49f0; background: #f8f9ff; transform: translateX(4px); }
+  .option.correct { background: #d4edda; border-color: #28a745; color: #155724; }
+  .option.wrong { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+  .option.disabled { cursor: not-allowed; }
+
+  .feedback {
+    margin-top: 15px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 0.97em;
+    line-height: 1.5;
+    display: none;
+  }
+  .feedback.correct { background: #d4edda; border-left: 5px solid #28a745; color: #155724; display: block; }
+  .feedback.wrong { background: #f8d7da; border-left: 5px solid #dc3545; color: #721c24; display: block; }
+  .feedback strong { display: block; margin-bottom: 5px; font-size: 1.1em; }
+
+  /* Minigame styles */
+  .minigame-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .minigame-stats {
+    display: flex;
+    justify-content: space-around;
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .stat-item { text-align: center; }
+  .stat-num { font-size: 1.5em; font-weight: 700; color: #5b49f0; }
+  .stat-label { font-size: 0.85em; color: #777; }
+
+  .vf-question {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    font-size: 1.6em;
+    margin: 20px 0;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+  }
+  .vf-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 15px;
+  }
+  .vf-btn {
+    padding: 20px;
+    font-size: 1.3em;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .vf-true { background: #28a745; color: white; }
+  .vf-false { background: #dc3545; color: white; }
+  .vf-btn:hover { transform: scale(1.05); }
+  .vf-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .classify-card {
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 14px;
+    padding: 22px;
+    text-align: center;
+    margin: 15px 0;
+    font-size: 1.1em;
+  }
+  .classify-icon { font-size: 2.5em; margin-bottom: 10px; }
+  .classify-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .classify-btn {
+    padding: 15px;
+    font-size: 1em;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .perm-btn { background: #ff7675; color: white; }
+  .comb-btn { background: #74b9ff; color: white; }
+  .classify-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .builder-target {
+    background: linear-gradient(135deg, #5b49f0, #7d6ff5);
+    color: white;
+    padding: 18px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 1.3em;
+    margin-bottom: 18px;
+  }
+  .builder-help {
+    background: #fff9d6;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  .builder-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+  }
+  .builder-btn {
+    aspect-ratio: 1;
+    border: 3px solid #ddd;
+    background: white;
+    border-radius: 12px;
+    font-size: 1.4em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .builder-btn.active { background: linear-gradient(135deg, #5b49f0, #7d6ff5); color: white; border-color: #4c4cb5; transform: scale(1.05); }
+  .builder-product {
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: 600;
+    margin: 15px 0;
+    color: #555;
+    min-height: 30px;
+  }
+
+  /* Final screen */
+  .final-card {
+    background: linear-gradient(135deg, #5b49f0 0%, #7d6ff5 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    margin: 20px 0;
+  }
+  .final-card .name { font-size: 1.6em; font-weight: 700; margin-bottom: 15px; }
+  .final-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .final-stat {
+    background: rgba(255,255,255,0.15);
+    padding: 12px;
+    border-radius: 10px;
+  }
+  .final-stat-num { font-size: 1.6em; font-weight: 700; }
+  .final-stat-label { font-size: 0.85em; opacity: 0.9; }
+
+  .review-box {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 18px;
+    margin: 15px 0;
+  }
+  .review-box h4 { color: #7d6ff5; margin-bottom: 8px; font-size: 1.05em; }
+  .review-box p { font-size: 0.93em; line-height: 1.5; color: #555; }
+
+  .confetti-piece {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    top: 0;
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+  }
+  .modal h3 { color: #5b49f0; margin-bottom: 15px; }
+  .modal p { margin: 10px 0; line-height: 1.5; }
+  .modal-close {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  .shortcut-box {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-family: monospace;
+    font-size: 0.9em;
+  }
+
+  @media (max-width: 600px) {
+    .screen { padding: 25px 20px; }
+    h1 { font-size: 1.7em; }
+    .builder-grid { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .builder-btn { font-size: 1.1em; }
+    .final-stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container" id="container">
+
+  <!-- PANTALLA 1: INICIO -->
+  <div class="screen active" id="screen-inicio">
+    <div class="hero-emoji">🎯</div>
+    <h1>Conteo Master</h1>
+    <p class="subtitle">Matemática Discreta · 2026-1<br><em>Principios de conteo, factoriales, permutaciones y combinaciones</em></p>
+
+    <div class="units-list">
+      <h3>📚 ¿Qué vas a poner a prueba?</h3>
+      <ul>
+        <li>📘 <strong>Unidad 1:</strong> Principio de multiplicación y adición (diagrama de árbol)</li>
+        <li>📗 <strong>Unidad 2:</strong> Factorial (definición, cálculo, cocientes)</li>
+        <li>📙 <strong>Unidad 3:</strong> Permutaciones (totales, parciales, con repetición)</li>
+        <li>📕 <strong>Unidad 4:</strong> Combinaciones y ¿permutación o combinación?</li>
+      </ul>
+    </div>
+
+    <div class="info-box">
+      🎮 <strong>40 preguntas</strong> + <strong>3 minijuegos</strong> = puntaje máx. ~600 puntos.<br>
+      Cada bloque de 10 preguntas termina con un reto temático: V/F, clasificación y constructor de factoriales.
+    </div>
+
+    <div class="warning-box">
+      📱 <strong>Aviso de privacidad:</strong> al terminar, se generará una imagen con tu nombre, puntaje, tiempo y aciertos. La compartirás por WhatsApp para entregar al docente.
+    </div>
+
+    <div class="commit-box">
+      <label>
+        <input type="checkbox" id="commit-check" onchange="checkReady()">
+        <span><strong>🤝 Compromiso académico:</strong> Me comprometo a resolver esta actividad sin usar IA, sin buscar en internet y sin consultar mis apuntes. Solo uso lápiz, papel y mi cabeza 🧠.</span>
+      </label>
+    </div>
+
+    <input type="text" id="player-name" placeholder="✏️ Escribe tu nombre completo aquí" oninput="checkReady()">
+
+    <button class="btn btn-center" id="start-btn" disabled onclick="startGame()">
+      🚀 ¡Empezar el reto!
+    </button>
+  </div>
+
+  <!-- PANTALLA 2: QUIZ -->
+  <div class="screen" id="screen-quiz">
+    <div class="header-bar">
+      <div class="header-item">👤 <span id="hud-name">--</span></div>
+      <div class="header-item">⏱️ <span class="label">Tiempo</span> <span id="hud-time">00:00</span></div>
+      <div class="header-item">⭐ <span class="label">Puntos</span> <span id="hud-score">0</span></div>
+      <div class="header-item">📊 <span class="label">Pregunta</span> <span id="hud-q">1</span>/40</div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width: 0%"></div></div>
+    <div id="quiz-body"></div>
+  </div>
+
+  <!-- PANTALLA 3: MINIJUEGO 1 -->
+  <div class="screen" id="screen-mg1">
+    <div class="minigame-header">
+      <div class="hero-emoji">⚡</div>
+      <h2>Minijuego 1: Conteo Veloz V/F</h2>
+      <p class="subtitle">¿La afirmación matemática es verdadera o falsa? Cada acierto vale <strong>+5 pts</strong>.</p>
+    </div>
+    <div class="minigame-stats">
+      <div class="stat-item"><div class="stat-num" id="mg1-round">1</div><div class="stat-label">Ronda</div></div>
+      <div class="stat-item"><div class="stat-num" id="mg1-hits">0</div><div class="stat-label">Aciertos</div></div>
+      <div class="stat-item"><div class="stat-num" id="mg1-pts">0</div><div class="stat-label">Pts. ganados</div></div>
+    </div>
+    <div class="vf-question" id="mg1-question">--</div>
+    <div class="vf-buttons">
+      <button class="vf-btn vf-true" id="mg1-true" onclick="mg1Answer(true)">✓ Verdadero</button>
+      <button class="vf-btn vf-false" id="mg1-false" onclick="mg1Answer(false)">✗ Falso</button>
+    </div>
+    <div class="feedback" id="mg1-feedback"></div>
+    <button class="btn btn-skip btn-center" onclick="skipMg1()">⏭️ Saltar minijuego</button>
+  </div>
+
+  <!-- PANTALLA 4: MINIJUEGO 2 -->
+  <div class="screen" id="screen-mg2">
+    <div class="minigame-header">
+      <div class="hero-emoji">🎯</div>
+      <h2>Minijuego 2: ¿Importa el Orden?</h2>
+      <p class="subtitle">Clasifica cada situación: <strong style="color:#ff7675">Permutación (orden importa)</strong> o <strong style="color:#74b9ff">Combinación (orden no importa)</strong>. <br><strong>+5 pts por acierto</strong>.</p>
+    </div>
+    <div class="minigame-stats">
+      <div class="stat-item"><div class="stat-num" id="mg2-round">1</div><div class="stat-label">Carta</div></div>
+      <div class="stat-item"><div class="stat-num" id="mg2-hits">0</div><div class="stat-label">Aciertos</div></div>
+      <div class="stat-item"><div class="stat-num" id="mg2-time">2:00</div><div class="stat-label">Tiempo</div></div>
+      <div class="stat-item"><div class="stat-num" id="mg2-pts">0</div><div class="stat-label">Pts.</div></div>
+    </div>
+    <div class="classify-card" id="mg2-card">
+      <div class="classify-icon" id="mg2-icon">🎲</div>
+      <div id="mg2-text">--</div>
+    </div>
+    <div class="classify-buttons">
+      <button class="classify-btn perm-btn" id="mg2-p" onclick="mg2Answer('P')">🔀 Permutación<br><small>(orden importa)</small></button>
+      <button class="classify-btn comb-btn" id="mg2-c" onclick="mg2Answer('C')">🤝 Combinación<br><small>(orden NO importa)</small></button>
+    </div>
+    <div class="feedback" id="mg2-feedback"></div>
+    <button class="btn btn-skip btn-center" onclick="skipMg2()">⏭️ Saltar minijuego</button>
+  </div>
+
+  <!-- PANTALLA 5: MINIJUEGO 3 -->
+  <div class="screen" id="screen-mg3">
+    <div class="minigame-header">
+      <div class="hero-emoji">🔢</div>
+      <h2>Minijuego 3: Factorial Builder</h2>
+      <p class="subtitle">Activa los números correctos para construir el cálculo pedido y haz clic en "Calcular". <strong>+10 pts por acierto</strong>.</p>
+    </div>
+    <div class="minigame-stats">
+      <div class="stat-item"><div class="stat-num" id="mg3-round">1</div><div class="stat-label">Nivel</div></div>
+      <div class="stat-item"><div class="stat-num" id="mg3-hits">0</div><div class="stat-label">Aciertos</div></div>
+      <div class="stat-item"><div class="stat-num" id="mg3-pts">0</div><div class="stat-label">Pts.</div></div>
+    </div>
+    <div class="builder-target" id="mg3-target">Calcula: 3!</div>
+    <div class="builder-help">💡 Activa los números que multiplicarías. Por ejemplo, 3! = 3×2×1 → activa 3, 2 y 1.</div>
+    <div class="builder-grid" id="mg3-grid"></div>
+    <div class="builder-product" id="mg3-product">Producto: 0</div>
+    <button class="btn btn-center" onclick="mg3Submit()">✅ Calcular</button>
+    <div class="feedback" id="mg3-feedback"></div>
+    <button class="btn btn-skip btn-center" onclick="skipMg3()">⏭️ Saltar minijuego</button>
+  </div>
+
+  <!-- PANTALLA 6: FINAL -->
+  <div class="screen" id="screen-final">
+    <div class="hero-emoji" id="final-emoji">🏆</div>
+    <h1 id="final-title">¡Eres un Conteo Master!</h1>
+    <div id="capture-area">
+      <div class="final-card">
+        <div class="name" id="final-name">--</div>
+        <div style="font-size: 1.05em; opacity: 0.9; margin-bottom: 10px;">Conteo Master · Matemática Discreta</div>
+        <div class="final-stats">
+          <div class="final-stat">
+            <div class="final-stat-num" id="final-score">0</div>
+            <div class="final-stat-label">⭐ Puntaje total</div>
+          </div>
+          <div class="final-stat">
+            <div class="final-stat-num"><span id="final-correct">0</span>/40</div>
+            <div class="final-stat-label">✅ Aciertos</div>
+          </div>
+          <div class="final-stat">
+            <div class="final-stat-num" id="final-percent">0%</div>
+            <div class="final-stat-label">📊 Acierto</div>
+          </div>
+          <div class="final-stat">
+            <div class="final-stat-num" id="final-time">00:00</div>
+            <div class="final-stat-label">⏱️ Tiempo</div>
+          </div>
+        </div>
+        <div style="margin-top: 15px; font-size: 0.9em; opacity: 0.9;" id="final-date">--</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 25px; color: #7d6ff5;">📚 Repaso por unidad</h3>
+
+    <div class="review-box">
+      <h4>📘 Unidad 1 — Principios de multiplicación y adición</h4>
+      <p><strong>Multiplica</strong> cuando una tarea tiene varias etapas que se hacen en secuencia (etapa 1 <em>Y</em> etapa 2). <strong>Suma</strong> cuando son alternativas excluyentes (opción A <em>O</em> opción B). El diagrama de árbol te ayuda a visualizarlo. Ejemplos: PIN del cajero, outfit del día, rutas a la universidad.</p>
+    </div>
+
+    <div class="review-box">
+      <h4>📗 Unidad 2 — Factorial</h4>
+      <p><strong>n! = n × (n−1) × (n−2) × ... × 2 × 1</strong>. Por convención <strong>0! = 1</strong>. Para cocientes simplifica antes de calcular: <em>10!/8! = 10×9 = 90</em>. Cuenta el número de formas de ordenar TODOS los elementos.</p>
+    </div>
+
+    <div class="review-box">
+      <h4>📙 Unidad 3 — Permutaciones</h4>
+      <p>El <strong>orden importa</strong> y no se repiten elementos. <em>P(n,r) = n!/(n−r)!</em>. Si hay elementos repetidos (anagramas tipo RETRO), divide entre los factoriales de cada repetición: <em>n!/(n₁!·n₂!·...·nₖ!)</em>. Ejemplo: podio olímpico, claves sin repetir.</p>
+    </div>
+
+    <div class="review-box">
+      <h4>📕 Unidad 4 — Combinaciones</h4>
+      <p>El <strong>orden NO importa</strong>. <em>C(n,r) = n!/(r!(n−r)!)</em>. Ejemplos: La Tinka (6 de 45), comités, equipos de proyecto, ingredientes de pizza. Regla: <em>"¿Cambia algo si cambio el orden? Sí → Permutación · No → Combinación"</em>.</p>
+    </div>
+
+    <div style="text-align: center; margin-top: 25px;">
+      <button class="btn btn-whatsapp" onclick="shareWhatsApp()">📱 Compartir por WhatsApp</button>
+      <button class="btn" onclick="restartGame()">🔄 Jugar de nuevo</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal compartir -->
+<div class="modal-overlay" id="modal-share">
+  <div class="modal">
+    <h3>📥 Tu imagen está lista</h3>
+    <p>Acabamos de descargar tu logro a la carpeta <strong>Descargas</strong> de tu dispositivo.</p>
+    <p><strong>Para compartirla:</strong></p>
+    <p>1️⃣ Abre WhatsApp 📱<br>2️⃣ Adjunta la imagen recién descargada<br>3️⃣ Envíasela al docente</p>
+    <p style="font-size: 0.9em; color: #777; margin-top: 15px;">O si prefieres, toma captura manual:</p>
+    <div class="shortcut-box">🪟 Windows: Win + Shift + S</div>
+    <div class="shortcut-box">🍎 Mac: Cmd + Shift + 4</div>
+    <button class="btn btn-whatsapp" onclick="openWhatsApp()">💬 Abrir WhatsApp</button>
+    <button class="modal-close" onclick="closeModal()">Cerrar</button>
+  </div>
+</div>
+
+<script>
+// ============== DATOS ==============
+const questions = [
+  // BLOQUE 1: Multiplicación, adición, diagrama de árbol
+  { w: "📘 Unidad 1 · Multiplicación", t: "👕 Para vestirte tienes 4 polos diferentes y 3 pantalones diferentes. ¿De cuántas maneras distintas puedes vestirte?",
+    o: ["7", "12", "24", "1"], a: 1,
+    exp: "Principio de multiplicación: 4 × 3 = 12 outfits. Etapa 1: elegir polo (4 opciones). Etapa 2: elegir pantalón (3 opciones)." },
+
+  { w: "📘 Unidad 1 · Adición", t: "🍰 En la cafetería de la universidad hay 5 tipos de sandwich y 4 bebidas. Si quieres llevarte SOLO una cosa (sandwich o bebida), ¿cuántas opciones tienes?",
+    o: ["20", "9", "5", "4"], a: 1,
+    exp: "Principio de adición: son alternativas excluyentes (uno O lo otro), no etapas. 5 + 4 = 9 opciones." },
+
+  { w: "📘 Unidad 1 · Multiplicación", t: "🔒 Una clave de seguridad tiene 4 dígitos (0–9) y SÍ se permite repetir. ¿Cuántas claves distintas existen?",
+    o: ["40", "5040", "10 000", "9999"], a: 2,
+    exp: "10 opciones para cada uno de los 4 dígitos: 10 × 10 × 10 × 10 = 10 000. Por eso un PIN de 4 dígitos parece seguro… pero no tanto." },
+
+  { w: "📘 Unidad 1 · Multiplicación", t: "🔢 ¿Cuántos números de 2 cifras se pueden formar usando solo los dígitos 1, 2, 3, 4, 5 si SÍ se permite repetir?",
+    o: ["10", "20", "25", "120"], a: 2,
+    exp: "5 opciones para la primera cifra × 5 para la segunda = 25 (porque se permite repetir, ej. 11, 22, ...)." },
+
+  { w: "📘 Unidad 1 · Multiplicación", t: "🔢 Mismos dígitos (1, 2, 3, 4, 5), números de 2 cifras, pero ahora SIN repetir. ¿Cuántos?",
+    o: ["25", "20", "10", "5"], a: 1,
+    exp: "5 opciones para la primera cifra × 4 para la segunda (ya no podemos reusar) = 20." },
+
+  { w: "📘 Unidad 1 · Adición", t: "🚌 Para llegar a la universidad puedes tomar 3 rutas de bus, 2 rutas de combi o 4 servicios de taxi. ¿De cuántas maneras distintas puedes llegar (eligiendo solo un medio)?",
+    o: ["9", "24", "12", "14"], a: 0,
+    exp: "Adición (alternativas excluyentes): 3 + 2 + 4 = 9 maneras. No se combinan, eliges una sola." },
+
+  { w: "📘 Unidad 1 · Multiplicación", t: "🍽️ Un menú tiene 3 entradas, 4 platos de fondo y 2 postres. Si armas un menú completo (entrada + plato + postre), ¿cuántas combinaciones de menú hay?",
+    o: ["9", "24", "14", "12"], a: 1,
+    exp: "Tres etapas en secuencia: 3 × 4 × 2 = 24 menús distintos." },
+
+  { w: "📘 Unidad 1 · Diagrama de árbol", t: "🌳 ¿Cuántos números de 3 dígitos diferentes se pueden formar con 1, 2 y 3 (sin repetir)?",
+    o: ["27", "9", "6", "3"], a: 2,
+    exp: "Diagrama de árbol: 3 × 2 × 1 = 6 (los números 123, 132, 213, 231, 312, 321). Si se permitiera repetir serían 27." },
+
+  { w: "📘 Unidad 1 · Multiplicación", t: "🚗 Una placa ficticia tiene 3 letras (26 posibles) seguidas de 3 dígitos (0–9). Permitiendo repeticiones, ¿cuántas placas se pueden generar?",
+    o: ["1 757 600", "17 576 000", "175 760", "60 000"], a: 1,
+    exp: "26 × 26 × 26 × 10 × 10 × 10 = 17 576 × 1000 = 17 576 000 placas." },
+
+  { w: "📘 Unidad 1 · Adición", t: "💬 Un grupo de WhatsApp tiene 3 administradores y 5 miembros normales. Si necesitas elegir UN solo representante, ¿cuántas opciones tienes?",
+    o: ["15", "8", "3", "5"], a: 1,
+    exp: "Adición: 3 + 5 = 8 personas posibles. No multiplicas porque eliges una sola persona." },
+
+  // BLOQUE 2: Factorial
+  { w: "📗 Unidad 2 · Factorial", pencil: true, t: "🔢 ¿Cuánto es 5!?",
+    h: "💡 5! = 5 × 4 × 3 × 2 × 1. Multiplica paso a paso con lápiz y papel.",
+    o: ["25", "60", "120", "720"], a: 2,
+    exp: "5! = 5 × 4 × 3 × 2 × 1 = 120. Es el número de formas de ordenar 5 objetos distintos." },
+
+  { w: "📗 Unidad 2 · Factorial", t: "🔢 ¿Cuánto es 6!?",
+    o: ["720", "360", "120", "5040"], a: 0,
+    exp: "6! = 6 × 5! = 6 × 120 = 720. ¡Atajo: si ya sabes 5!, multiplica por 6!" },
+
+  { w: "📗 Unidad 2 · Cociente de factoriales", t: "➗ Calcula 8! / 6!",
+    h: "💡 8! = 8 × 7 × 6! → la parte 6! se cancela arriba y abajo.",
+    o: ["56", "8", "720", "40 320"], a: 0,
+    exp: "8!/6! = (8 × 7 × 6!)/6! = 8 × 7 = 56. SIEMPRE simplifica antes de calcular." },
+
+  { w: "📗 Unidad 2 · Cociente de factoriales", t: "➗ Calcula 10! / 8!",
+    o: ["18", "90", "80", "720"], a: 1,
+    exp: "10!/8! = (10 × 9 × 8!)/8! = 10 × 9 = 90. Mismo truco." },
+
+  { w: "📗 Unidad 2 · Caso especial", t: "🤔 ¿Cuánto vale 0! (cero factorial)?",
+    o: ["0", "1", "Indefinido", "Infinito"], a: 1,
+    exp: "Por convención matemática, 0! = 1. Esto hace que las fórmulas de permutación y combinación funcionen correctamente." },
+
+  { w: "📗 Unidad 2 · Aplicación", t: "📄 Michelle Cook tiene 7 ensayos para incluirlos en su carpeta. ¿En cuántos órdenes diferentes puede arreglarlos?",
+    o: ["49", "720", "5040", "40 320"], a: 2,
+    exp: "Ordenar 7 elementos distintos = 7! = 7 × 6 × 5 × 4 × 3 × 2 × 1 = 5040." },
+
+  { w: "📗 Unidad 2 · Operaciones", t: "🧮 Calcula (6 − 3)!",
+    h: "💡 OJO: primero resuelve dentro del paréntesis, después aplica el factorial.",
+    o: ["6", "3", "120", "0"], a: 0,
+    exp: "(6 − 3)! = 3! = 3 × 2 × 1 = 6. No confundir con 6! − 3!." },
+
+  { w: "📗 Unidad 2 · Operaciones", t: "🧮 Calcula 6! − 3!",
+    o: ["717", "714", "720", "3"], a: 1,
+    exp: "6! − 3! = 720 − 6 = 714. Se calcula cada factorial primero y se resta. Es DIFERENTE de (6−3)!." },
+
+  { w: "📗 Unidad 2 · Operaciones", t: "🧮 Calcula (6/3)!",
+    o: ["240", "6", "2", "120"], a: 2,
+    exp: "(6/3)! = 2! = 2 × 1 = 2. Primero la división dentro del paréntesis, después el factorial." },
+
+  { w: "📗 Unidad 2 · Aplicación", t: "📚 Tienes que ordenar 4 libros distintos en un estante. ¿De cuántas maneras puedes hacerlo?",
+    o: ["16", "24", "12", "4"], a: 1,
+    exp: "4! = 4 × 3 × 2 × 1 = 24 ordenamientos posibles. Este es el uso más clásico del factorial." },
+
+  // BLOQUE 3: Permutaciones
+  { w: "📙 Unidad 3 · Concepto", t: "🤔 ¿Qué caracteriza a una permutación?",
+    o: ["Arreglos donde NO importa el orden", "Arreglos donde el orden SÍ importa", "Solo suma de opciones", "Conteo de grupos iguales"], a: 1,
+    exp: "Permutación = el orden importa. Si cambias el orden, obtienes un arreglo distinto. Ejemplo: ABC ≠ CBA." },
+
+  { w: "📙 Unidad 3 · Cálculo", pencil: true, t: "🧮 Calcula P(5, 2) (también escrito ₅P₂)",
+    h: "💡 Fórmula: P(n,r) = n!/(n−r)! → P(5,2) = 5!/3! = 5 × 4.",
+    o: ["10", "20", "60", "120"], a: 1,
+    exp: "P(5,2) = 5!/(5−2)! = 5!/3! = 5 × 4 = 20. Forma rápida: multiplica los 'r' factores más grandes de n hacia abajo." },
+
+  { w: "📙 Unidad 3 · Cálculo", t: "🧮 Calcula ₈P₃",
+    o: ["56", "336", "24", "6720"], a: 1,
+    exp: "P(8,3) = 8 × 7 × 6 = 336. Solo 3 factores empezando desde 8." },
+
+  { w: "📙 Unidad 3 · Aplicación", t: "🪑 ¿De cuántas maneras pueden 8 personas sentarse en una banca si solo hay 4 asientos disponibles?",
+    o: ["32", "1680", "40 320", "24"], a: 1,
+    exp: "P(8,4) = 8 × 7 × 6 × 5 = 1680. Eliges quién va en cada asiento, el orden importa." },
+
+  { w: "📙 Unidad 3 · Aplicación", t: "🏅 En una carrera con 10 corredores, ¿de cuántas formas se puede asignar el podio (oro, plata y bronce)?",
+    o: ["30", "120", "720", "1000"], a: 2,
+    exp: "Es permutación porque el orden importa (oro ≠ plata ≠ bronce). P(10,3) = 10 × 9 × 8 = 720." },
+
+  { w: "📙 Unidad 3 · Con repetición", pencil: true, t: "🔤 ¿De cuántas formas distintas se pueden ordenar las letras de la palabra \"RETRO\"?",
+    h: "💡 La R se repite 2 veces. Fórmula: 5!/2! (divides entre el factorial de las repeticiones).",
+    o: ["120", "60", "24", "240"], a: 1,
+    exp: "5 letras totales, la R aparece 2 veces. 5!/2! = 120/2 = 60 anagramas distintos." },
+
+  { w: "📙 Unidad 3 · Permutación simple", t: "🇵🇪 ¿De cuántas formas se pueden ordenar las letras de la palabra \"PERU\"?",
+    o: ["4", "12", "24", "16"], a: 2,
+    exp: "P-E-R-U son 4 letras todas distintas, así que es 4! = 24. (No hay repeticiones que dividir.)" },
+
+  { w: "📙 Unidad 3 · Con repetición", t: "🎱 Con 2 bolas rojas, 2 azules y 3 verdes, ¿de cuántas maneras se pueden ordenar en una fila?",
+    o: ["210", "5040", "42", "12"], a: 0,
+    exp: "Total 7 bolas, repeticiones: 2 rojas, 2 azules, 3 verdes. 7!/(2! × 2! × 3!) = 5040/(2·2·6) = 5040/24 = 210." },
+
+  { w: "📙 Unidad 3 · Aplicación", t: "📋 Un docente debe dividir 8 tareas entre 3 alumnos: el mayor recibe 4 y los otros dos reciben 2 cada uno. ¿De cuántas formas?",
+    o: ["28", "420", "70", "168"], a: 1,
+    exp: "Permutación con repetición: 8!/(4! × 2! × 2!) = 40 320/(24·2·2) = 40 320/96 = 420." },
+
+  { w: "📙 Unidad 3 · Aplicación", t: "👥 ¿De cuántas formas se pueden acomodar 6 personas en fila?",
+    o: ["120", "720", "36", "360"], a: 1,
+    exp: "Permutación total de 6 elementos: 6! = 720. Es lo mismo que P(6,6)." },
+
+  // BLOQUE 4: Combinaciones
+  { w: "📕 Unidad 4 · Concepto", t: "🤔 ¿Qué caracteriza a una combinación?",
+    o: ["El orden importa", "No se repiten los elementos solamente", "El orden NO importa", "Se incluyen todas las permutaciones"], a: 2,
+    exp: "Combinación = el orden NO importa. Solo importa qué elementos seleccionas, no en qué orden. Ejemplo: {A,B,C} = {C,A,B}." },
+
+  { w: "📕 Unidad 4 · Cálculo", pencil: true, t: "🧮 Calcula C(5, 2) (también ₅C₂)",
+    h: "💡 Fórmula: C(n,r) = n! / (r!·(n−r)!) → C(5,2) = 5!/(2!·3!) = (5·4)/(2·1).",
+    o: ["20", "10", "60", "25"], a: 1,
+    exp: "C(5,2) = 5!/(2!·3!) = 120/(2·6) = 10. Equivale a P(5,2)/2! = 20/2 = 10." },
+
+  { w: "📕 Unidad 4 · Cálculo", t: "🧮 Calcula C(10, 3)",
+    h: "💡 C(10,3) = (10·9·8)/(3·2·1).",
+    o: ["720", "30", "120", "1000"], a: 2,
+    exp: "C(10,3) = (10·9·8)/(3·2·1) = 720/6 = 120." },
+
+  { w: "📕 Unidad 4 · Aplicación", t: "📝 Un alumno debe elegir 7 preguntas de las 10 de un examen. ¿De cuántas formas puede hacerlo?",
+    o: ["70", "120", "30", "5040"], a: 1,
+    exp: "El orden de las preguntas no importa, solo cuáles elige. C(10,7) = C(10,3) = 120 maneras." },
+
+  { w: "📕 Unidad 4 · Aplicación", t: "🎰 En La Tinka eliges 6 números de 45 (orden no importa). ¿Cuántas combinaciones posibles existen?",
+    o: ["270", "8 145 060", "5 864 443 200", "6"], a: 1,
+    exp: "C(45,6) = 8 145 060. ¡Por eso ganar la Tinka es tan difícil! La probabilidad de ganar con un solo boleto es ~1 en 8 millones." },
+
+  { w: "📕 Unidad 4 · Aplicación", t: "🍕 Tienes 5 ingredientes y quieres armar una pizza con exactamente 3 de ellos. ¿Cuántas pizzas distintas?",
+    o: ["60", "15", "10", "125"], a: 2,
+    exp: "C(5,3) = 10. El orden de poner los ingredientes no cambia la pizza, así que es combinación." },
+
+  { w: "📕 Unidad 4 · Aplicación", t: "👥 Un curso tiene 20 estudiantes. ¿De cuántas formas se puede formar un equipo de 5 para un proyecto?",
+    o: ["100", "1 860 480", "15 504", "3 200 000"], a: 2,
+    exp: "C(20,5) = 15 504. Solo importa quiénes integran el equipo, no en qué orden los elegiste." },
+
+  { w: "📕 Unidad 4 · ¿P o C?", t: "🔍 \"Elegir 3 estudiantes de 10 para que representen al aula en un evento\". ¿Es permutación o combinación?",
+    o: ["Permutación", "Combinación", "Ambas a la vez", "Ninguna"], a: 1,
+    exp: "Combinación: los 3 representantes son iguales entre sí (no hay roles distintos). Solo importa quiénes son, no en qué orden los elegiste." },
+
+  { w: "📕 Unidad 4 · ¿P o C?", t: "🔍 \"Asignar a 3 estudiantes los puestos de presidente, secretario y tesorero, escogiendo entre 10 candidatos\". ¿P o C?",
+    o: ["Permutación", "Combinación", "Adición", "Factorial puro"], a: 0,
+    exp: "Permutación: los puestos son DIFERENTES (presidente ≠ secretario ≠ tesorero). El orden de asignación importa. P(10,3) = 720." },
+
+  { w: "📕 Unidad 4 · Aplicación combinada", t: "🎓 Matemática Discreta tiene 20 estudiantes, de los cuales 14 son mujeres. Si se seleccionan 6, ¿en cuántas selecciones habrá EXACTAMENTE 3 mujeres?",
+    h: "💡 Pista: separa en dos grupos. Eliges 3 mujeres de 14 Y 3 hombres de 6, después multiplicas.",
+    o: ["38 760", "7280", "4845", "2184"], a: 1,
+    exp: "C(14,3) × C(6,3) = 364 × 20 = 7280. Combinas dos selecciones independientes con el principio de multiplicación." }
+];
+
+const mg1Rounds = [
+  { q: "5! = 120", a: true,  exp: "5×4×3×2×1 = 120 ✓" },
+  { q: "P(4, 2) = 12", a: true, exp: "4×3 = 12 ✓" },
+  { q: "C(5, 2) = 20", a: false, exp: "C(5,2) = 10, no 20. Confundes con la permutación." },
+  { q: "3! + 2! = 8", a: true, exp: "6 + 2 = 8 ✓" },
+  { q: "6! / 5! = 30", a: false, exp: "6!/5! = 6, no 30. Solo queda el factor 6." },
+  { q: "10 × 9 × 8 = 720", a: true, exp: "720 = P(10,3) ✓" },
+  { q: "P(5, 5) = 5!", a: true, exp: "Permutar todos = factorial total ✓" },
+  { q: "C(6, 3) = 18", a: false, exp: "C(6,3) = 20, no 18." },
+  { q: "4! = 24", a: true, exp: "4×3×2×1 = 24 ✓" },
+  { q: "0! = 0", a: false, exp: "Por convención, 0! = 1 (no cero)." }
+];
+
+const mg2Cards = [
+  { i: "🏆", t: "Asignar las medallas de oro, plata y bronce a 3 atletas finalistas", a: "P", exp: "Las medallas son distintas → el orden importa." },
+  { i: "🍕", t: "Elegir 3 ingredientes de 10 para una pizza", a: "C", exp: "El orden de los ingredientes no cambia la pizza." },
+  { i: "🔒", t: "Crear un PIN de 4 dígitos para tu tarjeta", a: "P", exp: "1234 ≠ 4321 → el orden importa." },
+  { i: "👥", t: "Formar un comité de 5 personas (sin cargos asignados)", a: "C", exp: "Los integrantes son iguales entre sí." },
+  { i: "📚", t: "Ordenar 4 libros distintos en un estante", a: "P", exp: "Cambiar el orden produce una nueva ordenación." },
+  { i: "🎰", t: "Sacar 6 bolas en el sorteo de La Tinka", a: "C", exp: "Solo importa qué números salieron, no en qué orden." },
+  { i: "🎤", t: "Decidir el orden de presentación de 5 grupos en una exposición", a: "P", exp: "El primero no es lo mismo que el último." },
+  { i: "✋", t: "Contar los apretones de manos entre 8 amigos en una reunión", a: "C", exp: "A saluda a B = B saluda a A → no importa el orden." },
+  { i: "🃏", t: "Recibir una mano de 5 cartas de póker", a: "C", exp: "Tu mano es la misma sin importar en qué orden te dieron las cartas." },
+  { i: "🏃", t: "El orden de llegada de 10 corredores en una carrera", a: "P", exp: "Llegar primero ≠ llegar último." }
+];
+
+const mg3Levels = [
+  { target: "3!", expected: [3, 2, 1], result: 6 },
+  { target: "4!", expected: [4, 3, 2, 1], result: 24 },
+  { target: "5!", expected: [5, 4, 3, 2, 1], result: 120 },
+  { target: "6!", expected: [6, 5, 4, 3, 2, 1], result: 720 },
+  { target: "P(5, 2) = 5 × 4", expected: [5, 4], result: 20 },
+  { target: "P(6, 3) = 6 × 5 × 4", expected: [6, 5, 4], result: 120 },
+  { target: "P(4, 2) = 4 × 3", expected: [4, 3], result: 12 },
+  { target: "P(7, 2) = 7 × 6", expected: [7, 6], result: 42 },
+  { target: "P(8, 3) = 8 × 7 × 6", expected: [8, 7, 6], result: 336 },
+  { target: "P(5, 3) = 5 × 4 × 3", expected: [5, 4, 3], result: 60 }
+];
+
+// ============== ESTADO ==============
+const state = {
+  name: "",
+  score: 0,
+  correct: 0,
+  currentQ: 0,
+  startTime: 0,
+  timerInterval: null,
+  pencilShown: false,
+  mg1Round: 0, mg1Hits: 0, mg1Locked: false,
+  mg2Round: 0, mg2Hits: 0, mg2Locked: false, mg2Time: 120, mg2Interval: null,
+  mg3Round: 0, mg3Hits: 0, mg3Selected: new Set()
+};
+
+// ============== AUDIO ==============
+let audioCtx;
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playTone(freq, duration, type = 'sine', vol = 0.15) {
+  try {
+    const ctx = getCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + duration);
+  } catch(e) {}
+}
+function playCorrect() {
+  playTone(523, 0.12, 'sine');
+  setTimeout(() => playTone(659, 0.12, 'sine'), 100);
+  setTimeout(() => playTone(784, 0.18, 'sine'), 200);
+}
+function playWrong() {
+  playTone(311, 0.18, 'sawtooth', 0.12);
+  setTimeout(() => playTone(233, 0.25, 'sawtooth', 0.12), 150);
+}
+function playClick() { playTone(800, 0.04, 'square', 0.08); }
+function playVictory() {
+  const notes = [523, 659, 784, 1047];
+  notes.forEach((n, i) => setTimeout(() => playTone(n, 0.25, 'sine', 0.18), i * 150));
+}
+
+// ============== PANTALLAS ==============
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function checkReady() {
+  const check = document.getElementById('commit-check').checked;
+  const name = document.getElementById('player-name').value.trim();
+  document.getElementById('start-btn').disabled = !(check && name.length >= 2);
+}
+
+function startGame() {
+  state.name = document.getElementById('player-name').value.trim();
+  state.startTime = Date.now();
+  document.getElementById('hud-name').textContent = state.name;
+  state.timerInterval = setInterval(updateTimer, 1000);
+  playClick();
+  showQuestion();
+  showScreen('screen-quiz');
+}
+
+function updateTimer() {
+  const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+  const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  const s = String(elapsed % 60).padStart(2, '0');
+  document.getElementById('hud-time').textContent = `${m}:${s}`;
+}
+
+function showQuestion() {
+  const q = questions[state.currentQ];
+  document.getElementById('hud-q').textContent = state.currentQ + 1;
+  document.getElementById('hud-score').textContent = state.score;
+  document.getElementById('progress-fill').style.width = `${((state.currentQ) / 40) * 100}%`;
+
+  let pencilHTML = "";
+  if (q.pencil && !state.pencilShown) {
+    pencilHTML = `<div class="pencil-box">✏️📝 ¡Hora de agarrar lápiz y papel! Estos cálculos los haces a mano.</div>`;
+    state.pencilShown = true;
+  }
+  // Reset pencilShown when entering a new calculation block
+  if (state.currentQ === 10 || state.currentQ === 20 || state.currentQ === 30) {
+    state.pencilShown = false;
+    if (q.pencil) {
+      pencilHTML = `<div class="pencil-box">✏️📝 ¡Hora de agarrar lápiz y papel! Estos cálculos los haces a mano.</div>`;
+      state.pencilShown = true;
+    }
+  }
+
+  let scenarioHTML = q.s ? `<div class="scenario">${q.s}</div>` : "";
+  let premiseHTML = q.p ? `<div class="premise">${q.p}</div>` : "";
+  let hintHTML = q.h ? `<div class="hint-box">${q.h}</div>` : "";
+
+  const optionsHTML = q.o.map((opt, i) =>
+    `<button class="option" onclick="answerQuestion(${i})">${String.fromCharCode(65 + i)}) ${opt}</button>`
+  ).join("");
+
+  document.getElementById('quiz-body').innerHTML = `
+    ${pencilHTML}
+    <div class="unit-badge">${q.w}</div>
+    ${scenarioHTML}
+    ${premiseHTML}
+    <div class="question-text">${q.t}</div>
+    ${hintHTML}
+    <div class="options" id="quiz-options">${optionsHTML}</div>
+    <div class="feedback" id="quiz-feedback"></div>
+    <div id="next-btn-container" style="text-align: center; margin-top: 15px;"></div>
+  `;
+}
+
+function answerQuestion(idx) {
+  const q = questions[state.currentQ];
+  const opts = document.querySelectorAll('#quiz-options .option');
+  opts.forEach(o => { o.classList.add('disabled'); o.onclick = null; });
+
+  const isCorrect = idx === q.a;
+  opts[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) opts[q.a].classList.add('correct');
+
+  const fb = document.getElementById('quiz-feedback');
+  if (isCorrect) {
+    state.score += 10;
+    state.correct += 1;
+    document.getElementById('hud-score').textContent = state.score;
+    fb.className = 'feedback correct';
+    fb.innerHTML = `<strong>✅ ¡Correcto! +10 pts</strong>${q.exp}`;
+    playCorrect();
+  } else {
+    fb.className = 'feedback wrong';
+    fb.innerHTML = `<strong>❌ Incorrecto</strong>${q.exp}`;
+    playWrong();
+  }
+
+  document.getElementById('next-btn-container').innerHTML =
+    `<button class="btn" onclick="nextQuestion()">Siguiente →</button>`;
+}
+
+function nextQuestion() {
+  playClick();
+  state.currentQ++;
+  if (state.currentQ === 10) { startMg1(); return; }
+  if (state.currentQ === 20) { startMg2(); return; }
+  if (state.currentQ === 30) { startMg3(); return; }
+  if (state.currentQ === 40) { endGame(); return; }
+  showQuestion();
+}
+
+// ============== MINIJUEGO 1 ==============
+function startMg1() {
+  state.mg1Round = 0; state.mg1Hits = 0; state.mg1Locked = false;
+  showMg1Round();
+  showScreen('screen-mg1');
+}
+function showMg1Round() {
+  if (state.mg1Round >= mg1Rounds.length) { finishMg1(); return; }
+  const r = mg1Rounds[state.mg1Round];
+  document.getElementById('mg1-round').textContent = state.mg1Round + 1;
+  document.getElementById('mg1-hits').textContent = state.mg1Hits;
+  document.getElementById('mg1-pts').textContent = state.mg1Hits * 5;
+  document.getElementById('mg1-question').textContent = r.q;
+  document.getElementById('mg1-feedback').style.display = 'none';
+  document.getElementById('mg1-true').disabled = false;
+  document.getElementById('mg1-false').disabled = false;
+  state.mg1Locked = false;
+}
+function mg1Answer(val) {
+  if (state.mg1Locked) return;
+  state.mg1Locked = true;
+  const r = mg1Rounds[state.mg1Round];
+  document.getElementById('mg1-true').disabled = true;
+  document.getElementById('mg1-false').disabled = true;
+  const fb = document.getElementById('mg1-feedback');
+  if (val === r.a) {
+    state.mg1Hits++;
+    state.score += 5;
+    fb.className = 'feedback correct';
+    fb.innerHTML = `<strong>✅ ¡Correcto! +5 pts</strong>${r.exp}`;
+    playCorrect();
+  } else {
+    fb.className = 'feedback wrong';
+    fb.innerHTML = `<strong>❌ Era ${r.a ? 'VERDADERO' : 'FALSO'}</strong>${r.exp}`;
+    playWrong();
+  }
+  setTimeout(() => { state.mg1Round++; showMg1Round(); }, 1800);
+}
+function finishMg1() {
+  playVictory();
+  setTimeout(() => { showQuestion(); showScreen('screen-quiz'); }, 800);
+}
+function skipMg1() { playClick(); state.mg1Round = mg1Rounds.length; finishMg1(); }
+
+// ============== MINIJUEGO 2 ==============
+function startMg2() {
+  state.mg2Round = 0; state.mg2Hits = 0; state.mg2Locked = false; state.mg2Time = 120;
+  // shuffle cards
+  const cards = mg2Cards.slice().sort(() => Math.random() - 0.5);
+  state.mg2Cards = cards;
+  showMg2Card();
+  state.mg2Interval = setInterval(updateMg2Timer, 1000);
+  showScreen('screen-mg2');
+}
+function updateMg2Timer() {
+  state.mg2Time--;
+  const m = Math.floor(state.mg2Time / 60);
+  const s = String(state.mg2Time % 60).padStart(2, '0');
+  document.getElementById('mg2-time').textContent = `${m}:${s}`;
+  if (state.mg2Time <= 0) { finishMg2(); }
+}
+function showMg2Card() {
+  if (state.mg2Round >= state.mg2Cards.length) { finishMg2(); return; }
+  const c = state.mg2Cards[state.mg2Round];
+  document.getElementById('mg2-round').textContent = state.mg2Round + 1;
+  document.getElementById('mg2-hits').textContent = state.mg2Hits;
+  document.getElementById('mg2-pts').textContent = state.mg2Hits * 5;
+  document.getElementById('mg2-icon').textContent = c.i;
+  document.getElementById('mg2-text').textContent = c.t;
+  document.getElementById('mg2-feedback').style.display = 'none';
+  document.getElementById('mg2-p').disabled = false;
+  document.getElementById('mg2-c').disabled = false;
+  state.mg2Locked = false;
+}
+function mg2Answer(val) {
+  if (state.mg2Locked) return;
+  state.mg2Locked = true;
+  const c = state.mg2Cards[state.mg2Round];
+  document.getElementById('mg2-p').disabled = true;
+  document.getElementById('mg2-c').disabled = true;
+  const fb = document.getElementById('mg2-feedback');
+  if (val === c.a) {
+    state.mg2Hits++;
+    state.score += 5;
+    fb.className = 'feedback correct';
+    fb.innerHTML = `<strong>✅ ¡Correcto! +5 pts</strong>${c.exp}`;
+    playCorrect();
+  } else {
+    fb.className = 'feedback wrong';
+    fb.innerHTML = `<strong>❌ Era ${c.a === 'P' ? 'Permutación' : 'Combinación'}</strong>${c.exp}`;
+    playWrong();
+  }
+  setTimeout(() => { state.mg2Round++; showMg2Card(); }, 1500);
+}
+function finishMg2() {
+  if (state.mg2Interval) { clearInterval(state.mg2Interval); state.mg2Interval = null; }
+  playVictory();
+  setTimeout(() => { showQuestion(); showScreen('screen-quiz'); }, 800);
+}
+function skipMg2() { playClick(); state.mg2Round = state.mg2Cards.length; finishMg2(); }
+
+// ============== MINIJUEGO 3 ==============
+function startMg3() {
+  state.mg3Round = 0; state.mg3Hits = 0;
+  showMg3Level();
+  showScreen('screen-mg3');
+}
+function showMg3Level() {
+  if (state.mg3Round >= mg3Levels.length) { finishMg3(); return; }
+  const lv = mg3Levels[state.mg3Round];
+  document.getElementById('mg3-round').textContent = state.mg3Round + 1;
+  document.getElementById('mg3-hits').textContent = state.mg3Hits;
+  document.getElementById('mg3-pts').textContent = state.mg3Hits * 10;
+  document.getElementById('mg3-target').textContent = "Calcula: " + lv.target;
+  document.getElementById('mg3-feedback').style.display = 'none';
+  state.mg3Selected = new Set();
+  // build buttons 1..10
+  const grid = document.getElementById('mg3-grid');
+  grid.innerHTML = "";
+  for (let i = 1; i <= 10; i++) {
+    const b = document.createElement('button');
+    b.className = 'builder-btn';
+    b.textContent = i;
+    b.onclick = () => toggleMg3(i, b);
+    grid.appendChild(b);
+  }
+  updateMg3Product();
+}
+function toggleMg3(n, btn) {
+  playClick();
+  if (state.mg3Selected.has(n)) {
+    state.mg3Selected.delete(n);
+    btn.classList.remove('active');
+  } else {
+    state.mg3Selected.add(n);
+    btn.classList.add('active');
+  }
+  updateMg3Product();
+}
+function updateMg3Product() {
+  const arr = [...state.mg3Selected].sort((a,b) => b-a);
+  if (arr.length === 0) {
+    document.getElementById('mg3-product').textContent = "Producto: (selecciona números)";
+  } else {
+    const prod = arr.reduce((a, b) => a * b, 1);
+    document.getElementById('mg3-product').textContent = `Producto: ${arr.join(' × ')} = ${prod}`;
+  }
+}
+function mg3Submit() {
+  const lv = mg3Levels[state.mg3Round];
+  const sel = [...state.mg3Selected].sort((a,b) => b-a);
+  const exp = lv.expected.slice().sort((a,b) => b-a);
+  const isCorrect = sel.length === exp.length && sel.every((v, i) => v === exp[i]);
+  const fb = document.getElementById('mg3-feedback');
+  if (isCorrect) {
+    state.mg3Hits++;
+    state.score += 10;
+    fb.className = 'feedback correct';
+    fb.innerHTML = `<strong>✅ ¡Perfecto! +10 pts</strong>${lv.target} = ${lv.result}.`;
+    playCorrect();
+  } else {
+    fb.className = 'feedback wrong';
+    fb.innerHTML = `<strong>❌ No es esa combinación</strong>La respuesta correcta era ${exp.join(' × ')} = ${lv.result}.`;
+    playWrong();
+  }
+  setTimeout(() => { state.mg3Round++; showMg3Level(); }, 2000);
+}
+function finishMg3() {
+  playVictory();
+  setTimeout(() => { showQuestion(); showScreen('screen-quiz'); }, 800);
+}
+function skipMg3() { playClick(); state.mg3Round = mg3Levels.length; finishMg3(); }
+
+// ============== PANTALLA FINAL ==============
+function endGame() {
+  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
+  const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+  const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  const s = String(elapsed % 60).padStart(2, '0');
+  const timeStr = `${m}:${s}`;
+  const pct = Math.round((state.correct / 40) * 100);
+
+  let emoji = "📚", title = "¡Buen intento! Sigue practicando.";
+  if (state.score >= 500) { emoji = "🏆"; title = "¡Eres un Conteo Master legendario!"; }
+  else if (state.score >= 400) { emoji = "🥇"; title = "¡Excelente! Dominas el conteo combinatorio."; }
+  else if (state.score >= 250) { emoji = "🥈"; title = "¡Buen trabajo! Repasa permutaciones y combinaciones."; }
+
+  document.getElementById('final-emoji').textContent = emoji;
+  document.getElementById('final-title').textContent = title;
+  document.getElementById('final-name').textContent = state.name;
+  document.getElementById('final-score').textContent = state.score;
+  document.getElementById('final-correct').textContent = state.correct;
+  document.getElementById('final-percent').textContent = pct + '%';
+  document.getElementById('final-time').textContent = timeStr;
+
+  const today = new Date();
+  document.getElementById('final-date').textContent = today.toLocaleDateString('es-PE', { day:'numeric', month:'long', year:'numeric' });
+
+  state.finalTime = timeStr;
+  state.finalPct = pct;
+  state.finalEmoji = emoji;
+
+  showScreen('screen-final');
+  playVictory();
+  launchConfetti();
+}
+
+function launchConfetti() {
+  const colors = ['#ff7675', '#74b9ff', '#fdcb6e', '#55efc4', '#a29bfe', '#ff9ff3'];
+  for (let i = 0; i < 80; i++) {
+    setTimeout(() => {
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      c.style.background = colors[Math.floor(Math.random() * colors.length)];
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.animation = `confetti-fall ${2 + Math.random() * 2}s linear forwards`;
+      c.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 4000);
+    }, i * 30);
+  }
+}
+
+// ============== COMPARTIR WHATSAPP ==============
+async function shareWhatsApp() {
+  playClick();
+  const text = `${state.finalEmoji} ¡Acabo de terminar Conteo Master!\n\n👤 ${state.name}\n⭐ Puntaje: ${state.score} pts\n✅ Aciertos: ${state.correct}/40 (${state.finalPct}%)\n⏱️ Tiempo: ${state.finalTime}\n📚 Matemática Discreta — 2026-1\n\n¿Tú te animas al reto? 🎯`;
+
+  try {
+    const canvas = await html2canvas(document.getElementById('capture-area'), { backgroundColor: '#fff', scale: 2 });
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], 'conteo_master.png', { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], text: text, title: 'Conteo Master' });
+          return;
+        } catch(e) { /* fallback */ }
+      }
+
+      // Descarga + modal
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'conteo_master_' + state.name.replace(/\s+/g, '_') + '.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      document.getElementById('modal-share').classList.add('active');
+      state.shareText = text;
+    });
+  } catch(err) {
+    alert('No se pudo generar la imagen. Toma una captura manual con Win+Shift+S (Windows) o Cmd+Shift+4 (Mac).');
+  }
+}
+function openWhatsApp() {
+  const txt = state.shareText || '¡Acabé Conteo Master!';
+  window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
+}
+function closeModal() {
+  document.getElementById('modal-share').classList.remove('active');
+}
+
+function restartGame() {
+  playClick();
+  state.score = 0; state.correct = 0; state.currentQ = 0;
+  state.startTime = 0; state.pencilShown = false;
+  if (state.timerInterval) clearInterval(state.timerInterval);
+  document.getElementById('commit-check').checked = false;
+  document.getElementById('player-name').value = '';
+  document.getElementById('start-btn').disabled = true;
+  showScreen('screen-inicio');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Quiz de Práctica - Matemática Discreta</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #5b49f0 0%, #7d6ff5 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #5b49f0;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .units-list {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .unit-item {
+            padding: 8px 0;
+            font-size: 1.05em;
+        }
+        
+        .commitment {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .commitment label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .commitment input {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .privacy-notice {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 12px;
+            margin: 15px 0;
+            font-size: 0.95em;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #5b49f0;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #5b49f0 0%, #7d6ff5 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+        }
+        
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-whatsapp {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            margin-top: 15px;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            margin-top: 10px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .student-name {
+            font-weight: 600;
+            color: #5b49f0;
+            font-size: 1.1em;
+        }
+        
+        .timer {
+            font-weight: 600;
+            color: #7d6ff5;
+            font-size: 1.2em;
+        }
+        
+        .score {
+            font-weight: 700;
+            color: #25D366;
+            font-size: 1.3em;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #5b49f0 0%, #7d6ff5 100%);
+            transition: width 0.3s;
+        }
+        
+        .question-box {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .question-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .hint-box {
+            background: #fff9e6;
+            border: 2px dashed #ffc107;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-style: italic;
+        }
+        
+        .pencil-note {
+            background: #ffe0b2;
+            border-left: 4px solid #ff9800;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .options {
+            display: grid;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .option {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.05em;
+        }
+        
+        .option:hover {
+            border-color: #5b49f0;
+            transform: translateX(5px);
+        }
+        
+        .option.selected {
+            border-color: #5b49f0;
+            background: #f0f4ff;
+        }
+        
+        .option.correct {
+            border-color: #4caf50;
+            background: #e8f5e9;
+            animation: flash-green 0.5s;
+        }
+        
+        .option.incorrect {
+            border-color: #f44336;
+            background: #ffebee;
+            animation: shake 0.5s;
+        }
+        
+        .feedback {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .feedback.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        .feedback.correct {
+            background: #e8f5e9;
+            border-left: 5px solid #4caf50;
+        }
+        
+        .feedback.incorrect {
+            background: #ffebee;
+            border-left: 5px solid #f44336;
+        }
+        
+        .explanation {
+            margin-top: 15px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-line;
+            line-height: 1.6;
+        }
+        
+        .example-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .example-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+        
+        .example-box {
+            background: linear-gradient(135deg, #fff5f7 0%, #ffe8ec 100%);
+            border: 3px solid #f5576c;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .example-box.show {
+            display: block;
+        }
+        
+        .example-title {
+            font-size: 1.3em;
+            color: #f5576c;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .example-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+        
+        .minigame {
+            text-align: center;
+        }
+        
+        .minigame-title {
+            font-size: 2em;
+            color: #5b49f0;
+            margin-bottom: 20px;
+        }
+        
+        .minigame-desc {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .binary-display {
+            font-size: 3em;
+            font-family: 'Courier New', monospace;
+            color: #333;
+            margin: 20px 0;
+            letter-spacing: 10px;
+        }
+        
+        .toggles {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .toggle-btn {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #5b49f0;
+            border-radius: 10px;
+            font-size: 2em;
+            cursor: pointer;
+            background: white;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+        
+        .toggle-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .toggle-btn.active {
+            background: #5b49f0;
+            color: white;
+        }
+        
+        .help-text {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 15px;
+        }
+        
+        .game-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .game-card {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .game-card.correct {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+        
+        .game-card.incorrect {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+        
+        .card-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .classification-btns {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .classify-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        
+        .classify-btn.valid {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .classify-btn.invalid {
+            background: #f44336;
+            color: white;
+        }
+        
+        .final-screen {
+            text-align: center;
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f44336;
+            position: absolute;
+            animation: confetti 3s ease-in-out forwards;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #5b49f0 0%, #7d6ff5 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin: 30px 0;
+        }
+        
+        .stat-item {
+            font-size: 1.5em;
+            margin: 15px 0;
+        }
+        
+        .review-section {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        
+        .review-title {
+            color: #5b49f0;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+        
+        .review-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .skip-btn {
+            background: #9e9e9e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        
+        @keyframes flash-green {
+            0%, 100% { background: #e8f5e9; }
+            50% { background: #c8e6c9; }
+        }
+        
+        @keyframes confetti {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(720deg); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            h1 { font-size: 2em; }
+            .header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <!-- PANTALLA INICIAL -->
+        <div id="start-screen">
+            <h1>🎮 Quiz de Práctica</h1>
+            <div class="subtitle">Matemática Discreta - Preparación para Examen</div>
+            
+            <div class="units-list">
+                <div class="unit-item">🔢 <strong>Semana 4:</strong> Sistemas de Numeración (10 preguntas)</div>
+                <div class="unit-item">📦 <strong>Semana 5:</strong> Conjuntos (10 preguntas)</div>
+                <div class="unit-item">⚡ <strong>Semana 6:</strong> Congruencia (10 preguntas)</div>
+                <div class="unit-item">🎯 <strong>3 Minijuegos</strong> temáticos para reforzar</div>
+            </div>
+            
+            <div class="commitment">
+                <label>
+                    <input type="checkbox" id="commitment-check">
+                    <span>Me comprometo a resolver este quiz sin usar IA ni buscar en internet, solo mi conocimiento y lápiz/papel.</span>
+                </label>
+            </div>
+            
+            <div class="privacy-notice">
+                ℹ️ Al finalizar podrás compartir tus resultados por WhatsApp (nombre, puntaje, tiempo y aciertos).
+            </div>
+            
+            <input type="text" id="student-name" placeholder="Tu nombre completo">
+            
+            <button class="btn" id="start-btn" disabled>¡Empezar Quiz! 🚀</button>
+        </div>
+        
+        <!-- PANTALLA DE QUIZ -->
+        <div id="quiz-screen" style="display: none;">
+            <div class="header">
+                <div class="student-name" id="header-name"></div>
+                <div class="timer" id="timer">⏱️ 00:00</div>
+                <div class="score" id="score">💰 0 pts</div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+            
+            <div id="question-container"></div>
+            
+            <button class="btn" id="next-btn" style="display: none;">Siguiente ➡️</button>
+        </div>
+        
+        <!-- PANTALLA DE MINIJUEGO -->
+        <div id="minigame-screen" style="display: none;">
+            <div class="minigame" id="minigame-container"></div>
+        </div>
+        
+        <!-- PANTALLA FINAL -->
+        <div id="final-screen" style="display: none;">
+            <div class="final-screen">
+                <h1 style="animation: bounce 1s infinite;">🎉 ¡Completado!</h1>
+                
+                <div class="stats-card" id="stats-card">
+                    <div class="stat-item">👤 <span id="final-name"></span></div>
+                    <div class="stat-item">💰 <span id="final-score"></span> puntos</div>
+                    <div class="stat-item">✅ <span id="final-correct"></span> correctas</div>
+                    <div class="stat-item">📊 <span id="final-percent"></span>% de aciertos</div>
+                    <div class="stat-item">⏱️ <span id="final-time"></span></div>
+                </div>
+                
+                <div class="review-section">
+                    <div class="review-title">📚 Repaso de Conceptos Clave</div>
+                    
+                    <div class="review-item">
+                        <strong>🔢 Sistemas de Numeración:</strong> Conversión entre bases, operaciones aritméticas en diferentes bases, y representación RGB.
+                    </div>
+                    
+                    <div class="review-item">
+                        <strong>📦 Conjuntos:</strong> Operaciones (unión, intersección, diferencia), cardinalidad, y aplicaciones prácticas en redes sociales.
+                    </div>
+                    
+                    <div class="review-item">
+                        <strong>⚡ Congruencia:</strong> Aritmética modular, aplicaciones en calendarios, y cifrado César.
+                    </div>
+                </div>
+                
+                <button class="btn btn-whatsapp" id="share-btn">📱 Compartir por WhatsApp</button>
+                <button class="btn btn-secondary" onclick="location.reload()">🔄 Jugar de Nuevo</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== AUDIO =====
+        const audio = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playCorrect() {
+            [523, 659, 784].forEach((freq, i) => {
+                const osc = audio.createOscillator();
+                const gain = audio.createGain();
+                osc.connect(gain);
+                gain.connect(audio.destination);
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.3, audio.currentTime + i * 0.15);
+                gain.gain.exponentialRampToValueAtTime(0.01, audio.currentTime + i * 0.15 + 0.3);
+                osc.start(audio.currentTime + i * 0.15);
+                osc.stop(audio.currentTime + i * 0.15 + 0.3);
+            });
+        }
+        
+        function playWrong() {
+            const osc = audio.createOscillator();
+            const gain = audio.createGain();
+            osc.connect(gain);
+            gain.connect(audio.destination);
+            osc.frequency.setValueAtTime(311, audio.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(233, audio.currentTime + 0.3);
+            osc.type = 'sawtooth';
+            gain.gain.setValueAtTime(0.3, audio.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audio.currentTime + 0.3);
+            osc.start();
+            osc.stop(audio.currentTime + 0.3);
+        }
+        
+        function playClick() {
+            const osc = audio.createOscillator();
+            const gain = audio.createGain();
+            osc.connect(gain);
+            gain.connect(audio.destination);
+            osc.frequency.value = 800;
+            osc.type = 'square';
+            gain.gain.setValueAtTime(0.1, audio.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audio.currentTime + 0.04);
+            osc.start();
+            osc.stop(audio.currentTime + 0.04);
+        }
+        
+        function playVictory() {
+            [523, 659, 784, 1047].forEach((freq, i) => {
+                const osc = audio.createOscillator();
+                const gain = audio.createGain();
+                osc.connect(gain);
+                gain.connect(audio.destination);
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.3, audio.currentTime + i * 0.2);
+                gain.gain.exponentialRampToValueAtTime(0.01, audio.currentTime + i * 0.2 + 0.5);
+                osc.start(audio.currentTime + i * 0.2);
+                osc.stop(audio.currentTime + i * 0.2 + 0.5);
+            });
+        }
+        
+        // ===== PREGUNTAS CORREGIDAS =====
+        const questions = [
+            // SEMANA 4 - SISTEMAS DE NUMERACIÓN
+            {
+                w: "🔢 Semana 4",
+                t: "🔢 Pregunta 1: Convierte el número binario 10111₂ a decimal:",
+                pencil: true,
+                o: ["21", "23", "25", "27"],
+                a: 1,
+                exp: `**Paso a paso:**
+1×2⁴ + 0×2³ + 1×2² + 1×2¹ + 1×2⁰
+= 16 + 0 + 4 + 2 + 1
+= **23₁₀**
+
+**Recuerda:** En binario, cada posición vale una potencia de 2.`,
+                example: `**📖 EJEMPLO SIMILAR: Convertir 1101₂ a decimal**
+
+**Paso 1:** Identificar las posiciones
+1  1  0  1
+↓  ↓  ↓  ↓
+2³ 2² 2¹ 2⁰
+
+**Paso 2:** Calcular: 1×8 + 1×4 + 0×2 + 1×1 = 13₁₀
+
+💡 **TIP:** Solo suma las posiciones donde hay un "1".`
+            },
+            {
+                w: "🔢 Semana 4",
+                t: "🔢 Pregunta 2: ¿Cuál es el resultado de 45₁₀ en base 8?",
+                o: ["53₈", "55₈", "57₈", "65₈"],
+                a: 1,
+                exp: `**División sucesiva por 8:**
+45 ÷ 8 = 5 resto 5
+5 ÷ 8 = 0 resto 5
+
+Leyendo restos de abajo arriba: **55₈**`
+            },
+            {
+                w: "🔢 Semana 4",
+                t: "🧮 Pregunta 3: ¿Cuántas afirmaciones son verdaderas?\nI) 111₂ = 7₁₀\nII) F₁₆ = 15₁₀\nIII) 17₈ = 15₁₀\nIV) 1010₂ = 12₁₀",
+                o: ["1", "2", "3", "4"],
+                a: 2,
+                exp: `**Verificación:**
+I) 111₂ = 4+2+1 = 7₁₀ ✓
+II) F₁₆ = 15₁₀ ✓
+III) 17₈ = 1×8+7 = 15₁₀ ✓
+IV) 1010₂ = 8+2 = 10₁₀ ✗
+
+**Total: 3 verdaderas**`
+            },
+            {
+                w: "🔢 Semana 4",
+                t: "🎨 Pregunta 4: #00FF00 (Verde) + #FF0000 (Rojo) =",
+                o: ["#FFFF00 (Amarillo)", "#FF00FF (Magenta)", "#00FFFF (Cyan)", "#FFFFFF (Blanco)"],
+                a: 0,
+                exp: `**Suma RGB:**
+R: 00 + FF = FF
+G: FF + 00 = FF  
+B: 00 + 00 = 00
+
+Resultado: **#FFFF00 (Amarillo)** ✓`
+            },
+            {
+                w: "🔢 Semana 4",
+                t: "🔄 Pregunta 5: Convierte 3A₁₆ a binario:",
+                o: ["111010₂", "101110₂", "110110₂", "111100₂"],
+                a: 0,
+                exp: `**Método: 4 bits por dígito hex**
+3₁₆ = 0011₂
+A₁₆ = 1010₂
+Resultado: **111010₂**`,
+                example: `**📖 EJEMPLO SIMILAR: Convertir 2F₁₆ a binario**
+
+**Concepto:** Cada dígito hexadecimal se convierte a 4 bits binarios.
+
+**Tabla de conversión hex a binario:**
+0=0000, 1=0001, 2=0010, 3=0011
+4=0100, 5=0101, 6=0110, 7=0111
+8=1000, 9=1001, A=1010, B=1011
+C=1100, D=1101, E=1110, F=1111
+
+**Paso 1:** Convertir primer dígito (2)
+2₁₆ = 0010₂
+
+**Paso 2:** Convertir segundo dígito (F)
+F₁₆ = 1111₂
+
+**Paso 3:** Concatenar (unir)
+2F₁₆ = 0010 1111₂
+
+**Paso 4:** Eliminar ceros a la izquierda
+0010 1111₂ = 101111₂
+
+✅ **Respuesta:** 2F₁₆ = 101111₂
+
+💡 **TIP:** Memoriza que F=1111 (todos unos) y 0=0000 (todos ceros), el resto sale fácil.`
+            },
+            {
+                w: "🔢 Semana 4",
+                t: "➕ Pregunta 6: 34₅ + 23₅ =",
+                h: "💡 En base 5, cuando sumas y ≥5, llevas 1",
+                o: ["102₅", "112₅", "122₅", "132₅"],
+                a: 1,
+                exp: `**Suma en base 5:**
+Unidades: 4+3=7₁₀=12₅ (escribo 2, llevo 1)
+Cincos: 3+2+1=6₁₀=11₅ (escribo 1, llevo 1)
+Resultado: **112₅**`
+            },
+            {
+                w: "🔢 Semana 4",
+                t: "➕ Pregunta 7: 1A₁₆ + 2F₁₆ =",
+                o: ["47₁₆", "48₁₆", "49₁₆", "4A₁₆"],
+                a: 2,
+                exp: `**Suma hexadecimal:**
+A + F = 10 + 15 = 25₁₀ = 19₁₆ (escribo 9, llevo 1)
+1 + 2 + 1 = 4
+Resultado: **49₁₆**`,
+                example: `**📖 EJEMPLO SIMILAR: 3B₁₆ + 1E₁₆ = ?**
+
+**Concepto:** En hexadecimal usamos 0-9 y A-F (A=10, B=11, C=12, D=13, E=14, F=15)
+
+**Paso 1:** Alinear los números
+  3 B₁₆
++ 1 E₁₆
+-------
+
+**Paso 2:** Sumar columna de unidades (B + E)
+B = 11₁₀
+E = 14₁₀
+11 + 14 = 25₁₀
+
+**Paso 3:** Convertir 25₁₀ a hexadecimal
+25 ÷ 16 = 1 resto 9
+Entonces 25₁₀ = 19₁₆
+Escribo **9**, llevo **1**
+
+**Paso 4:** Sumar columna de 16s (con acarreo)
+3 + 1 + 1(acarreo) = 5
+
+**Paso 5:** Resultado final
+  ¹  ← acarreo
+  3 B₁₆
++ 1 E₁₆
+-------
+  5 9₁₆
+
+✅ **Respuesta:** 59₁₆
+
+**Verificación en decimal:**
+3B₁₆ = 3×16 + 11 = 59₁₀
+1E₁₆ = 1×16 + 14 = 30₁₀
+59 + 30 = 89₁₀ = 59₁₆ ✓
+
+💡 **TIP:** Cuando sumas en hex y te pasa de F (15), divide entre 16 para saber qué llevas.`
+            },
+            {
+                w: "🔢 Semana 4",
+                t: "🎯 Pregunta 8: Convierte 100₈ a hexadecimal:",
+                o: ["40₁₆", "44₁₆", "48₁₆", "64₁₆"],
+                a: 0,
+                exp: `**Octal → Decimal → Hex:**
+100₈ = 1×64 = 64₁₀
+64₁₀ = 40₁₆`,
+                example: `**📖 EJEMPLO SIMILAR: Convertir 52₈ a hexadecimal**
+
+**Método:** Octal → Decimal → Hexadecimal
+
+**Paso 1:** Convertir octal a decimal
+52₈ = 5×8¹ + 2×8⁰
+    = 5×8 + 2×1
+    = 40 + 2
+    = 42₁₀
+
+**Paso 2:** Convertir decimal a hexadecimal
+42 ÷ 16 = 2 resto 10
+2 ÷ 16 = 0 resto 2
+
+**Paso 3:** Convertir restos a hex
+10₁₀ = A₁₆
+2₁₀ = 2₁₆
+
+**Paso 4:** Leer de abajo hacia arriba
+2A₁₆
+
+✅ **Respuesta:** 52₈ = 2A₁₆
+
+**Verificación:**
+2A₁₆ = 2×16 + 10 = 42₁₀ ✓
+
+💡 **TIP:** Siempre usa decimal como paso intermedio entre bases diferentes.`
+            },
+            {
+                w: "🔢 Semana 4",
+                t: "🎨 Pregunta 9: #FFFF00 (Amarillo) − #00FF00 (Verde) =",
+                o: ["#FF0000 (Rojo)", "#00FF00 (Verde)", "#0000FF (Azul)", "#FFFF00 (Amarillo)"],
+                a: 0,
+                exp: `**Resta RGB:**
+R: FF − 00 = FF
+G: FF − FF = 00
+B: 00 − 00 = 00
+
+Resultado: **#FF0000 (Rojo)** ✓`,
+                example: `**📖 EJEMPLO SIMILAR: #FF00FF (Magenta) − #00FF00 (Verde) = ?**
+
+**Concepto:** En RGB restamos canal por canal. FF(hex) = 255(decimal).
+
+**Estructura RGB:** #RRGGBB
+
+**Paso 1:** Identificar los valores
+Color 1: #FF00FF → R=FF, G=00, B=FF
+Color 2: #00FF00 → R=00, G=FF, B=00
+
+**Paso 2:** Restar canal ROJO
+FF − 00 = FF
+
+**Paso 3:** Restar canal VERDE
+00 − FF = ??? 
+⚠️ NO se puede restar más de lo que hay
+00 − FF = 00 (queda en cero, no negativo)
+
+**Paso 4:** Restar canal AZUL
+FF − 00 = FF
+
+**Paso 5:** Construir resultado
+#FF00FF
+
+✅ **Respuesta:** #FF00FF (Magenta se queda igual porque no tiene verde que restar)
+
+**Regla importante:**
+En resta RGB, si intentas restar más de lo que hay, el resultado es 00.
+
+💡 **COLORES COMUNES:**
+- #FF0000 = Rojo puro
+- #00FF00 = Verde puro
+- #0000FF = Azul puro
+- #FFFF00 = Amarillo (Rojo+Verde)
+- #FF00FF = Magenta (Rojo+Azul)
+- #00FFFF = Cyan (Verde+Azul)`
+            },
+            {
+                w: "🔢 Semana 4",
+                t: "🔢 Pregunta 10: El número 111111₂ en decimal es:",
+                o: ["61", "63", "65", "127"],
+                a: 1,
+                exp: `**Suma de potencias:**
+32+16+8+4+2+1 = **63₁₀**
+Tip: 2⁶−1 = 64−1 = 63`,
+                example: `**📖 EJEMPLO SIMILAR: Convertir 11111₂ a decimal**
+
+**Concepto:** 2ⁿ−1 da un número binario con todos unos.
+
+**Método 1: Suma directa**
+11111₂ = 1×2⁴ + 1×2³ + 1×2² + 1×2¹ + 1×2⁰
+       = 16 + 8 + 4 + 2 + 1
+       = 31₁₀
+
+**Método 2: Fórmula rápida** (solo si TODOS son unos)
+n bits con todos unos = 2ⁿ − 1
+11111₂ tiene 5 bits
+= 2⁵ − 1
+= 32 − 1
+= 31₁₀
+
+✅ **Respuesta:** 11111₂ = 31₁₀
+
+**Tabla útil (todos unos):**
+1₂ = 1₁₀ (2¹−1)
+11₂ = 3₁₀ (2²−1)
+111₂ = 7₁₀ (2³−1)
+1111₂ = 15₁₀ (2⁴−1)
+11111₂ = 31₁₀ (2⁵−1)
+111111₂ = 63₁₀ (2⁶−1)
+
+💡 **TIP:** Si ves todos unos, usa 2ⁿ−1. ¡Es mucho más rápido!`
+            },
+            
+            // SEMANA 5 - CONJUNTOS
+            {
+                w: "📦 Semana 5",
+                t: "📦 Pregunta 11: Dados A={1,2,3,4} y B={3,4,5,6}, ¿cuál es A∩B?",
+                o: ["{1,2}", "{3,4}", "{5,6}", "{1,2,3,4,5,6}"],
+                a: 1,
+                exp: `**Intersección:** elementos comunes
+A∩B = **{3,4}** ✓`
+            },
+            {
+                w: "📦 Semana 5",
+                t: "📦 Pregunta 12: Si A={a,b,c} y B={c,d,e}, ¿cuántos elementos tiene A∪B?",
+                o: ["3", "4", "5", "6"],
+                a: 2,
+                exp: `**Unión sin repetir:**
+A∪B = {a,b,c,d,e} = **5 elementos**`
+            },
+            {
+                w: "📦 Semana 5",
+                t: "📱 Pregunta 13: sigo={ana,luis,pedro}, me_siguen={luis,pedro,maria}, ¿cuántos mutuos?",
+                o: ["1", "2", "3", "4"],
+                a: 1,
+                exp: `**Mutuos = Intersección:**
+sigo ∩ me_siguen = {luis,pedro} = **2 mutuos**`,
+                example: `**📖 EJEMPLO SIMILAR: Amigos mutuos en redes sociales**
+
+**Contexto:** En Instagram, tus "mutuos" son personas que TÚ sigues Y que TE siguen.
+
+**Dato:**
+mis_seguidos = {juan, carla, pedro, sofia}
+mis_seguidores = {carla, pedro, lucia, mario}
+
+**Pregunta:** ¿Cuántos mutuos tengo?
+
+**Paso 1:** Identificar operación
+Mutuos = personas en AMBOS conjuntos
+→ Necesitamos la INTERSECCIÓN (∩)
+
+**Paso 2:** Encontrar elementos comunes
+¿juan está en seguidores? NO ✗
+¿carla está en seguidores? SÍ ✓
+¿pedro está en seguidores? SÍ ✓
+¿sofia está en seguidores? NO ✗
+
+**Paso 3:** Escribir intersección
+mis_seguidos ∩ mis_seguidores = {carla, pedro}
+
+**Paso 4:** Contar
+|{carla, pedro}| = 2
+
+✅ **Respuesta:** Tengo 2 mutuos
+
+💡 **TIP:** Mutuos siempre es intersección porque deben cumplir AMBAS condiciones.`
+            },
+            {
+                w: "📦 Semana 5",
+                t: "📦 Pregunta 14: Si A−B={1,2} y A∩B={3,4}, ¿qué elementos tiene A?",
+                o: ["{1,2}", "{3,4}", "{1,2,3,4}", "{1,2,3,4,5}"],
+                a: 2,
+                exp: `**A contiene:**
+Lo exclusivo (A−B) + Lo común (A∩B)
+= {1,2} + {3,4} = **{1,2,3,4}**`,
+                example: `**📖 EJEMPLO SIMILAR: Reconstruir conjunto A**
+
+**Dato:**
+A − B = {5, 6} (elementos solo en A)
+A ∩ B = {7, 8} (elementos en ambos)
+
+**Pregunta:** ¿Qué elementos tiene A?
+
+**Paso 1:** Entender qué significa cada dato
+A − B = elementos que están en A pero NO en B
+A ∩ B = elementos que están en A Y también en B
+
+**Paso 2:** Razonar
+Si A tiene elementos, estos pueden ser de dos tipos:
+- Exclusivos de A (no están en B) → A−B
+- Compartidos con B → A∩B
+
+**Paso 3:** Unir ambos grupos
+A = (A−B) ∪ (A∩B)
+A = {5, 6} ∪ {7, 8}
+A = {5, 6, 7, 8}
+
+✅ **Respuesta:** A = {5, 6, 7, 8}
+
+**Diagrama:**
+┌──────────┬──────────┐
+│ Solo A   │ A y B    │
+│ {5,6}    │ {7,8}    │
+└──────────┴──────────┘
+    └────── A ────────┘
+
+💡 **FÓRMULA:** A = (A−B) ∪ (A∩B)`
+            },
+            {
+                w: "📦 Semana 5",
+                t: "🎯 Pregunta 15: Si |A|=5, |B|=4, |A∩B|=2, ¿cuántos elementos tiene A∪B?",
+                h: "💡 Fórmula: |A∪B| = |A|+|B|−|A∩B|",
+                o: ["7", "8", "9", "11"],
+                a: 0,
+                exp: `**Fórmula:**
+|A∪B| = 5+4−2 = **7**
+Restamos para no duplicar comunes`
+            },
+            {
+                w: "📦 Semana 5",
+                t: "📦 Pregunta 16: Solo {mrbeast} está en los 3 usuarios. ¿Qué operación da ese resultado?",
+                o: ["ana∪luis∪pedro", "ana∩luis∩pedro", "ana−luis−pedro", "(ana∪luis)−pedro"],
+                a: 1,
+                exp: `**Lo que TODOS tienen:**
+ana ∩ luis ∩ pedro = **intersección de los 3**`
+            },
+            {
+                w: "📦 Semana 5",
+                t: "📱 Pregunta 17: usuarios={ana,luis}, premium={luis,pedro}. ¿Cuántos son usuarios NO premium?",
+                o: ["0", "1", "2", "3"],
+                a: 1,
+                exp: `**Diferencia:**
+usuarios − premium = {ana} = **1 persona**`
+            },
+            {
+                w: "📦 Semana 5",
+                t: "🔄 Pregunta 18: A△B={1,2,5,6} y A∩B={3,4}. ¿Qué significa △?",
+                o: ["Unión", "Intersección", "Diferencia simétrica", "Complemento"],
+                a: 2,
+                exp: `**△ = Diferencia simétrica**
+Elementos en A o B, pero NO en ambos`
+            },
+            {
+                w: "📦 Semana 5",
+                t: "📊 Pregunta 19: Tu red: {a,b,c}. Amigo1: {b,c,d}. ¿Qué te recomienda (nuevo para ti)?",
+                o: ["{a}", "{b,c}", "{d}", "{a,b,c,d}"],
+                a: 2,
+                exp: `**Nuevo para ti:**
+Amigo1 − Tu_red = {d} (lo único que no tienes)`
+            },
+            {
+                w: "📦 Semana 5",
+                t: "📦 Pregunta 20: U={1,2,3,4,5,6}, A={1,2,3}. ¿Cuál es A' (complemento)?",
+                o: ["{1,2,3}", "{4,5,6}", "{1,2,3,4,5,6}", "∅"],
+                a: 1,
+                exp: `**Complemento:**
+A' = U − A = **{4,5,6}**`,
+                example: `**📖 EJEMPLO SIMILAR: Complemento de un conjunto**
+
+**Universo:** U = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+**Conjunto:** A = {2, 4, 6, 8}
+
+**Pregunta:** ¿Cuál es A' (complemento)?
+
+**Paso 1:** Entender el complemento
+A' = elementos del universo que NO están en A
+
+**Paso 2:** Listar elementos del universo
+U = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+
+**Paso 3:** Marcar cuáles están en A
+1 → NO está en A ✓
+2 → SÍ está en A ✗
+3 → NO está en A ✓
+4 → SÍ está en A ✗
+5 → NO está en A ✓
+6 → SÍ está en A ✗
+7 → NO está en A ✓
+8 → SÍ está en A ✗
+9 → NO está en A ✓
+10 → NO está en A ✓
+
+**Paso 4:** Escribir complemento
+A' = {1, 3, 5, 7, 9, 10}
+
+✅ **Respuesta:** A' = {1, 3, 5, 7, 9, 10}
+
+**Verificación:**
+A ∪ A' = U ✓ (deben cubrir todo)
+A ∩ A' = ∅ ✓ (no se superponen)
+
+💡 **PROPIEDADES:**
+- (A')' = A (complemento del complemento)
+- U' = ∅ (complemento del universo es vacío)
+- ∅' = U (complemento del vacío es universo)`
+            },
+            {
+                w: "⚡ Semana 6",
+                t: "🎯 Pregunta 30: Si x≡3 (mod 7) e y≡5 (mod 7), entonces (x+y) mod 7 =",
+                o: ["1", "8", "15", "3"],
+                a: 0,
+                exp: `**Suma en congruencia:**
+3+5 = 8
+8 mod 7 = **1**`,
+                example: `**📖 EJEMPLO SIMILAR: Operaciones en congruencia**
+
+**Dato:**
+a ≡ 4 (mod 6)
+b ≡ 5 (mod 6)
+
+**Pregunta:** ¿Cuánto es (a + b) mod 6?
+
+**Paso 1:** Sumar los residuos
+4 + 5 = 9
+
+**Paso 2:** Aplicar módulo al resultado
+9 mod 6 = ?
+
+**Paso 3:** Dividir para encontrar el resto
+9 ÷ 6 = 1 resto 3
+
+**Paso 4:** El resto es la respuesta
+9 mod 6 = 3
+
+✅ **Respuesta:** (a + b) mod 6 = 3
+
+**Verificación con ejemplo concreto:**
+Si a = 10 → 10 ≡ 4 (mod 6) ✓
+Si b = 11 → 11 ≡ 5 (mod 6) ✓
+Entonces: 10 + 11 = 21
+21 mod 6 = 3 ✓
+
+**Regla general para suma:**
+(a + b) mod n = ((a mod n) + (b mod n)) mod n
+
+**También funciona con resta y multiplicación:**
+(a − b) mod n = ((a mod n) − (b mod n)) mod n
+(a × b) mod n = ((a mod n) × (b mod n)) mod n
+
+💡 **TIP:** Puedes reducir primero con módulo y luego operar. ¡Hace los números más pequeños!`
+            },
+            
+            // SEMANA 6 - CONGRUENCIA
+            {
+                w: "⚡ Semana 6",
+                t: "⚡ Pregunta 21: Si hoy es Miércoles, ¿qué día será dentro de 17 días?",
+                o: ["Jueves", "Viernes", "Sábado", "Domingo"],
+                a: 2,
+                exp: `**Módulo 7:**
+17÷7 = 2 semanas + 3 días
+Miércoles +3 = **Sábado**`
+            },
+            {
+                w: "⚡ Semana 6",
+                t: "🔢 Pregunta 22: ¿Cuál es el resto de dividir 47 entre 6?",
+                o: ["1", "3", "5", "7"],
+                a: 2,
+                exp: `**División:**
+47÷6 = 7 resto **5**
+47 ≡ 5 (mod 6)`,
+                example: `**📖 EJEMPLO SIMILAR: Encontrar el resto de 53 ÷ 7**
+
+**Concepto:** El resto (o módulo) es lo que sobra después de dividir.
+
+**Paso 1:** Realizar la división
+53 ÷ 7 = ?
+
+**Paso 2:** Encontrar el cociente (entero)
+7 × 7 = 49 (muy cerca de 53)
+7 × 8 = 56 (se pasa de 53)
+Entonces el cociente es **7**
+
+**Paso 3:** Calcular el resto
+Resto = 53 − (7 × 7)
+Resto = 53 − 49
+Resto = 4
+
+**Paso 4:** Verificar
+7 × 7 + 4 = 49 + 4 = 53 ✓
+
+✅ **Respuesta:** El resto es 4
+
+**Notación de congruencia:**
+53 ≡ 4 (mod 7)
+Se lee: "53 es congruente con 4 módulo 7"
+
+💡 **TIP:** El resto SIEMPRE es menor que el divisor.
+Si divides entre 6, el resto puede ser: 0, 1, 2, 3, 4, o 5.`
+            },
+            {
+                w: "⚡ Semana 6",
+                t: "⏰ Pregunta 23: Son las 10:00. ¿Qué hora será en 38 horas (reloj 12h)?",
+                o: ["10:00", "12:00", "11:00", "1:00"],
+                a: 1,
+                exp: `**Módulo 12:**
+38÷12 = 3 ciclos + 2 horas
+10:00 + 2 = **12:00**`,
+                example: `**📖 EJEMPLO SIMILAR: Reloj de 12 horas**
+
+**Dato:** Son las 8:00 AM
+
+**Pregunta:** ¿Qué hora será en 29 horas?
+
+**Paso 1:** Dividir entre 12 (ciclo del reloj)
+29 ÷ 12 = 2 ciclos completos + 5 horas
+
+**Paso 2:** Calcular el módulo
+29 mod 12 = 5
+
+**Paso 3:** Sumar las horas restantes
+8:00 + 5 horas = 13:00
+
+**Paso 4:** Convertir a formato 12h
+13:00 en formato 12h = 1:00 PM
+
+✅ **Respuesta:** 1:00 PM
+
+**Método alternativo:**
+(8 + 29) mod 12 = 37 mod 12 = 1
+Entonces: 1:00
+
+💡 **TIP:** En reloj 12h, si el resultado es >12, resta 12. Si es 0, es 12.`
+            },
+            {
+                w: "⚡ Semana 6",
+                t: "📅 Pregunta 26: Enero 1 fue Lunes. ¿Qué día será Enero 30?",
+                o: ["Lunes", "Martes", "Miércoles", "Jueves"],
+                a: 1,
+                exp: `**Del 1 al 30 = 29 días:**
+29÷7 = 4 semanas + 1 día
+Lunes +1 = **Martes**`,
+                example: `**📖 EJEMPLO SIMILAR: Calcular día de la semana**
+
+**Dato:** Marzo 1 fue Viernes
+
+**Pregunta:** ¿Qué día será Marzo 25?
+
+**Paso 1:** Calcular días transcurridos
+Del 1 al 25 = 25 − 1 = 24 días después
+
+**Paso 2:** Dividir entre 7 (días de la semana)
+24 ÷ 7 = 3 semanas completas + 3 días
+
+**Paso 3:** Calcular módulo
+24 mod 7 = 3
+
+**Paso 4:** Avanzar desde Viernes
+Día 0: Viernes (punto de partida)
+Día +1: Sábado
+Día +2: Domingo
+Día +3: Lunes
+
+✅ **Respuesta:** Marzo 25 será Lunes
+
+**Verificación con tabla:**
+Viernes = 0, Sábado = 1, Domingo = 2,
+Lunes = 3, Martes = 4, Miércoles = 5, Jueves = 6
+
+(0 + 24) mod 7 = 24 mod 7 = 3 → Lunes ✓
+
+💡 **TIP:** Los días se repiten cada 7 días, usa módulo 7.`
+            },
+            {
+                w: "⚡ Semana 6",
+                t: "🔐 Pregunta 24: César k=3. Codifica 'ABC':",
+                h: "💡 A=0, B=1, C=2... Suma 3",
+                o: ["BCD", "DEF", "XYZ", "CDE"],
+                a: 1,
+                exp: `**César k=3:**
+A(0)+3=D, B(1)+3=E, C(2)+3=F
+Resultado: **DEF**`
+            },
+            {
+                w: "⚡ Semana 6",
+                t: "🎯 Pregunta 25: ¿Qué número es congruente con 25 (mod 7)?",
+                o: ["15", "18", "32", "35"],
+                a: 2,
+                exp: `**Verificación:**
+25÷7 = resto 4
+32÷7 = resto 4 ✓
+Ambos son ≡4 (mod 7)`
+            },
+            {
+                w: "⚡ Semana 6",
+                t: "📅 Pregunta 26: Enero 1 fue Lunes. ¿Qué día será Enero 30?",
+                o: ["Lunes", "Martes", "Miércoles", "Jueves"],
+                a: 1,
+                exp: `**Del 1 al 30 = 29 días:**
+29÷7 = 4 semanas + 1 día
+Lunes +1 = **Martes**`
+            },
+            {
+                w: "⚡ Semana 6",
+                t: "🔢 Pregunta 27: (23 + 18) mod 5 =",
+                o: ["1", "2", "3", "4"],
+                a: 0,
+                exp: `**Cálculo:**
+23+18 = 41
+41÷5 = 8 resto **1**`
+            },
+            {
+                w: "⚡ Semana 6",
+                t: "🔐 Pregunta 28: Descifra 'GHI' con César k=3 (resta 3):",
+                o: ["ABC", "DEF", "JKL", "XYZ"],
+                a: 1,
+                exp: `**Descifrar (resta):**
+G(6)−3=D, H(7)−3=E, I(8)−3=F
+Resultado: **DEF**`
+            },
+            {
+                w: "⚡ Semana 6",
+                t: "⏰ Pregunta 29: Reloj 24h marca 23:00. ¿Qué hora en 50 horas?",
+                o: ["1:00", "23:00", "24:00", "22:00"],
+                a: 0,
+                exp: `**Módulo 24:**
+50÷24 = 2 días + 2 horas
+23+2 = 25 = **1:00 del día siguiente**`
+            },
+            {
+                w: "⚡ Semana 6",
+                t: "🎯 Pregunta 30: Si x≡3 (mod 7) e y≡5 (mod 7), entonces (x+y) mod 7 =",
+                o: ["1", "8", "15", "3"],
+                a: 0,
+                exp: `**Suma en congruencia:**
+3+5 = 8
+8 mod 7 = **1**`
+            }
+        ];
+        
+        // ===== ESTADO GLOBAL =====
+        let state = {
+            name: '',
+            currentQ: 0,
+            score: 0,
+            correct: 0,
+            startTime: Date.now(),
+            answered: false,
+            showedPencilNote: false
+        };
+        
+        let timerInterval;
+        
+        // ===== PANTALLA INICIAL =====
+        const nameInput = document.getElementById('student-name');
+        const commitCheck = document.getElementById('commitment-check');
+        const startBtn = document.getElementById('start-btn');
+        
+        function checkStartButton() {
+            startBtn.disabled = !nameInput.value.trim() || !commitCheck.checked;
+        }
+        
+        nameInput.addEventListener('input', checkStartButton);
+        commitCheck.addEventListener('change', checkStartButton);
+        
+        startBtn.addEventListener('click', () => {
+            playClick();
+            state.name = nameInput.value.trim();
+            state.startTime = Date.now();
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('quiz-screen').style.display = 'block';
+            document.getElementById('header-name').textContent = state.name;
+            
+            timerInterval = setInterval(updateTimer, 1000);
+            showQuestion();
+        });
+        
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            document.getElementById('timer').textContent = 
+                `⏱️ ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+        
+        // ===== QUIZ =====
+        function showQuestion() {
+            const q = questions[state.currentQ];
+            state.answered = false;
+            
+            const progress = ((state.currentQ + 1) / questions.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+            document.getElementById('score').textContent = `💰 ${state.score} pts`;
+            
+            let html = '';
+            
+            if (q.pencil && !state.showedPencilNote) {
+                html += `<div class="pencil-note">✏️ <strong>¡Hora de agarrar lápiz y papel!</strong></div>`;
+                state.showedPencilNote = true;
+            }
+            
+            html += `<div class="question-box">`;
+            html += `<div class="question-title">${q.t}</div>`;
+            
+            if (q.h) {
+                html += `<div class="hint-box">💡 ${q.h}</div>`;
+            }
+            
+            html += `<div class="options">`;
+            q.o.forEach((opt, i) => {
+                html += `<div class="option" data-index="${i}">${opt}</div>`;
+            });
+            html += `</div>`;
+            
+            if (q.example) {
+                html += `<button class="example-btn" id="example-btn">💡 Ver Ejemplo Resuelto</button>`;
+                html += `<div class="example-box" id="example-box">
+                    <div class="example-title"><span>📖</span><span>Ejemplo Paso a Paso</span></div>
+                    <div class="example-content">${q.example}</div>
+                </div>`;
+            }
+            
+            html += `<div class="feedback" id="feedback"></div>`;
+            html += `</div>`;
+            
+            document.getElementById('question-container').innerHTML = html;
+            document.getElementById('next-btn').style.display = 'none';
+            
+            const exampleBtn = document.getElementById('example-btn');
+            const exampleBox = document.getElementById('example-box');
+            if (exampleBtn && exampleBox) {
+                exampleBtn.addEventListener('click', () => {
+                    playClick();
+                    exampleBox.classList.toggle('show');
+                    exampleBtn.textContent = exampleBox.classList.contains('show') 
+                        ? '🔼 Ocultar Ejemplo' 
+                        : '💡 Ver Ejemplo Resuelto';
+                });
+            }
+            
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.addEventListener('click', () => selectOption(opt));
+            });
+        }
+        
+        function selectOption(element) {
+            if (state.answered) return;
+            
+            playClick();
+            const q = questions[state.currentQ];
+            const selectedIndex = parseInt(element.dataset.index);
+            
+            document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+            element.classList.add('selected');
+            
+            state.answered = true;
+            const isCorrect = selectedIndex === q.a;
+            
+            if (isCorrect) {
+                playCorrect();
+                state.score += 10;
+                state.correct++;
+                element.classList.add('correct');
+            } else {
+                playWrong();
+                element.classList.add('incorrect');
+                document.querySelectorAll('.option')[q.a].classList.add('correct');
+            }
+            
+            const feedback = document.getElementById('feedback');
+            feedback.className = 'feedback show ' + (isCorrect ? 'correct' : 'incorrect');
+            feedback.innerHTML = `
+                <div style="font-size: 1.3em; font-weight: bold; margin-bottom: 10px;">
+                    ${isCorrect ? '✅ ¡Correcto!' : '❌ Incorrecto'}
+                </div>
+                <div class="explanation">${q.exp}</div>
+            `;
+            
+            document.getElementById('score').textContent = `💰 ${state.score} pts`;
+            document.getElementById('next-btn').style.display = 'block';
+        }
+        
+        document.getElementById('next-btn').addEventListener('click', () => {
+            playClick();
+            state.currentQ++;
+            
+            if (state.currentQ === 10) {
+                showMinigame1();
+            } else if (state.currentQ === 20) {
+                showMinigame2();
+            } else if (state.currentQ >= questions.length) {
+                showFinalScreen();
+            } else {
+                showQuestion();
+            }
+        });
+        
+        // ===== MINIJUEGOS (SIMPLIFICADOS) =====
+        function showMinigame1() {
+            document.getElementById('quiz-screen').style.display = 'none';
+            document.getElementById('minigame-screen').style.display = 'block';
+            
+            let round = 0;
+            let gameScore = 0;
+            const targets = [5, 7, 10, 12, 15]; // Solo 5 rondas
+            
+            function nextRound() {
+                if (round >= 5) {
+                    state.score += gameScore;
+                    continueQuiz();
+                    return;
+                }
+                
+                const target = targets[round];
+                const bits = [0, 0, 0, 0];
+                
+                let html = `
+                    <div class="minigame-title">🎯 Binary Rush</div>
+                    <div class="minigame-desc">Construye el número binario (SIMPLIFICADO - 4 bits)</div>
+                    <div style="font-size: 1.5em; margin: 20px 0;">
+                        Objetivo: <strong>${target}₁₀</strong>
+                    </div>
+                    <div class="binary-display">${bits.join('')}</div>
+                    <div class="toggles">
+                `;
+                
+                for (let i = 0; i < 4; i++) {
+                    html += `<button class="toggle-btn" data-bit="${i}">0</button>`;
+                }
+                
+                html += `</div>`;
+                html += `<div class="help-text"><strong>8  4  2  1</strong></div>`;
+                html += `<button class="btn" id="submit-binary">Enviar</button>`;
+                html += `<div style="margin-top: 15px;">Ronda ${round + 1}/5 | 💰 ${gameScore} pts</div>`;
+                html += `<button class="skip-btn" id="skip-game">Saltar ⏭️</button>`;
+                
+                document.getElementById('minigame-container').innerHTML = html;
+                
+                document.querySelectorAll('.toggle-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        playClick();
+                        const i = parseInt(this.dataset.bit);
+                        bits[i] = bits[i] === 0 ? 1 : 0;
+                        this.textContent = bits[i];
+                        this.classList.toggle('active');
+                        document.querySelector('.binary-display').textContent = bits.join('');
+                    });
+                });
+                
+                document.getElementById('submit-binary').addEventListener('click', () => {
+                    const value = parseInt(bits.join(''), 2);
+                    if (value === target) {
+                        playCorrect();
+                        gameScore += 10;
+                        round++;
+                        setTimeout(nextRound, 800);
+                    } else {
+                        playWrong();
+                    }
+                });
+                
+                document.getElementById('skip-game').addEventListener('click', () => {
+                    continueQuiz();
+                });
+            }
+            
+            nextRound();
+        }
+        
+        function showMinigame2() {
+            document.getElementById('quiz-screen').style.display = 'none';
+            document.getElementById('minigame-screen').style.display = 'block';
+            
+            let currentItem = 0;
+            let gameScore = 0;
+            const items = [
+                { text: "A ∩ B", correct: true, icon: "📦" },
+                { text: "A ∪ ∅ = A", correct: true, icon: "✅" },
+                { text: "A ∩ ∅ = A", correct: false, icon: "❌" },
+                { text: "A − A = ∅", correct: true, icon: "∅" },
+                { text: "A ∪ A = A", correct: true, icon: "🔄" }
+            ]; // Solo 5 items
+            
+            function showItem() {
+                if (currentItem >= items.length) {
+                    state.score += gameScore;
+                    continueQuiz();
+                    return;
+                }
+                
+                const item = items[currentItem];
+                let html = `
+                    <div class="minigame-title">🎯 Clasificador (SIMPLIFICADO)</div>
+                    <div class="minigame-desc">¿Esta afirmación es correcta?</div>
+                    <div class="game-card" style="margin: 30px auto; max-width: 300px;">
+                        <div class="card-icon">${item.icon}</div>
+                        <div style="font-size: 1.5em; font-weight: bold;">${item.text}</div>
+                    </div>
+                    <div class="classification-btns">
+                        <button class="classify-btn valid" data-answer="true">✅ SÍ</button>
+                        <button class="classify-btn invalid" data-answer="false">❌ NO</button>
+                    </div>
+                    <div style="margin-top: 20px;">Item ${currentItem + 1}/5 | 💰 ${gameScore} pts</div>
+                    <button class="skip-btn" id="skip-game">Saltar ⏭️</button>
+                `;
+                
+                document.getElementById('minigame-container').innerHTML = html;
+                
+                document.querySelectorAll('.classify-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const answer = this.dataset.answer === 'true';
+                        if (answer === item.correct) {
+                            playCorrect();
+                            gameScore += 10;
+                        } else {
+                            playWrong();
+                        }
+                        currentItem++;
+                        setTimeout(showItem, 800);
+                    });
+                });
+                
+                document.getElementById('skip-game').addEventListener('click', () => {
+                    continueQuiz();
+                });
+            }
+            
+            showItem();
+        }
+        
+        function continueQuiz() {
+            document.getElementById('minigame-screen').style.display = 'none';
+            document.getElementById('quiz-screen').style.display = 'block';
+            showQuestion();
+        }
+        
+        // ===== PANTALLA FINAL =====
+        function showFinalScreen() {
+            clearInterval(timerInterval);
+            playVictory();
+            
+            document.getElementById('quiz-screen').style.display = 'none';
+            document.getElementById('final-screen').style.display = 'block';
+            
+            const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            const timeStr = `${mins}:${String(secs).padStart(2, '0')}`;
+            const percent = Math.round((state.correct / questions.length) * 100);
+            
+            document.getElementById('final-name').textContent = state.name;
+            document.getElementById('final-score').textContent = state.score;
+            document.getElementById('final-correct').textContent = `${state.correct}/${questions.length}`;
+            document.getElementById('final-percent').textContent = percent;
+            document.getElementById('final-time').textContent = timeStr;
+            
+            // Confetti
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const conf = document.createElement('div');
+                    conf.className = 'confetti';
+                    conf.style.left = Math.random() * 100 + '%';
+                    conf.style.background = ['#5b49f0', '#7d6ff5', '#f093fb'][Math.floor(Math.random() * 3)];
+                    document.body.appendChild(conf);
+                    setTimeout(() => conf.remove(), 3000);
+                }, i * 50);
+            }
+            
+            // Compartir
+            document.getElementById('share-btn').addEventListener('click', async () => {
+                const emoji = percent >= 90 ? '🏆' : percent >= 70 ? '🥇' : percent >= 50 ? '🥈' : '📚';
+                const text = `${emoji} *Quiz Matemática Discreta*\n\n` +
+                    `👤 ${state.name}\n` +
+                    `💰 ${state.score} pts\n` +
+                    `✅ ${state.correct}/${questions.length} (${percent}%)\n` +
+                    `⏱️ ${timeStr}\n\n` +
+                    `¿Puedes superarme? 🎯`;
+                
+                try {
+                    const canvas = await html2canvas(document.getElementById('stats-card'));
+                    const blob = await new Promise(resolve => canvas.toBlob(resolve));
+                    
+                    if (navigator.canShare && navigator.canShare({ files: [new File([blob], 'resultado.png', { type: 'image/png' })] })) {
+                        await navigator.share({
+                            files: [new File([blob], 'resultado.png', { type: 'image/png' })],
+                            text: text
+                        });
+                        return;
+                    }
+                } catch (e) {}
+                
+                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+            });
+        }
+    </script>
+</body>
+</html>

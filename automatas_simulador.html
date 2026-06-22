@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semana 12 · Autómatas y Gramáticas — Simulador y Juego</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#EAEEF4;--surface:#FFFFFF;--ink:#15233B;--ink-soft:#5B6B82;--line:#C9D3E0;--grid:#D7DEE9;--accent:#5B49F0;--good:#0E9F6E;--warn:#E11D48;--gold:#D97706;--soft-accent:#EEEBFE;--shadow:0 1px 2px rgba(21,35,59,.06),0 8px 24px rgba(21,35,59,.08)}
+  *{box-sizing:border-box}html,body{margin:0;height:100%}
+  body{font-family:Inter,system-ui,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100vh}
+  .topbar{display:flex;align-items:center;gap:14px;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .brand{display:flex;flex-direction:column;line-height:1.1}
+  .brand .wk{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;font-weight:700}
+  .brand h1{font-family:'Space Grotesk',sans-serif;font-size:19px;margin:2px 0 0;font-weight:600;letter-spacing:-.01em}
+  .modes{margin-left:auto;display:flex;background:var(--bg);border-radius:10px;padding:4px;gap:4px}
+  .modes button{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;border:0;background:transparent;color:var(--ink-soft);padding:8px 16px;border-radius:7px;cursor:pointer;transition:.18s}
+  .modes button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+  .wrap{flex:1;display:grid;grid-template-columns:1fr 372px;min-height:0}
+  .stage{position:relative;overflow:hidden;background-color:var(--bg);background-image:radial-gradient(var(--grid) 1.4px,transparent 1.4px);background-size:22px 22px;background-position:11px 11px;display:flex;flex-direction:column}
+  svg{width:100%;flex:1;display:block}
+  .panel{background:var(--surface);border-left:1px solid var(--line);padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+  .group{display:flex;flex-direction:column;gap:9px}
+  .group h3{font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin:0;font-weight:600}
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .btn{font-family:Inter,sans-serif;font-weight:500;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 12px;border-radius:9px;cursor:pointer;transition:.15s;flex:1;text-align:center;white-space:nowrap}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.sel:hover{color:#fff}
+  .btn.act{background:var(--soft-accent);border-color:var(--accent);color:var(--accent)}
+  .btn.ghost{background:transparent}.btn.full{flex-basis:100%}
+  .btn.sm{font-size:12px;padding:7px 9px}
+  input[type=text]{font-family:'JetBrains Mono',monospace;border:1px solid var(--line);border-radius:8px;padding:9px;font-size:14px;color:var(--ink);width:100%;background:#fff}
+  select{font-family:'JetBrains Mono',monospace;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:13px;color:var(--ink);background:#fff;flex:1}
+  .inrow{display:flex;gap:6px}.inrow input{flex:1}.inrow select{flex:1}
+  .readout{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:#0F1B2E;color:#D6E2F5;border-radius:10px;padding:12px;line-height:1.6;white-space:pre-wrap;overflow-x:auto}
+  .readout .hl{color:#8AA0FF}.readout .g{color:#4ADE9A}.readout .w{color:#FB7185}.readout .y{color:#FBBF24}.readout .lbl{color:#94A3B8}
+  .hint{font-size:12.5px;color:var(--ink-soft);line-height:1.5}
+  .subtoggle{display:flex;background:var(--bg);border-radius:10px;padding:4px;gap:4px}
+  .subtoggle button{flex:1;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;border:0;background:transparent;color:var(--ink-soft);padding:8px;border-radius:7px;cursor:pointer;transition:.15s}
+  .subtoggle button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+  /* SVG automata */
+  .lnk{fill:none;stroke:#7C8AA0;stroke-width:2.4}
+  .lnk.active{stroke:var(--accent);stroke-width:3.6}
+  .elabel{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;fill:var(--ink);text-anchor:middle;paint-order:stroke;stroke:var(--bg);stroke-width:4px}
+  .elabel.active{fill:var(--accent)}
+  .st circle{fill:var(--surface);stroke:var(--ink);stroke-width:2.8}
+  .st .ring{fill:none}
+  .st text{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+  .st.cur circle{fill:var(--soft-accent);stroke:var(--accent)}
+  .st.cur text{fill:var(--accent)}
+  .st.acc circle{fill:#D1FAE5;stroke:var(--good)}
+  .st.acc text{fill:#065F46}
+  .st.rej circle{fill:#FFE4E6;stroke:var(--warn)}
+  .st.rej text{fill:#9F1239}
+  .st.sel circle{stroke-dasharray:5 4}
+  .startarrow{stroke:var(--ink);stroke-width:2.6;fill:none}
+  /* tape */
+  .tape{display:flex;gap:6px;justify-content:center;padding:10px 8px 4px;flex-wrap:wrap;min-height:10px}
+  .cell{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:18px;width:38px;height:42px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink-soft);transition:.18s}
+  .cell.done{color:var(--good);border-color:var(--good);background:#ECFDF5}
+  .cell.now{color:#fff;background:var(--accent);border-color:var(--accent);transform:translateY(-3px)}
+  .statusbar{text-align:center;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;padding:4px 0 10px;color:var(--ink-soft);min-height:18px}
+  .statusbar.ok{color:var(--good)}.statusbar.no{color:var(--warn)}
+  /* grammar */
+  .gramStage{flex:1;display:none;flex-direction:column;padding:22px 26px;overflow-y:auto}
+  .sform{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:16px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);margin-bottom:14px}
+  .sym{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:22px;padding:6px 12px;border-radius:8px}
+  .sym.t{background:var(--bg);color:var(--ink)}
+  .sym.nt{background:var(--soft-accent);color:var(--accent);cursor:pointer;border:1.5px solid #cdc6fb;transition:.12s}
+  .sym.nt:hover{background:var(--accent);color:#fff}
+  .sym.nt.pick{background:var(--accent);color:#fff;box-shadow:0 0 0 3px rgba(91,73,240,.25)}
+  .sym.eps{background:var(--bg);color:var(--ink-soft);font-style:italic}
+  .deriv{font-family:'JetBrains Mono',monospace;font-size:13.5px;line-height:1.9;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;white-space:pre-wrap}
+  .deriv .step{color:var(--ink-soft)}.deriv .arrow{color:var(--accent);font-weight:700}
+  .ruleline{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--ink);padding:3px 0}
+  .ruleline .lhs{color:var(--accent);font-weight:700}
+  .badge{display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--soft-accent);color:var(--accent);letter-spacing:.02em}
+  /* toast / game */
+  .toast{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:#0F1B2E;color:#fff;font-size:13px;padding:9px 16px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transition:.25s;pointer-events:none;font-weight:500}
+  .toast.show{opacity:1}
+  .gamebar{position:absolute;top:14px;left:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;box-shadow:var(--shadow);display:none;gap:18px}
+  .gamebar.show{display:flex}
+  .gamebar .stat{display:flex;flex-direction:column;line-height:1.1}.gamebar .stat b{font-family:'Space Grotesk',sans-serif;font-size:18px}.gamebar .stat span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft)}
+  .gq{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:24px;text-align:center;padding:6px;letter-spacing:.05em}
+  .gbtns{display:flex;gap:10px}
+  .gbtns .btn{padding:14px;font-size:15px;font-weight:600}
+  .gOk{border-color:var(--good);color:var(--good)}.gOk:hover{background:#ECFDF5;color:var(--good)}
+  .gNo{border-color:var(--warn);color:var(--warn)}.gNo:hover{background:#FFF1F2;color:var(--warn)}
+  @media(max-width:820px){.wrap{grid-template-columns:1fr;grid-template-rows:46vh 1fr}.panel{border-left:0;border-top:1px solid var(--line)}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><span class="wk">Semana 12 · Estructuras Discretas</span><h1>Autómatas finitos y gramáticas</h1></div>
+  <div class="modes"><button id="mSim" class="on">Simulador</button><button id="mGame">Juego</button></div>
+</div>
+
+<div class="wrap">
+  <div class="stage">
+    <svg id="svg" viewBox="0 0 900 470" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="gramStage" id="gramStage">
+      <div style="margin-bottom:10px"><span class="badge" id="gramType">Tipo 2 · Libre de contexto</span></div>
+      <span class="lab" style="font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em;font-weight:600">Forma sentencial actual — toca un no terminal</span>
+      <div class="sform" id="sform"></div>
+      <span class="lab" style="font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em;font-weight:600">Derivación</span>
+      <div class="deriv" id="derivLog">S</div>
+    </div>
+    <div class="tape" id="tape"></div>
+    <div class="statusbar" id="status"></div>
+    <div id="toast" class="toast"></div>
+    <div id="gamebar" class="gamebar">
+      <div class="stat"><b id="gRound">1</b><span>Ronda</span></div>
+      <div class="stat"><b id="gScore">0</b><span>Puntos</span></div>
+      <div class="stat"><b id="gStreak">0</b><span>Racha</span></div>
+    </div>
+  </div>
+
+  <!-- SIMULADOR -->
+  <div class="panel" id="panelSim">
+    <div class="subtoggle"><button id="subDfa" class="on">Autómata (DFA)</button><button id="subGram">Gramática</button></div>
+
+    <!-- DFA CONTROLS -->
+    <div id="dfaCtrl">
+      <div class="group">
+        <h3>Autómatas de ejemplo</h3>
+        <div class="seg">
+          <button class="btn sm" data-preset="ends01">Termina en «01»</button>
+          <button class="btn sm" data-preset="evenA">Nº par de «a»</button>
+        </div>
+        <div class="seg">
+          <button class="btn sm" data-preset="hasAA">Contiene «aa»</button>
+          <button class="btn sm" data-preset="div3">Múltiplo de 3 (bin.)</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h3>Probar una cadena</h3>
+        <div class="inrow"><input type="text" id="inputStr" value="0 1 0 1" placeholder="símbolos separados por espacio"><button class="btn sel" id="runBtn" style="flex:0 0 74px">Ejecutar</button></div>
+        <div class="seg">
+          <button class="btn act" id="stepBtn">Paso ▸</button>
+          <button class="btn" id="resetRun">Reiniciar</button>
+        </div>
+        <p class="hint" id="dfaDesc"></p>
+      </div>
+
+      <div class="group">
+        <h3>Editar autómata</h3>
+        <div class="inrow"><input type="text" id="alphaIn" value="0 1" style="flex:1"><button class="btn sm" id="applyAlpha" style="flex:0 0 70px">Alfabeto</button></div>
+        <div class="seg" id="dfaModes">
+          <button class="btn sm sel" data-dm="move">Mover</button>
+          <button class="btn sm" data-dm="add">+ Estado</button>
+          <button class="btn sm" data-dm="start">Inicial</button>
+          <button class="btn sm" data-dm="accept">Aceptación</button>
+          <button class="btn sm" data-dm="del">Borrar</button>
+        </div>
+        <span class="lab" style="font-size:11px;color:var(--ink-soft)">Transición</span>
+        <div class="inrow">
+          <select id="trFrom"></select>
+          <select id="trSym" style="flex:0 0 64px"></select>
+          <select id="trTo"></select>
+        </div>
+        <div class="seg">
+          <button class="btn sm" id="addTr">Añadir →</button>
+          <button class="btn sm ghost" id="delTr">Quitar</button>
+          <button class="btn sm ghost" id="clearDfa">Vaciar</button>
+        </div>
+        <p class="hint">Un <b>DFA</b> exige exactamente una transición por símbolo en cada estado. Si falta alguna, la cadena se <b>rechaza</b> al quedar “atascada”.</p>
+      </div>
+    </div>
+
+    <!-- GRAMMAR CONTROLS -->
+    <div id="gramCtrl" style="display:none">
+      <div class="group">
+        <h3>Gramáticas de ejemplo</h3>
+        <div class="seg">
+          <button class="btn sm" data-gram="anbn">aⁿbⁿ</button>
+          <button class="btn sm" data-gram="paren">Paréntesis</button>
+        </div>
+        <div class="seg">
+          <button class="btn sm" data-gram="pal">Palíndromos</button>
+          <button class="btn sm" data-gram="expr">Expresión</button>
+        </div>
+      </div>
+      <div class="group">
+        <h3>Producciones</h3>
+        <div id="ruleList"></div>
+        <p class="hint" id="gramHint"></p>
+      </div>
+      <div class="group">
+        <h3>Reglas aplicables</h3>
+        <div class="seg" id="applyRules"><span class="hint">Toca un no terminal (morado) en la forma sentencial.</span></div>
+      </div>
+      <div class="group">
+        <div class="seg">
+          <button class="btn" id="autoDeriv">Derivar automático ▶</button>
+          <button class="btn ghost" id="resetDeriv">Reiniciar (S)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JUEGO -->
+  <div class="panel" id="panelGame" style="display:none">
+    <div class="group">
+      <h3>Juego · ¿Acepta o rechaza?</h3>
+      <p class="hint">Observa el autómata y decide si <b>acepta</b> la cadena mostrada antes de comprobar. Luego se anima el recorrido para que veas el porqué.</p>
+    </div>
+    <div class="group">
+      <h3>Autómata vigente</h3>
+      <p class="hint" id="gDesc" style="font-weight:600;color:var(--ink)"></p>
+      <span class="lab" style="font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em">Cadena</span>
+      <div class="gq" id="gString">—</div>
+      <div class="gbtns">
+        <button class="btn gOk" id="gAccept">Acepta ✓</button>
+        <button class="btn gNo" id="gReject">Rechaza ✕</button>
+      </div>
+      <div class="readout" id="gFb" style="display:none"></div>
+      <button class="btn ghost full" id="gNext">Siguiente reto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(()=>{
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.getElementById('svg');
+  const W=900,H=470,R=26;
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  const el=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  function toast(m,ms=1700){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
+
+  /* ----------------- DFA MODEL ----------------- */
+  let dfa={alphabet:['0','1'],states:[],start:null,trans:{},desc:''};
+  let seq=0;
+
+  const PRESETS={
+    ends01:{desc:'Acepta las cadenas binarias que TERMINAN en «01».',alphabet:['0','1'],start:'q0',
+      states:[{id:'q0',x:200,y:240,accept:false},{id:'q1',x:450,y:240,accept:false},{id:'q2',x:700,y:240,accept:true}],
+      trans:{q0:{0:'q1',1:'q0'},q1:{0:'q1',1:'q2'},q2:{0:'q1',1:'q0'}}},
+    evenA:{desc:'Acepta si el número de «a» es PAR (b es indiferente).',alphabet:['a','b'],start:'q0',
+      states:[{id:'q0',x:300,y:240,accept:true},{id:'q1',x:620,y:240,accept:false}],
+      trans:{q0:{a:'q1',b:'q0'},q1:{a:'q0',b:'q1'}}},
+    hasAA:{desc:'Acepta si la cadena CONTIENE la subcadena «aa».',alphabet:['a','b'],start:'q0',
+      states:[{id:'q0',x:180,y:240,accept:false},{id:'q1',x:450,y:240,accept:false},{id:'q2',x:720,y:240,accept:true}],
+      trans:{q0:{a:'q1',b:'q0'},q1:{a:'q2',b:'q0'},q2:{a:'q2',b:'q2'}}},
+    div3:{desc:'Lee un número binario (de izq. a der.) y acepta si es MÚLTIPLO de 3.',alphabet:['0','1'],start:'r0',
+      states:[{id:'r0',x:200,y:150,accept:true},{id:'r1',x:620,y:150,accept:false},{id:'r2',x:410,y:360,accept:false}],
+      trans:{r0:{0:'r0',1:'r1'},r1:{0:'r2',1:'r0'},r2:{0:'r1',1:'r2'}}}
+  };
+  function loadPreset(k){const p=PRESETS[k];dfa={alphabet:p.alphabet.slice(),start:p.start,desc:p.desc,
+      states:p.states.map(s=>({...s})),trans:JSON.parse(JSON.stringify(p.trans))};
+    seq=dfa.states.length;run=null;syncAlpha();renderDFA();refreshSelects();
+    document.getElementById('dfaDesc').textContent=p.desc;
+    document.getElementById('inputStr').value=defaultInput(k);clearTape();}
+  function defaultInput(k){return k==='evenA'?'a b a a':k==='hasAA'?'b a a b':k==='div3'?'1 1 0':'0 1 0 1';}
+
+  function syncAlpha(){document.getElementById('alphaIn').value=dfa.alphabet.join(' ');}
+
+  /* edge geometry */
+  function edgesOf(){const m={};for(const f in dfa.trans){for(const s in dfa.trans[f]){const t=dfa.trans[f][s];const key=f+'|'+t;(m[key]=m[key]||{from:f,to:t,syms:[]}).syms.push(s);}}return m;}
+  function st(id){return dfa.states.find(s=>s.id===id);}
+  function edgePath(a,b,bend){
+    if(a.id===b.id){const x=a.x,y=a.y;return{d:`M ${x-14} ${y-R+6} C ${x-58} ${y-R-58}, ${x+58} ${y-R-58}, ${x+14} ${y-R+6}`,lx:x,ly:y-R-44};}
+    const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len,px=-uy,py=ux;
+    const sx=a.x+ux*R,sy=a.y+uy*R,ex=b.x-ux*(R+9),ey=b.y-uy*(R+9);
+    const mx=(sx+ex)/2+px*bend,my=(sy+ey)/2+py*bend;
+    return{d:`M ${sx} ${sy} Q ${mx} ${my} ${ex} ${ey}`,lx:mx+px*9,ly:my+py*9};
+  }
+  let activeEdge=null,activeStates={};
+  function renderDFA(){
+    svg.innerHTML='';
+    const defs=el('defs',{});
+    [['arrow','#7C8AA0'],['arrowA','#5B49F0']].forEach(([id,c])=>{
+      const m=el('marker',{id,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto-start-reverse'});
+      m.appendChild(el('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:c}));defs.appendChild(m);});
+    svg.appendChild(defs);
+    const gE=el('g',{}),gL=el('g',{}),gN=el('g',{});
+    const edges=edgesOf();
+    for(const key in edges){const e=edges[key];const a=st(e.from),b=st(e.to);if(!a||!b)continue;
+      const rev=edges[e.to+'|'+e.from]&&e.from!==e.to;const bend=rev?26:0;
+      const g=edgePath(a,b,bend);const act=activeEdge===key;
+      gE.appendChild(el('path',{d:g.d,class:'lnk'+(act?' active':''),'marker-end':`url(#${act?'arrowA':'arrow'})`}));
+      const tx=el('text',{x:g.lx,y:g.ly,class:'elabel'+(act?' active':'')});tx.textContent=e.syms.join(',');gL.appendChild(tx);}
+    dfa.states.forEach(s=>{
+      const cls='st'+(activeStates[s.id]?' '+activeStates[s.id]:'')+(selState===s.id?' sel':'');
+      const g=el('g',{class:cls,'data-id':s.id,style:'cursor:pointer'});
+      if(s.accept)g.appendChild(el('circle',{cx:s.x,cy:s.y,r:R+5,class:'ring'}));
+      g.appendChild(el('circle',{cx:s.x,cy:s.y,r:R}));
+      const t=el('text',{x:s.x,y:s.y});t.textContent=s.id;g.appendChild(t);
+      if(dfa.start===s.id)g.appendChild(el('path',{d:`M ${s.x-R-34} ${s.y} L ${s.x-R-6} ${s.y}`,class:'startarrow','marker-end':'url(#arrow)'}));
+      gN.appendChild(g);});
+    svg.appendChild(gE);svg.appendChild(gL);svg.appendChild(gN);
+  }
+
+  /* selects */
+  function refreshSelects(){
+    ['trFrom','trTo'].forEach(id=>{const s=document.getElementById(id);const v=s.value;s.innerHTML='';
+      dfa.states.forEach(st=>{const o=document.createElement('option');o.value=st.id;o.textContent=st.id;s.appendChild(o);});
+      if([...s.options].some(o=>o.value===v))s.value=v;});
+    const sy=document.getElementById('trSym');const sv=sy.value;sy.innerHTML='';
+    dfa.alphabet.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;sy.appendChild(o);});
+    if([...sy.options].some(o=>o.value===sv))sy.value=sv;
+  }
+
+  /* run machine */
+  let run=null;
+  function clearTape(){document.getElementById('tape').innerHTML='';document.getElementById('status').textContent='';document.getElementById('status').className='statusbar';activeEdge=null;activeStates={};renderDFA();}
+  function parseInput(){return document.getElementById('inputStr').value.trim().split(/\s+/).filter(x=>x.length);}
+  function drawTape(syms,pos,doneOk){const tp=document.getElementById('tape');tp.innerHTML='';
+    syms.forEach((c,i)=>{const d=document.createElement('div');d.className='cell'+(i<pos?' done':'')+(i===pos?' now':'');d.textContent=c;tp.appendChild(d);});}
+  function initRun(){const syms=parseInput();
+    if(!dfa.start){toast('Define un estado inicial');return false;}
+    for(const c of syms)if(!dfa.alphabet.includes(c)){toast('Símbolo «'+c+'» no está en el alfabeto');return false;}
+    run={syms,pos:0,cur:dfa.start,done:false};activeStates={};activeStates[dfa.start]='cur';activeEdge=null;
+    drawTape(syms,0);document.getElementById('status').textContent='Estado inicial: '+dfa.start;document.getElementById('status').className='statusbar';renderDFA();return true;}
+  function finishRun(){const ok=st(run.cur)&&st(run.cur).accept;activeStates={};activeStates[run.cur]=ok?'acc':'rej';activeEdge=null;
+    drawTape(run.syms,run.syms.length);const s=document.getElementById('status');
+    s.textContent=ok?('✓ ACEPTADA — terminó en '+run.cur+' (estado de aceptación)'):('✕ RECHAZADA — terminó en '+run.cur+' (no es de aceptación)');
+    s.className='statusbar '+(ok?'ok':'no');run.done=true;renderDFA();}
+  function stepRun(){
+    if(!run||run.done){if(!initRun())return;if(run.syms.length===0){finishRun();}return;}
+    if(run.pos>=run.syms.length){finishRun();return;}
+    const c=run.syms[run.pos];const nx=dfa.trans[run.cur]&&dfa.trans[run.cur][c];
+    if(nx===undefined){activeStates={};activeStates[run.cur]='rej';drawTape(run.syms,run.pos);
+      document.getElementById('status').textContent='✕ RECHAZADA — no hay transición «'+c+'» desde '+run.cur+' (atascado)';
+      document.getElementById('status').className='statusbar no';run.done=true;renderDFA();return;}
+    activeEdge=run.cur+'|'+nx;activeStates={};activeStates[run.cur]='cur';
+    run.cur=nx;run.pos++;
+    setTimeout(()=>{activeStates={};activeStates[run.cur]='cur';drawTape(run.syms,run.pos);
+      document.getElementById('status').textContent='Leí «'+c+'» → '+run.cur;renderDFA();
+      if(run.pos>=run.syms.length)setTimeout(finishRun,260);},150);
+    drawTape(run.syms,run.pos-1);renderDFA();
+  }
+  async function autoRun(){if(!initRun())return;await sleep(450);
+    while(!run.done){stepRun();await sleep(640);}}
+
+  document.getElementById('runBtn').addEventListener('click',autoRun);
+  document.getElementById('stepBtn').addEventListener('click',stepRun);
+  document.getElementById('resetRun').addEventListener('click',()=>{run=null;clearTape();});
+  document.getElementById('inputStr').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')autoRun();});
+  document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>loadPreset(b.dataset.preset)));
+
+  /* editor */
+  let dfaMode='move',selState=null,drag=null;
+  document.querySelectorAll('#dfaModes [data-dm]').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#dfaModes [data-dm]').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');dfaMode=b.dataset.dm;selState=null;renderDFA();}));
+  function svgPt(ev){const r=svg.getBoundingClientRect();const x=(ev.clientX-r.left)/r.width*W;const y=(ev.clientY-r.top)/r.height*H;return{x,y};}
+  function hitState(p){return dfa.states.find(s=>Math.hypot(s.x-p.x,s.y-p.y)<=R+4);}
+  svg.addEventListener('mousedown',ev=>{const p=svgPt(ev);const s=hitState(p);
+    if(dfaMode==='add'&&!s){const id='q'+seq++;dfa.states.push({id,x:p.x,y:p.y,accept:false});if(!dfa.start)dfa.start=id;refreshSelects();renderDFA();return;}
+    if(!s)return;
+    if(dfaMode==='move'){drag={id:s.id,dx:p.x-s.x,dy:p.y-s.y};}
+    else if(dfaMode==='start'){dfa.start=s.id;renderDFA();}
+    else if(dfaMode==='accept'){s.accept=!s.accept;renderDFA();}
+    else if(dfaMode==='del'){dfa.states=dfa.states.filter(x=>x.id!==s.id);delete dfa.trans[s.id];for(const f in dfa.trans)for(const sym in dfa.trans[f])if(dfa.trans[f][sym]===s.id)delete dfa.trans[f][sym];if(dfa.start===s.id)dfa.start=dfa.states[0]?dfa.states[0].id:null;refreshSelects();renderDFA();}
+  });
+  window.addEventListener('mousemove',ev=>{if(!drag)return;const p=svgPt(ev);const s=st(drag.id);if(s){s.x=Math.max(R,Math.min(W-R,p.x-drag.dx));s.y=Math.max(R,Math.min(H-R,p.y-drag.dy));renderDFA();}});
+  window.addEventListener('mouseup',()=>drag=null);
+
+  document.getElementById('applyAlpha').addEventListener('click',()=>{const a=document.getElementById('alphaIn').value.trim().split(/\s+/).filter(x=>x.length);if(!a.length){toast('Alfabeto vacío');return;}dfa.alphabet=[...new Set(a)];refreshSelects();toast('Alfabeto: {'+dfa.alphabet.join(', ')+'}');});
+  document.getElementById('addTr').addEventListener('click',()=>{const f=document.getElementById('trFrom').value,sym=document.getElementById('trSym').value,t=document.getElementById('trTo').value;if(!f||!t||!sym){toast('Faltan datos');return;}dfa.trans[f]=dfa.trans[f]||{};dfa.trans[f][sym]=t;renderDFA();toast('δ('+f+', '+sym+') = '+t);});
+  document.getElementById('delTr').addEventListener('click',()=>{const f=document.getElementById('trFrom').value,sym=document.getElementById('trSym').value;if(dfa.trans[f])delete dfa.trans[f][sym];renderDFA();});
+  document.getElementById('clearDfa').addEventListener('click',()=>{dfa={alphabet:dfa.alphabet.slice(),states:[],start:null,trans:{},desc:''};seq=0;run=null;refreshSelects();clearTape();document.getElementById('dfaDesc').textContent='Autómata vacío: añade estados y transiciones.';});
+
+  /* ----------------- GRAMMAR ----------------- */
+  const GRAMS={
+    anbn:{type:'Tipo 2 · Libre de contexto',hint:'Genera el lenguaje { aⁿbⁿ : n ≥ 0 }: igual número de a y b, todas las a antes que las b. No es regular.',
+      start:'S',N:['S'],rules:[{l:'S',r:['a','S','b']},{l:'S',r:[]}]},
+    paren:{type:'Tipo 2 · Libre de contexto',hint:'Genera paréntesis balanceados. ε es la cadena vacía.',
+      start:'S',N:['S'],rules:[{l:'S',r:['(','S',')','S']},{l:'S',r:[]}]},
+    pal:{type:'Tipo 2 · Libre de contexto',hint:'Genera palíndromos sobre {a,b} (se leen igual al derecho y al revés).',
+      start:'S',N:['S'],rules:[{l:'S',r:['a','S','a']},{l:'S',r:['b','S','b']},{l:'S',r:['a']},{l:'S',r:['b']},{l:'S',r:[]}]},
+    expr:{type:'Tipo 2 · Libre de contexto',hint:'Gramática de expresiones aritméticas (no ambigua) con jerarquía + · ( ).',
+      start:'E',N:['E','T','F'],rules:[{l:'E',r:['E','+','T']},{l:'E',r:['T']},{l:'T',r:['T','*','F']},{l:'T',r:['F']},{l:'F',r:['(','E',')']},{l:'F',r:['a']}]}
+  };
+  let gram=null,sform=[];
+  function isNT(s){return gram.N.includes(s);}
+  function loadGram(k){const g=GRAMS[k];gram={...g};sform=[g.start];derivSteps=[g.start];pickIdx=-1;
+    document.getElementById('gramType').textContent=g.type;
+    document.getElementById('gramHint').textContent=g.hint;
+    renderRules();renderSform();renderDeriv();document.getElementById('applyRules').innerHTML='<span class="hint">Toca un no terminal (morado) en la forma sentencial.</span>';}
+  function renderRules(){const rl=document.getElementById('ruleList');rl.innerHTML='';
+    // group by lhs
+    const byL={};gram.rules.forEach((r,i)=>{(byL[r.l]=byL[r.l]||[]).push(r);});
+    for(const l in byL){const line=document.createElement('div');line.className='ruleline';
+      const alts=byL[l].map(r=>r.r.length?r.r.join(' '):'ε').join('  |  ');
+      line.innerHTML=`<span class="lhs">${l}</span> → ${alts}`;rl.appendChild(line);}}
+  let pickIdx=-1;
+  function renderSform(){const sf=document.getElementById('sform');sf.innerHTML='';
+    if(sform.length===0){const e=document.createElement('span');e.className='sym eps';e.textContent='ε';sf.appendChild(e);return;}
+    sform.forEach((s,i)=>{const sp=document.createElement('span');
+      if(isNT(s)){sp.className='sym nt'+(pickIdx===i?' pick':'');sp.textContent=s;sp.onclick=()=>{pickIdx=i;renderSform();showApplicable(s);};}
+      else{sp.className='sym t';sp.textContent=s;}
+      sf.appendChild(sp);});}
+  function showApplicable(nt){const ar=document.getElementById('applyRules');ar.innerHTML='';
+    const rs=gram.rules.filter(r=>r.l===nt);
+    rs.forEach(r=>{const b=document.createElement('button');b.className='btn sm';b.textContent=(r.r.length?r.r.join(' '):'ε');
+      b.onclick=()=>applyRule(r);ar.appendChild(b);});}
+  let derivSteps=[];
+  function applyRule(r){if(pickIdx<0)return;const before=sform.slice();
+    sform=sform.slice(0,pickIdx).concat(r.r,sform.slice(pickIdx+1));pickIdx=-1;
+    derivSteps.push(sform.slice());renderSform();renderDeriv();
+    document.getElementById('applyRules').innerHTML='<span class="hint">Toca el siguiente no terminal.</span>';
+    if(!sform.some(isNT))toast('Derivación completa: cadena de terminales ✓');}
+  function fmtForm(f){return f.length?f.join(' '):'ε';}
+  function renderDeriv(){const d=document.getElementById('derivLog');
+    d.innerHTML=derivSteps.map((s,i)=>i===0?`<span>${fmtForm(s)}</span>`:`<span class="step">  ⇒  </span>${fmtForm(s)}`).join('');}
+  document.getElementById('resetDeriv').addEventListener('click',()=>{sform=[gram.start];derivSteps=[gram.start];pickIdx=-1;renderSform();renderDeriv();document.getElementById('applyRules').innerHTML='<span class="hint">Toca un no terminal en la forma sentencial.</span>';});
+  document.getElementById('autoDeriv').addEventListener('click',async()=>{
+    sform=[gram.start];derivSteps=[gram.start];pickIdx=-1;renderSform();renderDeriv();
+    let guard=0;
+    while(sform.some(isNT)&&guard++<40){
+      // pick leftmost NT
+      const i=sform.findIndex(isNT);const nt=sform[i];
+      const opts=gram.rules.filter(r=>r.l===nt);
+      // bias toward terminating rules as derivation grows
+      const term=opts.filter(r=>!r.r.some(isNT));
+      const pool=(sform.length>7||guard>6)&&term.length?term:opts;
+      const r=pool[Math.floor(Math.random()*pool.length)];
+      pickIdx=i;renderSform();await sleep(420);
+      sform=sform.slice(0,i).concat(r.r,sform.slice(i+1));pickIdx=-1;
+      derivSteps.push(sform.slice());renderSform();renderDeriv();await sleep(360);
+    }
+    toast('Cadena generada: '+(fmtForm(sform)));
+  });
+  document.querySelectorAll('[data-gram]').forEach(b=>b.addEventListener('click',()=>loadGram(b.dataset.gram)));
+
+  /* ----------------- MODE / SUBTOGGLE ----------------- */
+  function showSub(which){
+    const dfaOn=which==='dfa';
+    document.getElementById('subDfa').classList.toggle('on',dfaOn);
+    document.getElementById('subGram').classList.toggle('on',!dfaOn);
+    document.getElementById('dfaCtrl').style.display=dfaOn?'':'none';
+    document.getElementById('gramCtrl').style.display=dfaOn?'none':'';
+    svg.style.display=dfaOn?'':'none';
+    document.getElementById('tape').style.display=dfaOn?'':'none';
+    document.getElementById('status').style.display=dfaOn?'':'none';
+    document.getElementById('gramStage').style.display=dfaOn?'none':'flex';
+  }
+  document.getElementById('subDfa').addEventListener('click',()=>showSub('dfa'));
+  document.getElementById('subGram').addEventListener('click',()=>showSub('gram'));
+
+  function setMode(game){
+    document.getElementById('mSim').classList.toggle('on',!game);
+    document.getElementById('mGame').classList.toggle('on',game);
+    document.getElementById('panelSim').style.display=game?'none':'flex';
+    document.getElementById('panelGame').style.display=game?'flex':'none';
+    document.getElementById('gamebar').classList.toggle('show',game);
+    document.getElementById('gramStage').style.display='none';
+    svg.style.display='';document.getElementById('tape').style.display=game?'none':'';document.getElementById('status').style.display=game?'none':'';
+    if(game){startGame();}else{showSub(document.getElementById('subDfa').classList.contains('on')?'dfa':'gram');run=null;clearTape();}
+  }
+  document.getElementById('mSim').addEventListener('click',()=>setMode(false));
+  document.getElementById('mGame').addEventListener('click',()=>setMode(true));
+
+  /* ----------------- GAME: accept or reject ----------------- */
+  const gameKeys=['ends01','evenA','hasAA','div3'];
+  let gScore=0,gStreak=0,gRound=0,gAnswer=null,gBusy=false;
+  function dfaAccepts(d,syms){let cur=d.start;for(const c of syms){const n=d.trans[cur]&&d.trans[cur][c];if(n===undefined)return false;cur=n;}return!!(d.states.find(s=>s.id===cur)||{}).accept;}
+  function randString(alpha,min,max){const n=min+Math.floor(Math.random()*(max-min+1));let s=[];for(let i=0;i<n;i++)s.push(alpha[Math.floor(Math.random()*alpha.length)]);return s;}
+  let gCur=null;
+  function startGame(){gRound=0;gScore=0;gStreak=0;updateGameStats();nextChallenge();}
+  function nextChallenge(){gBusy=false;document.getElementById('gFb').style.display='none';
+    const k=gameKeys[Math.floor(Math.random()*gameKeys.length)];loadPreset(k);
+    document.getElementById('tape').style.display='none';document.getElementById('status').style.display='none';
+    const syms=randString(dfa.alphabet,2,6);gCur={syms,answer:dfaAccepts(dfa,syms)};gRound++;
+    document.getElementById('gDesc').textContent=PRESETS[k].desc;
+    document.getElementById('gString').textContent=syms.join(' ');
+    document.getElementById('gRound').textContent=gRound;updateGameStats();}
+  function updateGameStats(){document.getElementById('gScore').textContent=gScore;document.getElementById('gStreak').textContent=gStreak;}
+  async function answer(guess){if(gBusy||!gCur)return;gBusy=true;
+    const correct=guess===gCur.answer;
+    // animate the run on stage
+    document.getElementById('inputStr').value=gCur.syms.join(' ');
+    document.getElementById('tape').style.display='';document.getElementById('status').style.display='';
+    if(initRun()){await sleep(380);while(!run.done){stepRun();await sleep(560);}}
+    const fb=document.getElementById('gFb');fb.style.display='block';
+    if(correct){const pts=10+gStreak*2;gScore+=pts;gStreak++;fb.innerHTML=`<span class="g">¡Correcto! +${pts} puntos.</span>\nLa cadena «${gCur.syms.join(' ')}» ${gCur.answer?'SÍ':'NO'} es aceptada.`;toast('¡Bien! 🎉');}
+    else{gStreak=0;fb.innerHTML=`<span class="w">No acertaste.</span>\nLa cadena ${gCur.answer?'SÍ era aceptada':'NO era aceptada'}. Mira el recorrido resaltado.`;}
+    updateGameStats();gBusy=false;}
+  document.getElementById('gAccept').addEventListener('click',()=>answer(true));
+  document.getElementById('gReject').addEventListener('click',()=>answer(false));
+  document.getElementById('gNext').addEventListener('click',nextChallenge);
+
+  /* ----------------- INIT ----------------- */
+  loadPreset('ends01');
+  loadGram('anbn');
+  showSub('dfa');
+})();
+</script>
+</body>
+</html>

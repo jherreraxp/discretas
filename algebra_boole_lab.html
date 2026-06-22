@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboratorio lógico · X = A' · (B + C)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.17.0/dist/tabler-icons.min.css" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b1612;
+    --surface: #122019;
+    --surface-2: #1a2c23;
+    --border: #21392e;
+    --border-strong: #2e5042;
+    --led: #4ade80;
+    --led-bright: #6ee7a3;
+    --led-glow: rgba(74, 222, 128, 0.45);
+    --led-dim: #2a4438;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --text: #e8efe9;
+    --text-muted: #8fa498;
+    --text-faint: #5f7869;
+    --display: 'IBM Plex Mono', ui-monospace, monospace;
+    --body: 'Manrope', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(74, 222, 128, 0.08) 1px, transparent 0);
+    background-size: 24px 24px;
+    background-position: 0 0;
+  }
+
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* Header */
+  header {
+    margin-bottom: 40px;
+    animation: fadeUp 0.6s ease-out;
+  }
+  .eyebrow {
+    font-family: var(--display);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--led);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--led);
+    box-shadow: 0 0 12px var(--led-glow);
+    animation: blink 2s ease-in-out infinite;
+  }
+  h1 {
+    font-family: var(--display);
+    font-size: 38px;
+    font-weight: 500;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  h1 .accent { color: var(--led); }
+  .formula {
+    font-family: var(--display);
+    font-size: 18px;
+    color: var(--text-muted);
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+  .formula .var { color: var(--led-bright); }
+  .formula .op { color: var(--amber); margin: 0 4px; }
+
+  /* Section labels */
+  .section-label {
+    font-family: var(--display);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 12px;
+  }
+
+  /* Theme pills */
+  .themes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 0 0 32px;
+    animation: fadeUp 0.6s ease-out 0.1s both;
+  }
+  .theme-pill {
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+  }
+  .theme-pill:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+    background: var(--surface);
+  }
+  .theme-pill.active {
+    color: var(--bg);
+    background: var(--led);
+    border-color: var(--led);
+    font-weight: 600;
+  }
+  .theme-pill i { font-size: 16px; }
+
+  /* Scenario title */
+  .scenario {
+    margin: 0 0 24px;
+    animation: fadeUp 0.6s ease-out 0.2s both;
+  }
+  .scenario h2 {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    margin: 0 0 6px;
+  }
+  .scenario p {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  /* Circuit card */
+  .circuit-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 24px 24px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.6s ease-out 0.3s both;
+  }
+  .circuit-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--led), transparent);
+    opacity: 0.5;
+  }
+  .corner {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 1px solid var(--led);
+    opacity: 0.5;
+  }
+  .corner.tl { top: 12px; left: 12px; border-right: 0; border-bottom: 0; }
+  .corner.tr { top: 12px; right: 12px; border-left: 0; border-bottom: 0; }
+  .corner.bl { bottom: 12px; left: 12px; border-right: 0; border-top: 0; }
+  .corner.br { bottom: 12px; right: 12px; border-left: 0; border-top: 0; }
+
+  /* SVG */
+  svg.circuit {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .wire {
+    fill: none;
+    stroke-width: 3;
+    transition: stroke 0.3s ease, filter 0.3s ease;
+  }
+  .wire.dead { stroke: var(--led-dim); }
+  .wire.live {
+    stroke: var(--led);
+    filter: drop-shadow(0 0 4px var(--led-glow));
+  }
+  .gate {
+    fill: var(--surface-2);
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+  }
+  .gate-label {
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 500;
+    fill: var(--text);
+  }
+  .var-label {
+    font-family: var(--body);
+    font-size: 14px;
+    font-weight: 500;
+    fill: var(--text);
+  }
+  .switch-btn {
+    fill: var(--surface-2);
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .switch-btn:hover { stroke: var(--led); }
+  .switch-btn.on {
+    fill: var(--led);
+    stroke: var(--led);
+    filter: drop-shadow(0 0 8px var(--led-glow));
+  }
+  .switch-text {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 600;
+    fill: var(--text);
+    pointer-events: none;
+  }
+  .switch-text.on { fill: var(--bg); }
+
+  .bulb {
+    stroke: var(--border-strong);
+    stroke-width: 2;
+    transition: all 0.3s ease;
+  }
+  .bulb.off { fill: var(--led-dim); }
+  .bulb.on {
+    fill: var(--led);
+    stroke: var(--led-bright);
+    filter: drop-shadow(0 0 16px var(--led-glow));
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .x-label {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 500;
+    fill: var(--text-muted);
+  }
+
+  /* Output message */
+  .output-msg {
+    text-align: center;
+    margin: 16px 0 0;
+    padding: 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--text-muted);
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+  }
+  .output-msg.on {
+    color: var(--led-bright);
+    border-color: var(--border-strong);
+    background: linear-gradient(180deg, rgba(74, 222, 128, 0.08), transparent);
+  }
+  .output-msg i { font-size: 22px; }
+
+  /* Action buttons */
+  .actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin: 28px 0 40px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s ease-out 0.4s both;
+  }
+  .btn {
+    font-family: var(--body);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 10px 18px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s ease;
+  }
+  .btn:hover {
+    background: var(--surface-2);
+    border-color: var(--led);
+    color: var(--led-bright);
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn i { font-size: 18px; }
+
+  /* Truth table */
+  .truth-section {
+    animation: fadeUp 0.6s ease-out 0.5s both;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--display);
+    font-size: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  tbody tr { transition: background 0.2s ease; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr.current {
+    background: rgba(74, 222, 128, 0.08);
+  }
+  tbody tr.current td {
+    color: var(--led-bright);
+    font-weight: 600;
+  }
+  td.x-cell.on { color: var(--led); font-weight: 600; }
+  td.x-cell.off { color: var(--text-faint); }
+
+  footer {
+    margin-top: 48px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-faint);
+    font-family: var(--display);
+    letter-spacing: 0.05em;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  @keyframes pulse {
+    0%, 100% { filter: drop-shadow(0 0 16px var(--led-glow)); }
+    50% { filter: drop-shadow(0 0 24px var(--led-glow)); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+  @media (max-width: 600px) {
+    .container { padding: 32px 16px 60px; }
+    h1 { font-size: 28px; }
+    .formula { font-size: 15px; }
+    .circuit-card { padding: 28px 12px 16px; }
+    table { font-size: 12px; }
+    th, td { padding: 8px 4px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="eyebrow">Laboratorio lógico</div>
+    <h1>Circuito <span class="accent">X = A' · (B + C)</span></h1>
+    <p class="formula">Compuerta <span class="var">NOT</span> <span class="op">·</span> (compuerta <span class="var">OR</span>) <span class="op">→</span> compuerta <span class="var">AND</span></p>
+  </header>
+
+  <div class="section-label">Escenario</div>
+  <div class="themes" id="tabs">
+    <button class="theme-pill active" data-theme="vars"><i class="ti ti-variable"></i> Variables</button>
+    <button class="theme-pill" data-theme="like"><i class="ti ti-heart"></i> Me gusta</button>
+    <button class="theme-pill" data-theme="sick"><i class="ti ti-virus"></i> Enfermedad</button>
+    <button class="theme-pill" data-theme="door"><i class="ti ti-door"></i> Puerta</button>
+    <button class="theme-pill" data-theme="fortnite"><i class="ti ti-device-gamepad-2"></i> Fortnite</button>
+    <button class="theme-pill" data-theme="party"><i class="ti ti-confetti"></i> Fiesta</button>
+  </div>
+
+  <div class="scenario">
+    <h2 id="scenarioTitle">Variables puras</h2>
+    <p id="scenarioHint">Toca cada interruptor para cambiar entre 0 y 1. Los cables que llevan un 1 se iluminan.</p>
+  </div>
+
+  <div class="circuit-card">
+    <span class="corner tl"></span>
+    <span class="corner tr"></span>
+    <span class="corner bl"></span>
+    <span class="corner br"></span>
+
+    <svg class="circuit" viewBox="0 0 680 360" role="img" aria-label="Circuito lógico X = A' · (B + C)">
+      <title>Circuito lógico</title>
+      <desc>Tres entradas A, B y C alimentan una compuerta NOT, una OR y una AND. La salida X se enciende solo cuando A vale 0 y al menos B o C vale 1.</desc>
+
+      <text class="var-label" id="lbl-A" x="160" y="70" text-anchor="end" dominant-baseline="central">A</text>
+      <text class="var-label" id="lbl-B" x="160" y="200" text-anchor="end" dominant-baseline="central">B</text>
+      <text class="var-label" id="lbl-C" x="160" y="300" text-anchor="end" dominant-baseline="central">C</text>
+
+      <g onclick="toggleVar('A')">
+        <rect class="switch-btn" id="sw-A" x="172" y="54" width="40" height="32" rx="6"/>
+        <text class="switch-text" id="swt-A" x="192" y="70" text-anchor="middle" dominant-baseline="central">0</text>
+      </g>
+      <g onclick="toggleVar('B')">
+        <rect class="switch-btn" id="sw-B" x="172" y="184" width="40" height="32" rx="6"/>
+        <text class="switch-text" id="swt-B" x="192" y="200" text-anchor="middle" dominant-baseline="central">0</text>
+      </g>
+      <g onclick="toggleVar('C')">
+        <rect class="switch-btn" id="sw-C" x="172" y="284" width="40" height="32" rx="6"/>
+        <text class="switch-text" id="swt-C" x="192" y="300" text-anchor="middle" dominant-baseline="central">0</text>
+      </g>
+
+      <path id="w-A" class="wire dead" d="M 212 70 L 250 70"/>
+      <path id="w-B" class="wire dead" d="M 212 200 L 254 200"/>
+      <path id="w-C" class="wire dead" d="M 212 300 L 250 300"/>
+
+      <polygon class="gate" points="250,50 250,90 310,70"/>
+      <circle class="gate" cx="318" cy="70" r="6"/>
+      <text class="gate-label" x="270" y="36" text-anchor="middle">NOT</text>
+
+      <path class="gate" d="M 250 180 Q 268 240 250 300 Q 320 300 370 240 Q 320 180 250 180 Z"/>
+      <text class="gate-label" x="298" y="244" text-anchor="middle">OR</text>
+
+      <path class="gate" d="M 430 140 L 470 140 A 50 50 0 0 1 470 240 L 430 240 Z"/>
+      <text class="gate-label" x="458" y="194" text-anchor="middle">AND</text>
+
+      <path id="w-NOT" class="wire dead" d="M 324 70 L 400 70 L 400 140 L 430 140"/>
+      <path id="w-OR" class="wire dead" d="M 370 240 L 430 240"/>
+      <path id="w-X" class="wire dead" d="M 520 190 L 582 190"/>
+
+      <circle id="bulb" class="bulb off" cx="600" cy="190" r="18"/>
+      <text class="x-label" id="x-label" x="600" y="234" text-anchor="middle">X = 0</text>
+    </svg>
+
+    <div class="output-msg" id="outputMsg">
+      <i class="ti ti-bulb-off"></i>
+      <span>X = 0: el circuito está apagado</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="randomBtn"><i class="ti ti-dice-5"></i> Sorpréndeme</button>
+    <button class="btn" id="resetBtn"><i class="ti ti-refresh"></i> Reiniciar</button>
+  </div>
+
+  <div class="truth-section">
+    <div class="section-label">Tabla de verdad</div>
+    <table>
+      <thead>
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+          <th>A'</th>
+          <th>B + C</th>
+          <th>X</th>
+        </tr>
+      </thead>
+      <tbody id="truthBody"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    Diseñado para entender X = A' · (B + C) jugando.
+  </footer>
+
+</div>
+
+<script>
+  const themes = {
+    vars: {
+      title: 'Variables puras',
+      hint: '1 = encendido, 0 = apagado. Cambia los valores y mira cómo se prende o se apaga el foco X.',
+      labels: { A: 'A', B: 'B', C: 'C' },
+      onMsg: 'X = 1: el circuito está activado',
+      offMsg: 'X = 0: el circuito está apagado',
+      onIcon: 'ti-bulb',
+      offIcon: 'ti-bulb-off'
+    },
+    like: {
+      title: '¿Le doy like al post?',
+      hint: 'Solo doy like si NO estoy ocupado, Y (el post es chistoso O es de un amigo).',
+      labels: { A: 'Estoy ocupado', B: 'Es chistoso', C: 'Es de un amigo' },
+      onMsg: '¡Le doy like!',
+      offMsg: 'Sigo de largo, no es para mí',
+      onIcon: 'ti-heart',
+      offIcon: 'ti-arrow-narrow-right'
+    },
+    sick: {
+      title: '¿Voy al médico?',
+      hint: 'Voy al médico si NO estoy vacunado, Y (tengo fiebre O tos).',
+      labels: { A: 'Estoy vacunado', B: 'Tengo fiebre', C: 'Tengo tos' },
+      onMsg: 'Mejor voy al médico',
+      offMsg: 'Estoy bien, me quedo en casa',
+      onIcon: 'ti-stethoscope',
+      offIcon: 'ti-mood-happy'
+    },
+    door: {
+      title: '¿Se abre la puerta?',
+      hint: 'La puerta se abre si NO está en mantenimiento, Y (tengo tarjeta O el guardia presiona el botón).',
+      labels: { A: 'En mantenimiento', B: 'Tarjeta válida', C: 'Botón del guardia' },
+      onMsg: 'Puerta abierta, puedes pasar',
+      offMsg: 'Puerta cerrada',
+      onIcon: 'ti-door-enter',
+      offIcon: 'ti-lock'
+    },
+    fortnite: {
+      title: '¿Puedo jugar Fortnite?',
+      hint: 'Puedo jugar si NO tengo tarea pendiente, Y (recuerdo el PIN O el equipo está libre).',
+      labels: { A: 'Tarea pendiente', B: 'Recuerdo el PIN', C: 'Equipo libre' },
+      onMsg: '¡A jugar Fortnite!',
+      offMsg: 'Hoy no se puede jugar',
+      onIcon: 'ti-device-gamepad-2',
+      offIcon: 'ti-mood-sad'
+    },
+    party: {
+      title: '¿Salgo a la fiesta?',
+      hint: 'Voy a la fiesta si NO tengo examen mañana, Y (mis amigos van O hay buena música).',
+      labels: { A: 'Examen mañana', B: 'Mis amigos van', C: 'Hay buena música' },
+      onMsg: '¡A la fiesta, vamos!',
+      offMsg: 'Mejor me quedo a estudiar',
+      onIcon: 'ti-confetti',
+      offIcon: 'ti-book'
+    }
+  };
+
+  let state = { A: 0, B: 0, C: 0 };
+  let currentTheme = 'vars';
+
+  function compute() {
+    const notA = state.A ? 0 : 1;
+    const orBC = (state.B || state.C) ? 1 : 0;
+    const X = (notA && orBC) ? 1 : 0;
+    return { notA, orBC, X };
+  }
+
+  function setWire(id, on) {
+    const w = document.getElementById(id);
+    w.classList.toggle('live', !!on);
+    w.classList.toggle('dead', !on);
+  }
+
+  function render() {
+    const t = themes[currentTheme];
+    document.getElementById('scenarioTitle').textContent = t.title;
+    document.getElementById('scenarioHint').textContent = t.hint;
+    document.getElementById('lbl-A').textContent = t.labels.A;
+    document.getElementById('lbl-B').textContent = t.labels.B;
+    document.getElementById('lbl-C').textContent = t.labels.C;
+
+    ['A', 'B', 'C'].forEach(v => {
+      const sw = document.getElementById('sw-' + v);
+      const swt = document.getElementById('swt-' + v);
+      const on = !!state[v];
+      sw.classList.toggle('on', on);
+      swt.classList.toggle('on', on);
+      swt.textContent = on ? '1' : '0';
+    });
+
+    const { notA, orBC, X } = compute();
+    setWire('w-A', state.A);
+    setWire('w-B', state.B);
+    setWire('w-C', state.C);
+    setWire('w-NOT', notA);
+    setWire('w-OR', orBC);
+    setWire('w-X', X);
+
+    const bulb = document.getElementById('bulb');
+    bulb.classList.toggle('on', X === 1);
+    bulb.classList.toggle('off', X === 0);
+    document.getElementById('x-label').textContent = 'X = ' + X;
+
+    const msg = document.getElementById('outputMsg');
+    const icon = X ? t.onIcon : t.offIcon;
+    const text = X ? t.onMsg : t.offMsg;
+    msg.innerHTML = '<i class="ti ' + icon + '"></i><span>' + text + '</span>';
+    msg.classList.toggle('on', X === 1);
+
+    const combo = state.A.toString() + state.B + state.C;
+    document.querySelectorAll('#truthBody tr').forEach(r => {
+      r.classList.toggle('current', r.dataset.combo === combo);
+    });
+  }
+
+  function toggleVar(v) {
+    state[v] = state[v] ? 0 : 1;
+    render();
+  }
+
+  function selectTheme(name) {
+    currentTheme = name;
+    document.querySelectorAll('.theme-pill').forEach(b => {
+      b.classList.toggle('active', b.dataset.theme === name);
+    });
+    render();
+  }
+
+  document.querySelectorAll('.theme-pill').forEach(b => {
+    b.addEventListener('click', () => selectTheme(b.dataset.theme));
+  });
+
+  document.getElementById('randomBtn').addEventListener('click', () => {
+    state.A = Math.random() > 0.5 ? 1 : 0;
+    state.B = Math.random() > 0.5 ? 1 : 0;
+    state.C = Math.random() > 0.5 ? 1 : 0;
+    render();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    state = { A: 0, B: 0, C: 0 };
+    render();
+  });
+
+  const tb = document.getElementById('truthBody');
+  for (let i = 0; i < 8; i++) {
+    const a = (i >> 2) & 1, b = (i >> 1) & 1, c = i & 1;
+    const na = a ? 0 : 1;
+    const bc = (b || c) ? 1 : 0;
+    const x = (na && bc) ? 1 : 0;
+    const tr = document.createElement('tr');
+    tr.dataset.combo = a.toString() + b + c;
+    tr.innerHTML =
+      '<td>' + a + '</td>' +
+      '<td>' + b + '</td>' +
+      '<td>' + c + '</td>' +
+      '<td>' + na + '</td>' +
+      '<td>' + bc + '</td>' +
+      '<td class="x-cell ' + (x ? 'on' : 'off') + '">' + x + '</td>';
+    tb.appendChild(tr);
+  }
+
+  render();
+</script>
+
+</body>
+</html>

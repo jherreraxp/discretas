@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matemática Discreta · Laboratorio Interactivo — Dr. José Herrera Quispe</title>
+<meta name="description" content="Simuladores, juegos y quizzes interactivos del curso de Matemática Discreta, organizados por tema. Dr. José Herrera Quispe.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EAEEF4; --surface:#FFFFFF; --ink:#15233B; --ink-soft:#5B6B82;
+    --line:#C9D3E0; --grid:#D7DEE9; --accent:#5B49F0; --good:#0E9F6E;
+    --warn:#E11D48; --gold:#D97706; --soft-accent:#EEEBFE;
+    --shadow:0 1px 2px rgba(21,35,59,.06),0 8px 24px rgba(21,35,59,.08);
+    --shadow-lg:0 2px 4px rgba(21,35,59,.06),0 18px 40px rgba(21,35,59,.14);
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;line-height:1.5}
+
+  /* Topbar */
+  .topbar{display:flex;align-items:center;gap:14px;padding:14px 22px;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap;position:sticky;top:0;z-index:20}
+  .brand{display:flex;flex-direction:column;line-height:1.1}
+  .brand .wk{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;font-weight:700}
+  .brand h1{font-family:'Space Grotesk',sans-serif;font-size:19px;margin:2px 0 0;font-weight:600;letter-spacing:-.01em}
+  .topnav{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+  .topnav a{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;text-decoration:none;color:var(--ink-soft);padding:8px 11px;border-radius:8px;transition:.16s}
+  .topnav a:hover{background:var(--bg);color:var(--ink)}
+
+  /* Hero */
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);background-color:var(--bg);background-image:radial-gradient(var(--grid) 1.4px,transparent 1.4px);background-size:22px 22px;background-position:11px 11px}
+  .hero-inner{max-width:1120px;margin:0 auto;padding:56px 22px 60px;display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:center}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700;display:inline-flex;align-items:center;gap:9px;margin-bottom:18px}
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--accent);border-radius:2px}
+  .hero h2{font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-.02em;font-size:clamp(32px,4.6vw,50px);line-height:1.05;margin:0 0 16px}
+  .hero h2 em{font-style:normal;color:var(--accent)}
+  .hero .lead{font-size:17px;color:var(--ink-soft);max-width:48ch;margin:0 0 24px}
+  .stats{display:flex;gap:22px;margin-bottom:24px;flex-wrap:wrap}
+  .stat b{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;display:block;line-height:1}
+  .stat span{font-size:11.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+  .prof{display:flex;align-items:center;gap:13px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);max-width:max-content}
+  .prof .avatar{width:46px;height:46px;border-radius:12px;flex:none;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),#7d6ff5);color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px}
+  .prof .who b{font-family:'Space Grotesk',sans-serif;font-size:15.5px;font-weight:600;display:block}
+  .prof .who span{font-size:12.5px;color:var(--ink-soft)}
+  .links{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+  .chip{display:inline-flex;align-items:center;gap:8px;text-decoration:none;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:500;color:var(--ink);transition:.16s;box-shadow:var(--shadow)}
+  .chip:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:var(--shadow-lg)}
+  .chip svg{width:17px;height:17px;flex:none}
+  .ic-dina{color:var(--accent)}
+
+  /* Hero node-edge signature */
+  .hero-art{position:relative;align-self:center;justify-self:center;width:100%;max-width:420px}
+  .hero-art svg{width:100%;height:auto;display:block;overflow:visible}
+  .ha-edge{stroke:var(--accent);stroke-width:2.4;fill:none;opacity:.55}
+  .ha-edge.gold{stroke:var(--gold)}
+  .ha-node circle{stroke-width:2.6}
+  .ha-node.a circle{fill:var(--accent);stroke:var(--accent)}
+  .ha-node.s circle{fill:var(--surface);stroke:var(--ink)}
+  .ha-node.g circle{fill:var(--gold);stroke:var(--gold)}
+  .ha-node.good circle{fill:var(--good);stroke:var(--good)}
+  .ha-node text{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;text-anchor:middle;dominant-baseline:central}
+  .ha-node.a text,.ha-node.g text,.ha-node.good text{fill:#fff}
+  .ha-node.s text{fill:var(--ink)}
+  .ha-edge{stroke-dasharray:var(--len,260);stroke-dashoffset:var(--len,260);animation:draw 1.1s ease forwards}
+  .ha-node{opacity:0;animation:fade .55s ease forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  @keyframes fade{to{opacity:1}}
+
+  /* Sections */
+  main{max-width:1120px;margin:0 auto;padding:8px 22px 40px}
+  .topic{padding:38px 0 6px;scroll-margin-top:70px}
+  .topic-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px}
+  .topic-head .ix{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--accent)}
+  .topic-head h3{font-family:'Space Grotesk',sans-serif;font-size:23px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .topic-head .cnt{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-soft);margin-left:auto}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(262px,1fr));gap:16px}
+
+  .act{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 18px 16px;box-shadow:var(--shadow);position:relative;transition:transform .18s,box-shadow .18s,border-color .18s;min-height:150px;text-decoration:none;color:inherit}
+  .act h4{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600;margin:4px 0 0;letter-spacing:-.01em;line-height:1.2}
+  .act p{font-size:13px;color:var(--ink-soft);margin:0;flex:1}
+  .tag{align-self:flex-start;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.04em;padding:3px 8px;border-radius:20px;text-transform:uppercase}
+  .b-sim{background:var(--soft-accent);color:var(--accent)}
+  .b-game{background:#FEF1E1;color:var(--gold)}
+  .b-quiz{background:#DCFCE7;color:#15803D}
+  .b-lab{background:#EEF1F6;color:var(--ink-soft)}
+  .b-soon{background:#EEF1F6;color:var(--ink-soft)}
+  .cta{display:inline-flex;align-items:center;gap:7px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13.5px;color:var(--accent);margin-top:4px}
+  .cta svg{width:15px;height:15px;transition:transform .18s}
+  a.act.live::before{content:"";position:absolute;left:0;top:16px;bottom:16px;width:3px;border-radius:0 3px 3px 0;background:var(--accent)}
+  a.act.live:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--accent)}
+  a.act.live:hover .cta svg{transform:translateX(4px)}
+  .act.soon{background:#FBFCFE;border-style:dashed}
+  .act.soon h4{color:var(--ink-soft)}
+  .cta.muted{color:var(--ink-soft);font-weight:500}
+
+  /* How-to */
+  .howto{margin:42px 0 8px;background:#0F1B2E;color:#D6E2F5;border-radius:18px;padding:30px;display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  .howto h4{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:600;margin:0 0 12px;color:#fff;display:flex;align-items:center;gap:9px}
+  .howto p{font-size:13.5px;line-height:1.6;color:#AFC0DA;margin:0 0 10px}
+  .howto code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:rgba(138,160,255,.16);color:#C7D2FF;padding:2px 7px;border-radius:6px}
+  .howto .steps{list-style:none;margin:0;padding:0;counter-reset:s}
+  .howto .steps li{position:relative;padding:0 0 12px 34px;font-size:13.5px;color:#C2D1E8;counter-increment:s;line-height:1.5}
+  .howto .steps li::before{content:counter(s);position:absolute;left:0;top:-1px;width:23px;height:23px;border-radius:7px;background:var(--accent);color:#fff;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;display:grid;place-items:center}
+  .howto .steps li:last-child{padding-bottom:0}
+
+  /* Footer */
+  footer{border-top:1px solid var(--line);background:var(--surface);margin-top:8px}
+  .foot-inner{max-width:1120px;margin:0 auto;padding:30px 22px;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .foot-id b{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600}
+  .foot-id span{font-size:12.5px;color:var(--ink-soft);display:block}
+  .foot-links{display:flex;gap:8px;flex-wrap:wrap}
+  .foot-links a{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:10px;border:1px solid var(--line);color:var(--ink-soft);transition:.16s;background:var(--surface)}
+  .foot-links a:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+  .foot-links a svg{width:18px;height:18px}
+  .foot-note{width:100%;text-align:center;font-size:12px;color:var(--ink-soft);padding-bottom:24px}
+
+  @media(max-width:900px){
+    .hero-inner{grid-template-columns:1fr;padding:42px 22px 46px}
+    .hero-art{order:-1;max-width:300px}
+    .howto{grid-template-columns:1fr;gap:22px;padding:26px 22px}
+  }
+  @media(max-width:560px){.topnav{display:none}.hero h2{font-size:30px}.prof{max-width:none}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.ha-edge{stroke-dashoffset:0}.ha-node{opacity:1}html{scroll-behavior:auto}}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     ÍNDICE ORGANIZADO POR CONTENIDO (no por semana)
+     • Cada actividad es una tarjeta <a class="act live" href="archivo.html">.
+     • El badge (.tag) indica el tipo: Simulador / Juego / Quiz / Laboratorio / Visualizador / Interactivo.
+     • Para agregar una actividad nueva: copia una tarjeta dentro de la sección
+       de su tema, cambia título, descripción, badge y href.
+     • Tarjetas "Próximamente": <div class="act soon"> ... (sin enlace, editables).
+     ============================================================ -->
+
+<div class="topbar">
+  <div class="brand">
+    <span class="wk">Curso · Laboratorio interactivo</span>
+    <h1>Matemática Discreta</h1>
+  </div>
+  <nav class="topnav">
+    <a href="#logica">Lógica</a>
+    <a href="#conjuntos">Conjuntos</a>
+    <a href="#conteo">Conteo</a>
+    <a href="#grafos">Grafos</a>
+    <a href="#estructuras">Estructuras</a>
+    <a href="#automatas">Autómatas</a>
+    <a href="#cripto">Criptografía</a>
+    <a href="#docente">Docente</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <span class="eyebrow">Simuladores · Juegos · Quizzes</span>
+      <h2>Explora la matemática discreta <em>por temas</em>.</h2>
+      <p class="lead">Una colección de recursos interactivos para experimentar, jugar y autoevaluarte. Elige un tema y aprende construyendo, recorriendo y resolviendo.</p>
+      <div class="stats">
+        <div class="stat"><b>13</b><span>Actividades</span></div>
+        <div class="stat"><b>8</b><span>Temas</span></div>
+        <div class="stat"><b>5</b><span>Formatos</span></div>
+      </div>
+      <div class="prof" id="docente">
+        <div class="avatar">JH</div>
+        <div class="who">
+          <b>Dr. José Herrera Quispe</b>
+          <span>Docente del curso · Matemática Discreta</span>
+        </div>
+      </div>
+      <div class="links">
+        <a class="chip" href="https://www.linkedin.com/in/jose-herrera-b1a84787/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" style="color:#0A66C2"><path fill="currentColor" d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.8 0 0 .77 0 1.73v20.54C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+          LinkedIn
+        </a>
+        <a class="chip" href="https://orcid.org/0000-0002-8207-9714" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#A6CE39"/><text x="12" y="16.6" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="11.5" fill="#fff">iD</text></svg>
+          ORCID
+        </a>
+        <a class="chip" href="https://scholar.google.com/citations?user=nheS6VsAAAAJ&hl=es" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="#4285F4"><path d="M12 3 1 9l11 6 11-6-11-6zM3.4 12.3v3.5L12 20.5l8.6-4.7v-3.5L12 17 3.4 12.3z"/></svg>
+          Google Scholar
+        </a>
+        <a class="chip" href="https://dina.concytec.gob.pe/appDirectorioCTI/VerDatosInvestigador.do?id_investigador=19" target="_blank" rel="noopener">
+          <svg class="ic-dina" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2"/><circle cx="8.7" cy="10.4" r="2.1"/><path d="M5.3 16c.6-1.8 2-2.6 3.4-2.6s2.8.8 3.4 2.6"/><line x1="14.6" y1="9.4" x2="19" y2="9.4"/><line x1="14.6" y1="13" x2="19" y2="13"/></svg>
+          DINA · CONCYTEC
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 400 320">
+        <path class="ha-edge"      style="--len:150" d="M70 70 L200 50"/>
+        <path class="ha-edge"      style="--len:170" d="M70 70 L120 190"/>
+        <path class="ha-edge gold" style="--len:160" d="M200 50 L320 110"/>
+        <path class="ha-edge"      style="--len:150" d="M200 50 L210 170"/>
+        <path class="ha-edge gold" style="--len:130" d="M120 190 L210 170"/>
+        <path class="ha-edge"      style="--len:170" d="M210 170 L300 250"/>
+        <path class="ha-edge"      style="--len:150" d="M120 190 L120 290"/>
+        <path class="ha-edge"      style="--len:120" d="M320 110 L300 250"/>
+        <g class="ha-node a"    style="animation-delay:.55s" transform="translate(70 70)"><circle r="24"/><text>q0</text></g>
+        <g class="ha-node s"    style="animation-delay:.65s" transform="translate(200 50)"><circle r="22"/><text>A</text></g>
+        <g class="ha-node g"    style="animation-delay:.75s" transform="translate(320 110)"><circle r="22"/><text>B</text></g>
+        <g class="ha-node s"    style="animation-delay:.85s" transform="translate(120 190)"><circle r="22"/><text>C</text></g>
+        <g class="ha-node a"    style="animation-delay:.95s" transform="translate(210 170)"><circle r="24"/><text>D</text></g>
+        <g class="ha-node s"    style="animation-delay:1.05s" transform="translate(120 290)"><circle r="20"/><text>E</text></g>
+        <g class="ha-node good" style="animation-delay:1.15s" transform="translate(300 250)"><circle r="24"/><text>qf</text></g>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===== LÓGICA Y DEMOSTRACIÓN ===== -->
+  <section class="topic" id="logica">
+    <div class="topic-head"><span class="ix">01</span><h3>Lógica y demostración</h3><span class="cnt">3 actividades</span></div>
+    <div class="grid">
+      <a class="act live" href="logica_proposicional.html">
+        <span class="tag b-sim">Interactivo</span>
+        <h4>Lógica proposicional</h4>
+        <p>Suite con tablas de verdad, equivalencias, leyes de De Morgan, argumentos, método indirecto y circuitos.</p>
+        <span class="cta">Abrir recurso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="act live" href="algebra_boole_lab.html">
+        <span class="tag b-lab">Laboratorio</span>
+        <h4>Álgebra de Boole y circuitos</h4>
+        <p>Laboratorio lógico interactivo sobre la expresión X = A′·(B + C) y compuertas.</p>
+        <span class="cta">Abrir recurso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="act live" href="logica_quiz.html">
+        <span class="tag b-quiz">Quiz</span>
+        <h4>Quiz de lógica</h4>
+        <p>Autoevaluación gamificada sobre proposiciones, conectivos y tablas de verdad.</p>
+        <span class="cta">Abrir recurso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== CONJUNTOS, RELACIONES Y FUNCIONES ===== -->
+  <section class="topic" id="conjuntos">
+    <div class="topic-head"><span class="ix">02</span><h3>Conjuntos, relaciones y funciones</h3><span class="cnt">1 actividad · +1 en preparación</span></div>
+    <div class="grid">
+      <a class="act live" href="conjuntos_quiz.html">
+        <span class="tag b-quiz">Quiz</span>
+        <h4>Quiz de conjuntos</h4>
+        <p>Práctica gamificada de unión, intersección, cardinalidad y operaciones con conjuntos.</p>
+        <span class="cta">Abrir recurso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <div class="act soon">
+        <span class="tag b-soon">Próximamente</span>
+        <h4>Relaciones y funciones</h4>
+        <p>Equivalencia, orden, inyectividad y composición.</p>
+        <span class="cta muted">En preparación</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CONTEO Y COMBINATORIA ===== -->
+  <section class="topic" id="conteo">
+    <div class="topic-head"><span class="ix">03</span><h3>Conteo y combinatoria</h3><span class="cnt">1 actividad</span></div>
+    <div class="grid">
+      <a class="act live" href="conteo_combinatoria.html">
+        <span class="tag b-game">Juego</span>
+        <h4>Conteo Master</h4>
+        <p>40 preguntas y minijuegos sobre el principio de multiplicación y adición, factoriales, permutaciones y combinaciones.</p>
+        <span class="cta">Abrir recurso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== SISTEMAS DE NUMERACIÓN ===== -->
+  <section class="topic" id="numeracion">
+    <div class="topic-head"><span class="ix">04</span><h3>Sistemas de numeración</h3><span class="cnt">1 actividad</span></div>
+    <div class="grid">
+      <a class="act live" href="sistemas_numeracion.html">
+        <span class="tag b-lab">Visualizador</span>
+        <h4>Numeración y color</h4>
+        <p>Visualizador interactivo de bases numéricas y su relación con la representación de color.</p>
+        <span class="cta">Abrir recurso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== GRAFOS ===== -->
+  <section class="topic" id="grafos">
+    <div class="topic-head"><span class="ix">05</span><h3>Grafos</h3><span class="cnt">3 actividades</span></div>
+    <div class="grid">
+      <a class="act live" href="grafos_simulador.html">
+        <span class="tag b-sim">Simulador</span>
+        <h4>Grafos: simulador</h4>
+        <p>Caminos, recorridos y algoritmos sobre grafos, con modo simulador y modo juego.</p>
+        <span class="cta">Abrir recurso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="act live" href="grafos_pacgrafo.html">
+        <span class="tag b-game">Arcade</span>
+        <h4>Pac-Grafo</h4>
+        <p>Arcade estilo Pac-Man para recorrer vértices y aristas de un grafo jugando.</p>
+        <span class="cta">Abrir recurso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="act live" href="grafos_quiz.html">
+        <span class="tag b-quiz">Quiz</span>
+        <h4>Quiz de grafos</h4>
+        <p>Autoevaluación gamificada sobre teoría de grafos: grado, conexión y recorridos.</p>
+        <span class="cta">Abrir recurso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== ÁRBOLES, EXPRESIONES Y PILAS ===== -->
+  <section class="topic" id="estructuras">
+    <div class="topic-head"><span class="ix">06</span><h3>Árboles, expresiones y pilas</h3><span class="cnt">2 actividades</span></div>
+    <div class="grid">
+      <a class="act live" href="arboles_simulador.html">
+        <span class="tag b-sim">Simulador</span>
+        <h4>Árboles AVL y montículos</h4>
+        <p>Balanceo, rotaciones y operaciones sobre heaps, paso a paso.</p>
+        <span class="cta">Abrir recurso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="act live" href="expresiones_simulador.html">
+        <span class="tag b-sim">Simulador</span>
+        <h4>Árbol de expresión y pilas</h4>
+        <p>Notación, evaluación de expresiones y funcionamiento de pilas.</p>
+        <span class="cta">Abrir recurso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== AUTÓMATAS Y LENGUAJES ===== -->
+  <section class="topic" id="automatas">
+    <div class="topic-head"><span class="ix">07</span><h3>Autómatas y lenguajes</h3><span class="cnt">1 actividad</span></div>
+    <div class="grid">
+      <a class="act live" href="automatas_simulador.html">
+        <span class="tag b-sim">Simulador</span>
+        <h4>Autómatas finitos y gramáticas</h4>
+        <p>AFD, AFN, lenguajes regulares y gramáticas, con simulador y juego.</p>
+        <span class="cta">Abrir recurso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== CRIPTOGRAFÍA Y TEORÍA DE NÚMEROS ===== -->
+  <section class="topic" id="cripto">
+    <div class="topic-head"><span class="ix">08</span><h3>Criptografía y teoría de números</h3><span class="cnt">1 actividad</span></div>
+    <div class="grid">
+      <a class="act live" href="criptografia_rsa.html">
+        <span class="tag b-sim">Interactivo</span>
+        <h4>Cifrados: RSA, César y Afín</h4>
+        <p>La evolución de los cifrados con aritmética modular e inverso modular, paso a paso.</p>
+        <span class="cta">Abrir recurso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== GITHUB ===== -->
+  <section class="howto">
+    <div>
+      <h4>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="#8AA0FF"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-.88-.01-1.73-2.78.62-3.37-1.21-3.37-1.21-.46-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.34 1.12 2.91.86.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.48-.01 2.82 0 .27.18.6.69.49A10.26 10.26 0 0 0 22 12.25C22 6.58 17.52 2 12 2z"/></svg>
+        Publicar en GitHub Pages
+      </h4>
+      <p>Sube <code>index.html</code>, todos los <code>.html</code> y la carpeta <code>vendor/</code> a un repositorio.</p>
+      <ol class="steps">
+        <li>Crea un repositorio (ej. <code>matematica-discreta</code>) y sube todos los archivos, incluyendo la carpeta <code>vendor/</code>.</li>
+        <li>En <code>Settings → Pages</code>, en <em>Source</em> elige la rama <code>main</code> y la carpeta <code>/root</code>.</li>
+        <li>En ~1 minuto el sitio queda en <code>https://usuario.github.io/matematica-discreta/</code>.</li>
+      </ol>
+    </div>
+    <div>
+      <h4>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#8AA0FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        Agregar más recursos
+      </h4>
+      <p>El índice está organizado por tema. Para sumar una actividad nueva:</p>
+      <ol class="steps">
+        <li>Sube su archivo <code>.html</code> con un nombre por contenido (ej. <code>relaciones_funciones.html</code>).</li>
+        <li>Copia una tarjeta dentro de la sección del tema y ajusta título, descripción, badge y enlace.</li>
+        <li>La carpeta <code>vendor/</code> ya incluye React y lucide: las actividades funcionan sin conexión a internet.</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="foot-inner">
+    <div class="foot-id">
+      <b>Dr. José Herrera Quispe</b>
+      <span>Matemática Discreta · Laboratorio interactivo</span>
+    </div>
+    <div class="foot-links">
+      <a href="https://www.linkedin.com/in/jose-herrera-b1a84787/" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.8 0 0 .77 0 1.73v20.54C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+      </a>
+      <a href="https://orcid.org/0000-0002-8207-9714" target="_blank" rel="noopener" aria-label="ORCID" title="ORCID">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#A6CE39"/><text x="12" y="16.4" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="11" fill="#fff">iD</text></svg>
+      </a>
+      <a href="https://scholar.google.com/citations?user=nheS6VsAAAAJ&hl=es" target="_blank" rel="noopener" aria-label="Google Scholar" title="Google Scholar">
+        <svg viewBox="0 0 24 24" fill="#4285F4"><path d="M12 3 1 9l11 6 11-6-11-6zM3.4 12.3v3.5L12 20.5l8.6-4.7v-3.5L12 17 3.4 12.3z"/></svg>
+      </a>
+      <a href="https://dina.concytec.gob.pe/appDirectorioCTI/VerDatosInvestigador.do?id_investigador=19" target="_blank" rel="noopener" aria-label="DINA CONCYTEC" title="DINA · CONCYTEC">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2"/><circle cx="8.7" cy="10.4" r="2.1"/><path d="M5.3 16c.6-1.8 2-2.6 3.4-2.6s2.8.8 3.4 2.6"/><line x1="14.6" y1="9.4" x2="19" y2="9.4"/><line x1="14.6" y1="13" x2="19" y2="13"/></svg>
+      </a>
+    </div>
+  </div>
+  <div class="foot-note">© <span id="yr"></span> Dr. José Herrera Quispe · Material educativo del curso de Matemática Discreta.</div>
+</footer>
+
+<script>document.getElementById('yr').textContent=new Date().getFullYear();</script>
+</body>
+</html>

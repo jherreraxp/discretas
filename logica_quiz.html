@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matemática Discreta - Quiz Gamificado</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #5b49f0 0%, #7d6ff5 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #333;
+  }
+  .container {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    max-width: 720px;
+    width: 100%;
+    padding: 30px;
+    position: relative;
+    overflow: hidden;
+  }
+  .screen { display: none; animation: fadeIn 0.5s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+  @keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+  @keyframes confetti {
+    0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+  @keyframes flash-green {
+    0% { background: #c6f6d5; }
+    100% { background: #f7fafc; }
+  }
+  @keyframes flash-red {
+    0% { background: #fed7d7; }
+    100% { background: #f7fafc; }
+  }
+  .flash-green { animation: flash-green 0.8s ease-out; }
+  .flash-red { animation: flash-red 0.8s ease-out; }
+  h1 {
+    font-size: 32px;
+    background: linear-gradient(135deg, #5b49f0, #7d6ff5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  h2 { font-size: 22px; margin-bottom: 14px; color: #4a5568; }
+  .subtitle { text-align: center; color: #718096; margin-bottom: 24px; font-size: 15px; }
+  input[type=text] {
+    width: 100%; padding: 14px 18px; font-size: 16px;
+    border: 2px solid #e2e8f0; border-radius: 12px;
+    margin-bottom: 16px; outline: none; transition: border 0.2s;
+  }
+  input[type=text]:focus { border-color: #5b49f0; }
+  button {
+    background: linear-gradient(135deg, #5b49f0, #7d6ff5);
+    color: white; border: none; padding: 14px 28px;
+    font-size: 16px; font-weight: 600; border-radius: 12px;
+    cursor: pointer; transition: all 0.2s; width: 100%;
+    box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+  }
+  button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.5); }
+  button:active:not(:disabled) { transform: translateY(0); }
+  button:disabled {
+    background: #cbd5e0; cursor: not-allowed; box-shadow: none; opacity: 0.6;
+  }
+  button.secondary {
+    background: #edf2f7; color: #4a5568; box-shadow: none;
+  }
+  button.wa {
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    box-shadow: 0 4px 15px rgba(37,211,102,0.4);
+  }
+  .start-card { text-align: center; padding: 10px; }
+  .start-emoji { font-size: 70px; margin-bottom: 16px; animation: bounce 2s infinite; }
+  .info-box {
+    background: #f7fafc; border-left: 4px solid #5b49f0;
+    padding: 14px 18px; border-radius: 8px; margin: 16px 0;
+    font-size: 14px; color: #4a5568; text-align: left;
+  }
+  .commitment-box {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border: 2px solid #f59e0b;
+    border-radius: 14px; padding: 18px;
+    margin: 20px 0; text-align: left;
+  }
+  .commitment-box h3 {
+    font-size: 16px; color: #78350f; margin-bottom: 10px;
+  }
+  .commitment-box ul {
+    list-style: none; padding: 0; margin: 10px 0;
+    font-size: 13px; color: #78350f; line-height: 1.7;
+  }
+  .check-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: white; padding: 12px 14px; border-radius: 10px;
+    margin-top: 12px; cursor: pointer; border: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .check-row:hover { border-color: #f59e0b; }
+  .check-row input[type=checkbox] {
+    margin-top: 3px; width: 20px; height: 20px;
+    accent-color: #f59e0b; cursor: pointer; flex-shrink: 0;
+  }
+  .check-row label {
+    font-size: 13px; color: #78350f; cursor: pointer; line-height: 1.5;
+  }
+  .warning-box {
+    background: #e0e7ff; border-left: 4px solid #6366f1;
+    padding: 10px 14px; border-radius: 8px; margin: 12px 0;
+    font-size: 12px; color: #312e81; text-align: left;
+  }
+  .header-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 18px; background: #f7fafc; border-radius: 12px;
+    margin-bottom: 20px; font-size: 14px; font-weight: 500;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .timer { color: #e53e3e; font-weight: 700; }
+  .score { color: #38a169; font-weight: 700; }
+  .progress-wrap {
+    background: #e2e8f0; border-radius: 10px; height: 10px;
+    margin-bottom: 20px; overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%; background: linear-gradient(90deg, #5b49f0, #7d6ff5);
+    transition: width 0.4s ease; border-radius: 10px;
+  }
+  .q-header { font-size: 14px; color: #718096; margin-bottom: 8px; }
+  .q-text { font-size: 18px; font-weight: 600; margin-bottom: 14px; line-height: 1.5; }
+  .q-scenario {
+    background: #fef5e7; border-left: 4px solid #f6ad55;
+    padding: 12px 16px; border-radius: 8px; margin-bottom: 14px;
+    font-style: italic; color: #744210;
+  }
+  .q-premises {
+    background: #ebf8ff; border-left: 4px solid #4299e1;
+    padding: 12px 16px; border-radius: 8px; margin-bottom: 14px;
+    font-family: 'Courier New', monospace; font-size: 15px;
+    white-space: pre-line;
+  }
+  .hint-box {
+    background: #fffbeb; border: 1px dashed #f6ad55;
+    padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;
+    font-size: 13px; color: #744210;
+  }
+  .pencil-note {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-radius: 12px; padding: 14px 18px; margin-bottom: 14px;
+    font-size: 14px; color: #78350f; animation: pop 0.6s ease;
+  }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    background: #f7fafc; border: 2px solid #e2e8f0;
+    padding: 14px 18px; border-radius: 12px; cursor: pointer;
+    transition: all 0.2s; font-size: 15px; text-align: left;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .option:hover:not(.disabled) {
+    border-color: #5b49f0; background: #edf2f7; transform: translateX(4px);
+  }
+  .option.correct {
+    border-color: #38a169; background: #c6f6d5; animation: pop 0.4s;
+  }
+  .option.wrong {
+    border-color: #e53e3e; background: #fed7d7; animation: shake 0.4s;
+  }
+  .option.disabled { cursor: not-allowed; }
+  .option-letter {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #5b49f0; color: white; display: flex;
+    align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0;
+  }
+  .option.correct .option-letter { background: #38a169; }
+  .option.wrong .option-letter { background: #e53e3e; }
+  .color-chip {
+    width: 22px; height: 22px; border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.2); display: inline-block;
+    vertical-align: middle; margin-right: 6px;
+  }
+  .feedback {
+    margin-top: 14px; padding: 12px 16px; border-radius: 10px;
+    font-size: 14px; display: none; animation: fadeIn 0.3s;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #c6f6d5; color: #22543d; }
+  .feedback.bad { background: #fed7d7; color: #742a2a; }
+  .next-btn { margin-top: 14px; display: none; }
+  .next-btn.show { display: block; }
+  .mini-wrap { text-align: center; padding: 10px; }
+  .mini-title { font-size: 26px; margin-bottom: 8px; }
+  .mini-desc {
+    background: #f7fafc; padding: 14px; border-radius: 10px;
+    margin-bottom: 16px; font-size: 14px; color: #4a5568;
+  }
+  #circuitArea, #falaciaArea, #binaryArea {
+    background: #f7fafc; border-radius: 12px; margin: 0 auto 14px;
+    padding: 20px; min-height: 280px;
+  }
+  .mini-stats {
+    display: flex; justify-content: space-around;
+    margin-bottom: 14px; font-size: 14px; font-weight: 600;
+    flex-wrap: wrap; gap: 6px;
+  }
+  .mini-stats span { background: #edf2f7; padding: 8px 14px; border-radius: 8px; }
+  .mini-feedback {
+    min-height: 32px; margin: 8px 0; font-size: 16px; font-weight: 700;
+  }
+  .mini-feedback.ok { color: #22543d; animation: pop 0.4s; }
+  .mini-feedback.bad { color: #742a2a; animation: shake 0.4s; }
+  .circuit-gate {
+    font-size: 42px; margin: 20px 0; letter-spacing: 8px;
+    font-family: 'Courier New', monospace;
+  }
+  .circuit-btn-row { display: flex; gap: 12px; justify-content: center; }
+  .circuit-btn-row button { width: auto; padding: 16px 40px; font-size: 22px; }
+  .falacia-card {
+    background: white; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 20px; margin: 12px 0; font-size: 15px; min-height: 90px;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1.6;
+  }
+  .binary-target {
+    font-size: 68px; font-weight: 700; color: #5b49f0;
+    margin: 20px 0;
+  }
+  .bit-toggles {
+    display: flex; gap: 10px; justify-content: center;
+    flex-wrap: wrap; margin: 16px 0;
+  }
+  .bit-btn {
+    width: 56px; height: 56px; border-radius: 12px;
+    font-size: 28px; font-weight: 700; cursor: pointer;
+    border: 3px solid #cbd5e0; background: white;
+    color: #a0aec0; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .bit-btn.on {
+    background: linear-gradient(135deg, #5b49f0, #7d6ff5);
+    color: white; border-color: #5568d3;
+    transform: scale(1.05); box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+  }
+  .bit-btn:hover { transform: scale(1.08); }
+  .bit-label {
+    font-size: 13px; color: #718096; margin-bottom: 4px;
+    font-family: 'Courier New', monospace;
+    display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;
+  }
+  .bit-label span { min-width: 36px; text-align: center; }
+  .skip-btn {
+    background: #edf2f7; color: #4a5568; box-shadow: none;
+    margin-top: 10px; font-size: 13px; padding: 10px;
+  }
+  .final-card {
+    text-align: center; padding: 20px;
+    background: linear-gradient(135deg, #fef3c7, #fce7f3);
+    border-radius: 16px; margin-bottom: 20px;
+  }
+  .review-section {
+    background: #f7fafc; border-radius: 12px;
+    padding: 16px; margin: 16px 0; text-align: left;
+  }
+  .review-week {
+    background: white; border-radius: 10px; padding: 12px 14px;
+    margin-bottom: 10px; border-left: 4px solid #5b49f0;
+  }
+  .review-week h4 { font-size: 14px; margin-bottom: 4px; color: #2d3748; }
+  .review-week p { font-size: 12px; color: #4a5568; line-height: 1.5; }
+  .btn-row { display: flex; gap: 10px; margin-top: 14px; }
+  .btn-row button { flex: 1; }
+  .confetti-piece {
+    position: fixed; top: -20px; width: 12px; height: 12px;
+    pointer-events: none; z-index: 9999;
+    animation: confetti 3s linear forwards;
+  }
+  .capture-area {
+    background: linear-gradient(135deg, #5b49f0 0%, #7d6ff5 100%);
+    padding: 30px; border-radius: 20px; color: white;
+    text-align: center;
+  }
+  .capture-area h2 { color: white; margin-bottom: 6px; }
+  .capture-area p { opacity: 0.95; margin-bottom: 16px; }
+  .capture-stats {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px; margin: 16px 0;
+  }
+  .capture-stat {
+    background: rgba(255,255,255,0.2); padding: 12px 8px;
+    border-radius: 10px;
+  }
+  .capture-stat .v { font-size: 22px; font-weight: 700; }
+  .capture-stat .l { font-size: 10px; opacity: 0.9; margin-top: 4px; }
+  .capture-footer { font-size: 12px; opacity: 0.85; margin-top: 10px; }
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    display: none; align-items: center; justify-content: center;
+    z-index: 10000; padding: 20px;
+  }
+  .modal-backdrop.show { display: flex; animation: fadeIn 0.3s; }
+  .modal-content {
+    background: white; border-radius: 16px; padding: 24px;
+    max-width: 440px; width: 100%; text-align: center;
+  }
+  .modal-content h3 { font-size: 20px; margin-bottom: 12px; color: #2d3748; }
+  .modal-steps {
+    background: #f7fafc; border-radius: 10px; padding: 14px;
+    margin: 14px 0; text-align: left; font-size: 14px; line-height: 1.7;
+  }
+  .kbd {
+    background: #2d3748; color: white; padding: 3px 8px;
+    border-radius: 5px; font-family: 'Courier New', monospace;
+    font-size: 12px; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<div class="container" id="app">
+
+  <!-- PANTALLA INICIAL -->
+  <div class="screen active" id="screen-start">
+    <div class="start-card">
+      <div class="start-emoji">🎓</div>
+      <h1>Matemática Discreta</h1>
+      <p class="subtitle">Quiz Gamificado · 40 Preguntas · 3 Minijuegos</p>
+      <div class="info-box">
+        📘 Semana 1: Proposiciones lógicas<br>
+        📗 Semana 2: Tablas de verdad y simplificación<br>
+        📙 Semana 3: Validación de argumentos<br>
+        📕 Semana 4: Sistemas de numeración
+      </div>
+
+      <div class="commitment-box">
+        <h3>✏️ Compromiso de honestidad académica</h3>
+        <ul>
+          <li>✅ Resolver todo con <b>lápiz y papel</b></li>
+          <li>🚫 <b>NO</b> usar IA (ChatGPT, Claude, Gemini, etc.)</li>
+          <li>🚫 <b>NO</b> buscar respuestas en internet</li>
+          <li>🧠 Usar únicamente tu conocimiento y cálculo mental</li>
+        </ul>
+        <div class="check-row">
+          <input type="checkbox" id="commitCheck" onchange="updateStart()">
+          <label for="commitCheck">✋ Me comprometo a resolver este quiz <b>de forma honesta, con lápiz y papel, sin ayuda de IA ni internet</b>. Entiendo que el aprendizaje real depende de mi esfuerzo personal.</label>
+        </div>
+      </div>
+
+      <div class="warning-box">
+        📱 <b>Aviso importante:</b> Al finalizar podrás compartir tu resultado (nombre, puntaje, tiempo y aciertos) por <b>WhatsApp</b>. Asegúrate de estar conforme con esto antes de continuar.
+      </div>
+
+      <input type="text" id="playerName" placeholder="✍️ Ingresa tu nombre..." maxlength="20" oninput="updateStart()">
+      <button id="startBtn" onclick="startGame()" disabled>🚀 Empezar</button>
+    </div>
+  </div>
+
+  <!-- PANTALLA PREGUNTA -->
+  <div class="screen" id="screen-quiz">
+    <div class="header-bar">
+      <span>👤 <span id="barName"></span></span>
+      <span class="timer">⏱️ <span id="barTimer">00:00</span></span>
+      <span class="score">💎 <span id="barScore">0</span></span>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="progBar" style="width:0"></div></div>
+    <div class="q-header">Pregunta <span id="qNum">1</span> de 40 · <span id="qWeek"></span></div>
+    <div id="qBody"></div>
+    <div class="feedback" id="fb"></div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Siguiente ➡️</button>
+  </div>
+
+  <!-- MINIJUEGO 1: CIRCUITO LÓGICO -->
+  <div class="screen" id="screen-mini1">
+    <div class="mini-wrap">
+      <div class="mini-title">⚡ Circuito Lógico Veloz</div>
+      <p class="subtitle">Evalúa el circuito. ¿La salida es V o F?</p>
+      <div class="mini-desc">10 rondas · Cada acierto = +5 pts</div>
+      <div class="mini-stats">
+        <span>🎯 Ronda: <span id="c-round">1/10</span></span>
+        <span>✅ Aciertos: <span id="c-hits">0</span></span>
+      </div>
+      <div id="circuitArea">
+        <div class="circuit-gate" id="c-expr">V ∧ F</div>
+        <div class="mini-feedback" id="c-fb"></div>
+        <div class="circuit-btn-row">
+          <button onclick="circuitAnswer(true)" style="background:linear-gradient(135deg,#38a169,#2f855a)">V</button>
+          <button onclick="circuitAnswer(false)" style="background:linear-gradient(135deg,#e53e3e,#c53030)">F</button>
+        </div>
+      </div>
+      <button class="skip-btn" onclick="endMini(1)">Saltar minijuego ⏭️</button>
+    </div>
+  </div>
+
+  <!-- MINIJUEGO 2: CAZADOR DE FALACIAS -->
+  <div class="screen" id="screen-mini2">
+    <div class="mini-wrap">
+      <div class="mini-title">🎯 Cazador de Falacias</div>
+      <p class="subtitle">¿Argumento Válido o Falacia?</p>
+      <div class="mini-desc">10 argumentos · Cada acierto = +5 pts · 2 minutos</div>
+      <div class="mini-stats">
+        <span>🎯 Arg: <span id="f-round">1/10</span></span>
+        <span>✅ Aciertos: <span id="f-hits">0</span></span>
+        <span>⏱️ <span id="f-time">2:00</span></span>
+      </div>
+      <div id="falaciaArea">
+        <div class="falacia-card" id="f-text">Cargando...</div>
+        <div class="mini-feedback" id="f-fb"></div>
+        <div class="circuit-btn-row">
+          <button onclick="falaciaAnswer(true)" style="background:linear-gradient(135deg,#38a169,#2f855a)">✓ Válido</button>
+          <button onclick="falaciaAnswer(false)" style="background:linear-gradient(135deg,#e53e3e,#c53030)">✗ Falacia</button>
+        </div>
+      </div>
+      <button class="skip-btn" onclick="endMini(2)">Saltar minijuego ⏭️</button>
+    </div>
+  </div>
+
+  <!-- MINIJUEGO 3: BINARY RUSH -->
+  <div class="screen" id="screen-mini3">
+    <div class="mini-wrap">
+      <div class="mini-title">🔢 Binary Rush</div>
+      <p class="subtitle">Convierte el decimal a binario — haz clic en los bits</p>
+      <div class="mini-desc">10 números · Dificultad progresiva · +10 pts c/u · 3 minutos</div>
+      <div class="mini-stats">
+        <span>🎯 Núm: <span id="b-round">1/10</span></span>
+        <span>✅ Aciertos: <span id="b-hits">0</span></span>
+        <span>⏱️ <span id="b-time">3:00</span></span>
+      </div>
+      <div id="binaryArea">
+        <div class="binary-target" id="b-target">2</div>
+        <div class="bit-label" id="b-powers"></div>
+        <div class="bit-toggles" id="b-toggles"></div>
+        <div class="mini-feedback" id="b-fb"></div>
+        <button onclick="binaryAnswer()" style="width:auto;padding:10px 30px">Enviar 📤</button>
+      </div>
+      <button class="skip-btn" onclick="endMini(3)">Saltar minijuego ⏭️</button>
+    </div>
+  </div>
+
+  <!-- PANTALLA FINAL -->
+  <div class="screen" id="screen-final">
+    <div id="captureTarget">
+      <div class="capture-area">
+        <div style="font-size:60px">🏆</div>
+        <h2>¡Felicitaciones, <span id="finalName"></span>!</h2>
+        <p>Matemática Discreta · Quiz Completado</p>
+        <div class="capture-stats">
+          <div class="capture-stat">
+            <div class="v" id="finalScore">0</div>
+            <div class="l">PUNTOS</div>
+          </div>
+          <div class="capture-stat">
+            <div class="v" id="finalHits">0/40</div>
+            <div class="l">ACIERTOS</div>
+          </div>
+          <div class="capture-stat">
+            <div class="v" id="finalTime">00:00</div>
+            <div class="l">TIEMPO</div>
+          </div>
+        </div>
+        <div class="capture-footer">📅 <span id="finalDate"></span></div>
+      </div>
+    </div>
+
+    <div class="review-section">
+      <h3 style="margin-bottom:12px;font-size:17px">📚 Repaso del curso</h3>
+      <div class="review-week">
+        <h4>📘 Semana 1 — Proposiciones lógicas</h4>
+        <p>Identifica proposiciones simples/compuestas. Domina conectivos: ∧ (y), ∨ (o), → (si...entonces), ↔ (si y solo si), ∼ (no). Recuerda: x ≥ y es una disyunción.</p>
+      </div>
+      <div class="review-week">
+        <h4>📗 Semana 2 — Tablas de verdad y simplificación</h4>
+        <p>Tautología (siempre V), contradicción (siempre F), contingencia. Leyes: absorción, De Morgan, equivalencia p→q ≡ ∼p∨q.</p>
+      </div>
+      <div class="review-week">
+        <h4>📙 Semana 3 — Validación de argumentos</h4>
+        <p>Método indirecto: supón condicional falsa y busca contradicción. Método formal: aplica reglas MP, MT, SH, SD, SIMP, CONJ, ADIC paso a paso.</p>
+      </div>
+      <div class="review-week">
+        <h4>📕 Semana 4 — Sistemas de numeración</h4>
+        <p>Conversiones base b ↔ decimal. Aritmética en bases distintas (suma, resta, multiplicación). Aplicaciones: chmod (octal), colores hex (#RRGGBB).</p>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="wa" onclick="shareWhatsApp()">📱 Compartir en WhatsApp</button>
+    </div>
+    <div class="btn-row">
+      <button class="secondary" onclick="location.reload()">🔄 Jugar de nuevo</button>
+    </div>
+  </div>
+
+  <!-- Modal WhatsApp fallback -->
+  <div class="modal-backdrop" id="waModal">
+    <div class="modal-content">
+      <h3>📸 Comparte tu resultado</h3>
+      <p style="font-size:14px;color:#4a5568;margin-bottom:10px">Para enviar tu resultado por WhatsApp:</p>
+      <div class="modal-steps">
+        <b>📥 Opción 1 — Imagen descargada:</b><br>
+        1. Tu imagen se descargó automáticamente<br>
+        2. Búscala en tu carpeta de <b>Descargas</b><br>
+        3. Adjúntala en WhatsApp<br><br>
+        <b>📷 Opción 2 — Captura manual:</b><br>
+        • Windows: <span class="kbd">Win</span> + <span class="kbd">Shift</span> + <span class="kbd">S</span><br>
+        • Mac: <span class="kbd">Cmd</span> + <span class="kbd">Shift</span> + <span class="kbd">4</span><br>
+        • Selecciona el área del resultado y pégala en WhatsApp
+      </div>
+      <button class="wa" onclick="openWAWeb()">💬 Abrir WhatsApp</button>
+      <button class="secondary" onclick="closeWAModal()" style="margin-top:8px">Cerrar</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  {w:"📘 Semana 1",t:"🤔 ¿Cuál de los siguientes <b>ES</b> una proposición lógica?",o:["¿Qué hora es?","¡Buenos días!","7 es un número primo","Cierra la puerta"],a:2,exp:"Una proposición debe ser una oración declarativa que pueda ser V o F."},
+  {w:"📘 Semana 1",t:"📚 \"Carlos estudia Literatura <b>pero</b> descansa los domingos\" es una proposición:",o:["Simple","Conjuntiva","Disyuntiva","Condicional"],a:1,exp:"'Pero' funciona como una conjunción (∧)."},
+  {w:"📘 Semana 1",t:"📐 \"Un ángulo es recto <b>si y sólo si</b> mide 90°\" es una proposición:",o:["Disyuntiva","Condicional","Bicondicional","Negación"],a:2,exp:"'Si y sólo si' indica bicondicional (↔)."},
+  {w:"📘 Semana 1",t:"⚡ Si p es V y q es F, el valor de <b>(p → q) ∧ p</b> es:",o:["V","F","Tautología","Indeterminado"],a:1,exp:"V→F = F; F∧V = F."},
+  {w:"📘 Semana 1",t:"➡️ Si p es F y q es V, el valor de <b>∼(p → q) ∨ q</b> es:",o:["V","F","Contradicción","Indeterminado"],a:0,exp:"F→V = V; ∼V = F; F∨V = V."},
+  {w:"📘 Semana 1",t:"🔄 Si r es F y s es V, el valor de <b>(∼r ⇒ s) ∧ (s → r)</b> es:",o:["F","V","Indeterminado","Tautología"],a:0,exp:"∼F⇒V = V; V→F = F; V∧F = F."},
+  {w:"📘 Semana 1",t:"🕵️ Si <b>(p ∨ ∼q) ⇒ ∼p</b> es <b>falsa</b>, ¿cuál es el valor de q?",o:["F","V","No se puede saber","Depende de p"],a:0,exp:"Consec. F → p=V; antec. V → ∼q=V → q=F."},
+  {w:"📘 Semana 1",t:"🔢 La expresión <b>x ≥ y</b> lógicamente representa una:",o:["Conjunción","Disyunción (x>y ∨ x=y)","Bicondicional","Negación"],a:1,exp:"x ≥ y significa 'x mayor que y O x igual a y'."},
+  {w:"📗 Semana 2",t:"♾️ Una proposición que es <b>siempre verdadera</b> se llama:",o:["Contradicción","Tautología","Contingencia","Equivalencia"],a:1,exp:"Tautología = siempre V; Contradicción = siempre F."},
+  {w:"📗 Semana 2",t:"✂️ Simplifica: <b>[p ∧ (p ∨ q)] ∨ ∼p</b>",o:["p","q","Tautología (V)","p ∧ q"],a:2,exp:"Por absorción p∧(p∨q) = p; luego p∨∼p = V."},
+  {w:"📗 Semana 2",t:"✂️ Simplifica: <b>∼(∼p ∨ q) ∨ (p ∧ q)</b>",o:["p","q","p ∧ q","p ∨ q"],a:0,exp:"De Morgan: (p∧∼q)∨(p∧q) = p∧(∼q∨q) = p."},
+  {w:"📗 Semana 2",t:"🔁 ¿Cuál expresión es equivalente a <b>p → q</b>?",o:["p ∨ q","∼p ∨ q","∼p ∧ q","p ∧ ∼q"],a:1,exp:"Definición condicional: p→q ≡ ∼p∨q."},
+  {w:"📗 Semana 2",t:"❌ La <b>negación</b> de (p → q) es:",o:["∼p → ∼q","∼p ∨ q","p ∧ ∼q","∼p ∧ q"],a:2,exp:"∼(p→q) ≡ ∼(∼p∨q) ≡ p∧∼q."},
+  {w:"📗 Semana 2",t:"🔍 Si <b>(p→q) ∧ (q→p)</b> es falsa, ¿qué se puede concluir?",o:["Ambas son V","Ambas son F","Tienen valores distintos","No se puede concluir"],a:2,exp:"La bicondicional es F cuando p y q tienen distinto valor."},
+  {w:"📗 Semana 2",t:"💥 La proposición <b>(p ∧ ∼p) → q</b> es una:",o:["Tautología","Contradicción","Contingencia","Equivalencia"],a:0,exp:"Antecedente siempre F → condicional siempre V."},
+  {w:"📗 Semana 2",t:"👴 Aplicando <b>De Morgan</b>, ∼(p ∧ ∼q) es equivalente a:",o:["∼p ∧ q","∼p ∨ q","p ∨ ∼q","p ∧ q"],a:1,exp:"∼(p∧∼q) = ∼p∨∼(∼q) = ∼p∨q."},
+  {w:"📙 Semana 3",t:"💘 ¿Es válido este argumento?",s:"\"Si le gusto 💕, entonces me da like ❤️. Luego me da like, por lo tanto le gusto.\"",o:["Inválido — falacia del consecuente (pudo ser por cortesía)","Válido por Modus Ponens","Válido por Modus Tollens","Válido por Silogismo Hipotético"],a:0,exp:"Afirmar el consecuente es falacia clásica. Dar like no implica que le gustes."},
+  {w:"📙 Semana 3",t:"📝 Valida por <b>método indirecto</b>:",p:"P1: p → q\nP2: ∼q\n∴ ∼p",pencil:true,o:["Válido — se llega a contradicción","Inválido","No se puede determinar","Necesita tabla"],a:0,exp:"Supón conclusión F: p=V, ∼q=V → q=F. P1: V→F = F contradice P1=V. ¡Válido!"},
+  {w:"📙 Semana 3",t:"📝 Valida por <b>método indirecto</b>:",p:"P1: p ∨ q\nP2: ∼p\n∴ q",pencil:true,o:["Válido","Inválido","Indeterminado","Requiere más premisas"],a:0,exp:"Supón q=F. De P2: p=F. P1: F∨F=F contradice P1=V. ¡Válido!"},
+  {w:"📙 Semana 3",t:"📝 Valida por <b>método indirecto</b>:",p:"P1: p → q\nP2: q\n∴ p",pencil:true,o:["Válido","Inválido (falacia del consecuente)","Válido por MP","Válido por SH"],a:1,exp:"Supón p=F y q=V: P1 F→V=V (sin contradicción). Inválido."},
+  {w:"📙 Semana 3",t:"📝 Valida por <b>método indirecto</b>:",p:"P1: (p ∧ q) → r\nP2: p\nP3: q\n∴ r",pencil:true,o:["Válido","Inválido","Falacia","No se puede demostrar"],a:0,exp:"Supón r=F; p=q=V → p∧q=V → P1: V→F=F contradice. ¡Válido!"},
+  {w:"📙 Semana 3",t:"📝 Usando el <b>método formal</b>, ¿qué secuencia demuestra ∴ r?",p:"P1: p ∨ q\nP2: ∼p\nP3: q → r",pencil:true,o:["SD(P1,P2)→q; luego MP(q,P3)→r","MP(P1,P2) → SH(P3,resultado)","MT(P2,P3) → SIMP","ADIC(P1) → CONJ(P2,P3)"],a:0,exp:"SD en P1,P2 da q. Luego MP con P3 da r."},
+  {w:"📙 Semana 3",t:"📝 Usando el <b>método formal</b>: aplica SIMP en P1 y luego MP con P2:",p:"P1: p ∧ q\nP2: p → r\n∴ ?",pencil:true,o:["q","r","p → q","∼p"],a:1,exp:"SIMP(P1)→p; MP(p,P2)→r."},
+  {w:"📙 Semana 3",t:"🎯 ¿Es válido el argumento?",s:"\"Si le gusto 💕, le dará like ❤️. Le dio like. Por tanto, le gusto.\"",o:["Válido por MP","Inválido: falacia del consecuente","Válido por MT","Válido por SH"],a:1,exp:"Pudo dar like por error o cortesía. No implica que le gustes."},
+  {w:"📕 Semana 4",t:"🔢 ¿Cuál es el valor decimal de <b>1011₂</b>?",h:"💡 Multiplica cada dígito por 2 elevado a su posición (derecha→izquierda, desde 2⁰).",o:["9","10","11","12"],a:2,exp:"1·8 + 0·4 + 1·2 + 1·1 = 11."},
+  {w:"📕 Semana 4",t:"🔢 ¿Cuál es el valor decimal de <b>1101₂</b>?",o:["11","12","13","14"],a:2,exp:"1·8 + 1·4 + 0·2 + 1·1 = 13."},
+  {w:"📕 Semana 4",t:"🔢 ¿Cuál es el valor decimal de <b>2324₅</b>?",h:"💡 Fórmula: 2·5³ + 3·5² + 2·5¹ + 4·5⁰",o:["339","340","342","345"],a:0,exp:"2·125 + 3·25 + 2·5 + 4 = 339."},
+  {w:"📕 Semana 4",t:"🔢 ¿Cuál es el valor decimal de <b>1432₅</b>?",o:["240","242","245","250"],a:1,exp:"1·125 + 4·25 + 3·5 + 2 = 242."},
+  {w:"📕 Semana 4",t:"🔢 ¿Cuál es la representación binaria del decimal <b>13</b>?",h:"💡 Divide sucesivamente entre 2 y lee los residuos de abajo hacia arriba.",o:["1100","1011","1101","1110"],a:2,exp:"13÷2=6 r1, 6÷2=3 r0, 3÷2=1 r1, 1÷2=0 r1 → 1101."},
+  {w:"📕 Semana 4",t:"🔢 ¿Cuál es la representación binaria del decimal <b>22</b>?",o:["10100","11010","10110","11100"],a:2,exp:"22÷2=11 r0, 11÷2=5 r1, 5÷2=2 r1, 2÷2=1 r0, 1÷2=0 r1 → 10110."},
+  {w:"📕 Semana 4",t:"🔤 ¿Cuántos símbolos tiene el sistema <b>octal</b>?",h:"💡 Usa solo los dígitos 0 al 7.",o:["7","8","10","16"],a:1,exp:"Dígitos 0,1,2,3,4,5,6,7 = 8 símbolos."},
+  {w:"📕 Semana 4",t:"🔤 ¿Cuántos símbolos tiene el sistema <b>hexadecimal</b>?",o:["10","15","16","8"],a:2,exp:"0-9 (10) + A,B,C,D,E,F (6) = 16 símbolos."},
+  {w:"📕 Semana 4",t:"🅰️ En base 16, el dígito <b>A</b> representa el valor decimal:",h:"💡 Las letras empiezan en A = 10 y siguen en orden (B=11, C=12...).",o:["9","10","11","15"],a:1,exp:"A=10, B=11, C=12, D=13, E=14, F=15."},
+  {w:"📕 Semana 4",t:"🅰️ En base 16, el dígito <b>D</b> representa el valor decimal:",o:["12","13","14","15"],a:1,exp:"A=10, B=11, C=12, D=13."},
+  {w:"📕 Semana 4",t:"➕ ¿Cuál es el resultado de <b>34₅ + 12₅</b> (en base 5)?",h:"💡 Suma columna por columna; si pasas de 4, 'llevas' 1. (4+2=6 → escribe 1 y lleva 1).",o:["46₅","101₅","51₅","41₅"],a:1,exp:"4+2=6=11₅ (esc 1, lleva 1); 3+1+1=5=10₅. Resultado: 101₅."},
+  {w:"📕 Semana 4",t:"➕ ¿Cuál es el resultado de <b>23₅ + 14₅</b> (en base 5)?",o:["37₅","40₅","42₅","32₅"],a:2,exp:"3+4=7=12₅ (esc 2, lleva 1); 2+1+1=4. Resultado: 42₅."},
+  {w:"📕 Semana 4",t:"🎨 Suma de colores: <b>#FF0000 + #00FF00</b> = ?",h:"💡 En hex, cada par representa R, G, B. Suma cada par por separado.",color:true,o:["Azul → #0000FF","Amarillo → #FFFF00","Blanco → #FFFFFF","Negro → #000000"],colors:["#0000FF","#FFFF00","#FFFFFF","#000000"],a:1,exp:"Rojo + Verde = Amarillo. FF+00=FF, 00+FF=FF, 00+00=00 → #FFFF00."},
+  {w:"📕 Semana 4",t:"🎨 Suma de colores: <b>#FF0000 + #0000FF</b> = ?",color:true,o:["Verde → #00FF00","Blanco → #FFFFFF","Magenta → #FF00FF","Amarillo → #FFFF00"],colors:["#00FF00","#FFFFFF","#FF00FF","#FFFF00"],a:2,exp:"Rojo + Azul = Magenta → #FF00FF."},
+  {w:"📕 Semana 4",t:"🎨 Resta de colores: <b>#FFFFFF − #FF0000</b> = ?",h:"💡 Resta cada par RGB. FF−FF=00 (sin rojo), FF−00=FF, FF−00=FF → cyan.",color:true,o:["Rojo → #FF0000","Amarillo → #FFFF00","Magenta → #FF00FF","Cyan → #00FFFF"],colors:["#FF0000","#FFFF00","#FF00FF","#00FFFF"],a:3,exp:"Blanco menos Rojo = Cyan → #00FFFF."},
+  {w:"📕 Semana 4",t:"🎨 Resta de colores: <b>#FFFF00 − #00FF00</b> = ?",color:true,o:["Rojo → #FF0000","Azul → #0000FF","Blanco → #FFFFFF","Negro → #000000"],colors:["#FF0000","#0000FF","#FFFFFF","#000000"],a:0,exp:"Amarillo menos Verde = Rojo → #FF0000."}
+];
+
+let state = {
+  name: "", qIdx: 0, score: 0, hits: 0, startTime: 0,
+  timerInterval: null, elapsedSeconds: 0, answered: false
+};
+
+// ====== SONIDOS (Web Audio API) ======
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch(e) {}
+  }
+}
+function playTone(freq, dur, delay, type) {
+  if (!audioCtx) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.value = freq;
+    osc.type = type || 'sine';
+    const start = audioCtx.currentTime + delay;
+    osc.start(start);
+    gain.gain.setValueAtTime(0.25, start);
+    gain.gain.exponentialRampToValueAtTime(0.01, start + dur);
+    osc.stop(start + dur);
+  } catch(e) {}
+}
+function playCorrect() {
+  playTone(523.25, 0.12, 0, 'sine');
+  playTone(659.25, 0.12, 0.1, 'sine');
+  playTone(783.99, 0.2, 0.2, 'sine');
+}
+function playWrong() {
+  playTone(311.13, 0.15, 0, 'sawtooth');
+  playTone(233.08, 0.25, 0.15, 'sawtooth');
+}
+function playClick() { playTone(800, 0.04, 0, 'square'); }
+function playVictory() {
+  playTone(523.25, 0.15, 0, 'sine');
+  playTone(659.25, 0.15, 0.15, 'sine');
+  playTone(783.99, 0.15, 0.3, 'sine');
+  playTone(1046.5, 0.35, 0.45, 'sine');
+}
+
+// ====== NAVEGACIÓN ======
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function updateStart() {
+  const n = document.getElementById('playerName').value.trim();
+  const ok = document.getElementById('commitCheck').checked;
+  document.getElementById('startBtn').disabled = !(n && ok);
+}
+
+function startGame() {
+  const n = document.getElementById('playerName').value.trim();
+  if (!n) { alert('Por favor ingresa tu nombre'); return; }
+  if (!document.getElementById('commitCheck').checked) {
+    alert('Debes aceptar el compromiso de honestidad académica.'); return;
+  }
+  initAudio();
+  state.name = n;
+  document.getElementById('barName').textContent = n;
+  state.startTime = Date.now();
+  state.timerInterval = setInterval(updateTimer, 1000);
+  show('screen-quiz');
+  renderQuestion();
+}
+
+function updateTimer() {
+  state.elapsedSeconds = Math.floor((Date.now() - state.startTime) / 1000);
+  const m = String(Math.floor(state.elapsedSeconds / 60)).padStart(2, '0');
+  const s = String(state.elapsedSeconds % 60).padStart(2, '0');
+  document.getElementById('barTimer').textContent = `${m}:${s}`;
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[state.qIdx];
+  state.answered = false;
+  document.getElementById('qNum').textContent = state.qIdx + 1;
+  document.getElementById('qWeek').textContent = q.w;
+  document.getElementById('barScore').textContent = state.score;
+  document.getElementById('progBar').style.width = ((state.qIdx+1)/40*100) + '%';
+
+  let html = '';
+  if (state.qIdx === 17) {
+    html += `<div class="pencil-note">✏️📝 <b>¡Hora de agarrar lápiz y papel!</b> Intenta resolver estos ejercicios por ti mismo y <b>no te tientes a usar la IA</b> 🤖🚫. La práctica manual es la única forma de dominar estos métodos. ¡Tú puedes! 💪</div>`;
+  }
+  html += `<div class="q-text">${q.t}</div>`;
+  if (q.s) html += `<div class="q-scenario">${q.s}</div>`;
+  if (q.p) html += `<div class="q-premises">${q.p}</div>`;
+  if (q.h) html += `<div class="hint-box">${q.h}</div>`;
+  html += '<div class="options">';
+  const letters = ['A','B','C','D'];
+  q.o.forEach((opt, i) => {
+    let inner = `<span class="option-letter">${letters[i]}</span><span>`;
+    if (q.color && q.colors) {
+      inner += `<span class="color-chip" style="background:${q.colors[i]}"></span>`;
+    }
+    inner += `${opt}</span>`;
+    html += `<div class="option" data-idx="${i}" onclick="selectOption(${i})">${inner}</div>`;
+  });
+  html += '</div>';
+
+  document.getElementById('qBody').innerHTML = html;
+  document.getElementById('fb').className = 'feedback';
+  document.getElementById('fb').textContent = '';
+  document.getElementById('nextBtn').classList.remove('show');
+}
+
+function selectOption(idx) {
+  if (state.answered) return;
+  state.answered = true;
+  const q = QUESTIONS[state.qIdx];
+  const opts = document.querySelectorAll('.option');
+  opts.forEach(o => o.classList.add('disabled'));
+  const correct = idx === q.a;
+  opts[idx].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) opts[q.a].classList.add('correct');
+  const fb = document.getElementById('fb');
+  if (correct) {
+    state.score += 10;
+    state.hits++;
+    document.getElementById('barScore').textContent = state.score;
+    fb.className = 'feedback show ok';
+    fb.innerHTML = `✅ <b>¡Correcto!</b> ${q.exp || ''}`;
+    playCorrect();
+  } else {
+    fb.className = 'feedback show bad';
+    fb.innerHTML = `❌ <b>Incorrecto.</b> ${q.exp || ''}`;
+    playWrong();
+  }
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function nextQuestion() {
+  state.qIdx++;
+  if (state.qIdx === 10) { startMini1(); return; }
+  if (state.qIdx === 20) { startMini2(); return; }
+  if (state.qIdx === 30) { startMini3(); return; }
+  if (state.qIdx >= 40) { endQuiz(); return; }
+  renderQuestion();
+}
+
+// ====== MINIJUEGO 1: CIRCUITO LÓGICO (10 rondas) ======
+let c1 = {round:0, hits:0, expected:false, locked:false};
+function startMini1() {
+  c1 = {round:0, hits:0, expected:false, locked:false};
+  show('screen-mini1');
+  c1NewRound();
+}
+function c1NewRound() {
+  if (c1.round >= 10) { endMini(1); return; }
+  c1.round++;
+  c1.locked = false;
+  document.getElementById('c-round').textContent = `${c1.round}/10`;
+  document.getElementById('c-hits').textContent = c1.hits;
+  document.getElementById('c-fb').textContent = '';
+  document.getElementById('c-fb').className = 'mini-feedback';
+  const tf = () => Math.random() < 0.5;
+  const ops = ['∧','∨'];
+  const op = ops[Math.floor(Math.random()*2)];
+  const a = tf(), b = tf();
+  const useNeg = Math.random() < 0.5;
+  let expr, result;
+  if (useNeg) {
+    const negA = Math.random() < 0.5;
+    const aa = negA ? !a : a;
+    result = op === '∧' ? (aa && b) : (aa || b);
+    expr = `${negA?'∼':''}${a?'V':'F'} ${op} ${b?'V':'F'}`;
+  } else {
+    result = op === '∧' ? (a && b) : (a || b);
+    expr = `${a?'V':'F'} ${op} ${b?'V':'F'}`;
+  }
+  c1.expected = result;
+  document.getElementById('c-expr').textContent = expr;
+}
+function circuitAnswer(ans) {
+  if (c1.locked) return;
+  c1.locked = true;
+  const fb = document.getElementById('c-fb');
+  const area = document.getElementById('circuitArea');
+  if (ans === c1.expected) {
+    c1.hits++;
+    state.score += 5;
+    fb.className = 'mini-feedback ok';
+    fb.textContent = '✅ ¡Correcto!';
+    area.classList.remove('flash-red');
+    area.classList.add('flash-green');
+    playCorrect();
+  } else {
+    fb.className = 'mini-feedback bad';
+    fb.textContent = `❌ Incorrecto. Era ${c1.expected?'V':'F'}`;
+    area.classList.remove('flash-green');
+    area.classList.add('flash-red');
+    playWrong();
+  }
+  setTimeout(() => {
+    area.classList.remove('flash-green','flash-red');
+    c1NewRound();
+  }, 1000);
+}
+
+// ====== MINIJUEGO 2: FALACIAS (10 args, 2 min, iconos) ======
+const FALACIAS = [
+  {t:"📚 Si estudio, apruebo. Estudio. Por tanto, apruebo.", valid:true},
+  {t:"🌧️ Si llueve, me mojo. Me mojé. Por tanto, llovió.", valid:false},
+  {t:"🐈 Todos los gatos son animales. Silvestre es un gato. Silvestre es animal.", valid:true},
+  {t:"🤒 Si tiene fiebre, está enfermo. No tiene fiebre. Por tanto, no está enfermo.", valid:false},
+  {t:"✅ Si p→q y p es V, entonces q es V. (Modus Ponens)", valid:true},
+  {t:"🐕 El perro ladra si hay ladrón. El perro ladra. Por tanto, hay ladrón.", valid:false},
+  {t:"🎲 A o B es V. A es F. Por tanto, B es V. (Silogismo Disyuntivo)", valid:true},
+  {t:"⚖️ Si bajé de peso, hice dieta. Bajé de peso. Por tanto, hice dieta.", valid:false},
+  {t:"💡 Si se corta la luz, se apaga la refri. Si se apaga la refri, se malogra la carne. Por tanto, si se corta la luz, se malogra la carne.", valid:true},
+  {t:"📱 Si le gusto, me da like. Me dio like. Por tanto, le gusto.", valid:false}
+];
+let f1 = {round:0, hits:0, time:120, interval:null, locked:false};
+function startMini2() {
+  f1 = {round:0, hits:0, time:120, interval:null, locked:false};
+  show('screen-mini2');
+  updateF1Time();
+  f1.interval = setInterval(() => {
+    f1.time--;
+    updateF1Time();
+    if (f1.time <= 0) endMini(2);
+  }, 1000);
+  f2NewRound();
+}
+function updateF1Time() {
+  const m = Math.floor(f1.time/60);
+  const s = String(f1.time%60).padStart(2,'0');
+  document.getElementById('f-time').textContent = `${m}:${s}`;
+}
+function f2NewRound() {
+  if (f1.round >= FALACIAS.length) { endMini(2); return; }
+  f1.round++;
+  f1.locked = false;
+  document.getElementById('f-round').textContent = `${f1.round}/10`;
+  document.getElementById('f-hits').textContent = f1.hits;
+  document.getElementById('f-fb').textContent = '';
+  document.getElementById('f-fb').className = 'mini-feedback';
+  document.getElementById('f-text').textContent = FALACIAS[f1.round-1].t;
+}
+function falaciaAnswer(ans) {
+  if (f1.locked || f1.round <= 0 || f1.round > FALACIAS.length) return;
+  f1.locked = true;
+  const fb = document.getElementById('f-fb');
+  const area = document.getElementById('falaciaArea');
+  if (ans === FALACIAS[f1.round-1].valid) {
+    f1.hits++;
+    state.score += 5;
+    fb.className = 'mini-feedback ok';
+    fb.textContent = '✅ ¡Excelente!';
+    area.classList.remove('flash-red');
+    area.classList.add('flash-green');
+    playCorrect();
+  } else {
+    fb.className = 'mini-feedback bad';
+    fb.textContent = `❌ Era ${FALACIAS[f1.round-1].valid?'Válido':'Falacia'}`;
+    area.classList.remove('flash-green');
+    area.classList.add('flash-red');
+    playWrong();
+  }
+  setTimeout(() => {
+    area.classList.remove('flash-green','flash-red');
+    f2NewRound();
+  }, 1100);
+}
+
+// ====== MINIJUEGO 3: BINARY RUSH (10 números, 180s, toggles) ======
+const BINARY_NUMS = [2, 3, 5, 6, 9, 11, 14, 19, 25, 30];
+let b1 = {round:0, hits:0, time:180, interval:null, target:0, bits:[], locked:false};
+function startMini3() {
+  b1 = {round:0, hits:0, time:180, interval:null, target:0, bits:[], locked:false};
+  show('screen-mini3');
+  updateB1Time();
+  b1.interval = setInterval(() => {
+    b1.time--;
+    updateB1Time();
+    if (b1.time <= 0) endMini(3);
+  }, 1000);
+  b3NewRound();
+}
+function updateB1Time() {
+  const m = Math.floor(b1.time/60);
+  const s = String(b1.time%60).padStart(2,'0');
+  document.getElementById('b-time').textContent = `${m}:${s}`;
+}
+function b3NewRound() {
+  if (b1.round >= BINARY_NUMS.length) { endMini(3); return; }
+  b1.round++;
+  b1.locked = false;
+  b1.target = BINARY_NUMS[b1.round-1];
+  document.getElementById('b-round').textContent = `${b1.round}/10`;
+  document.getElementById('b-hits').textContent = b1.hits;
+  document.getElementById('b-target').textContent = b1.target;
+  document.getElementById('b-fb').textContent = '';
+  document.getElementById('b-fb').className = 'mini-feedback';
+
+  const bitsNeeded = b1.target.toString(2).length;
+  b1.bits = new Array(bitsNeeded).fill(0);
+
+  const powersEl = document.getElementById('b-powers');
+  powersEl.innerHTML = '';
+  for (let i = bitsNeeded - 1; i >= 0; i--) {
+    const sp = document.createElement('span');
+    sp.innerHTML = `2<sup>${i}</sup>=${Math.pow(2,i)}`;
+    powersEl.appendChild(sp);
+  }
+  renderBits();
+}
+function renderBits() {
+  const container = document.getElementById('b-toggles');
+  container.innerHTML = '';
+  b1.bits.forEach((bit, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'bit-btn' + (bit ? ' on' : '');
+    btn.textContent = bit;
+    btn.onclick = () => toggleBit(i);
+    btn.style.width = '56px';
+    container.appendChild(btn);
+  });
+}
+function toggleBit(i) {
+  if (b1.locked) return;
+  b1.bits[i] = b1.bits[i] ? 0 : 1;
+  renderBits();
+  playClick();
+}
+function binaryAnswer() {
+  if (b1.locked) return;
+  b1.locked = true;
+  const userAnswer = b1.bits.join('');
+  const correct = b1.target.toString(2);
+  const fb = document.getElementById('b-fb');
+  const area = document.getElementById('binaryArea');
+  if (userAnswer === correct) {
+    b1.hits++;
+    state.score += 10;
+    fb.className = 'mini-feedback ok';
+    fb.innerHTML = `✅ ¡Perfecto! ${b1.target} = ${correct}₂`;
+    area.classList.remove('flash-red');
+    area.classList.add('flash-green');
+    playCorrect();
+  } else {
+    fb.className = 'mini-feedback bad';
+    fb.innerHTML = `❌ ${b1.target} era <b>${correct}₂</b>`;
+    area.classList.remove('flash-green');
+    area.classList.add('flash-red');
+    playWrong();
+  }
+  setTimeout(() => {
+    area.classList.remove('flash-green','flash-red');
+    b3NewRound();
+  }, 1400);
+}
+
+function endMini(n) {
+  if (n === 2 && f1.interval) clearInterval(f1.interval);
+  if (n === 3 && b1.interval) clearInterval(b1.interval);
+  show('screen-quiz');
+  renderQuestion();
+}
+
+function endQuiz() {
+  clearInterval(state.timerInterval);
+  document.getElementById('finalName').textContent = state.name;
+  document.getElementById('finalScore').textContent = state.score;
+  document.getElementById('finalHits').textContent = `${state.hits}/40`;
+  const m = String(Math.floor(state.elapsedSeconds / 60)).padStart(2, '0');
+  const s = String(state.elapsedSeconds % 60).padStart(2, '0');
+  document.getElementById('finalTime').textContent = `${m}:${s}`;
+  const now = new Date();
+  document.getElementById('finalDate').textContent = now.toLocaleDateString('es-PE', {day:'2-digit', month:'long', year:'numeric'});
+  show('screen-final');
+  launchConfetti();
+  setTimeout(playVictory, 300);
+}
+
+function launchConfetti() {
+  const colors = ['#5b49f0','#7d6ff5','#f6ad55','#38a169','#e53e3e','#4299e1'];
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+    piece.style.animationDelay = Math.random() * 2 + 's';
+    piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 5000);
+  }
+}
+
+// ====== COMPARTIR EN WHATSAPP ======
+let waText = '';
+function buildWAText() {
+  const m = String(Math.floor(state.elapsedSeconds / 60)).padStart(2, '0');
+  const s = String(state.elapsedSeconds % 60).padStart(2, '0');
+  const pct = Math.round((state.hits/40)*100);
+  let emoji = '🎓';
+  if (pct >= 90) emoji = '🏆';
+  else if (pct >= 70) emoji = '🥇';
+  else if (pct >= 50) emoji = '🥈';
+  else emoji = '📚';
+  return `${emoji} *Quiz Matemática Discreta* ${emoji}%0A%0A` +
+    `👤 *Jugador:* ${state.name}%0A` +
+    `💎 *Puntaje:* ${state.score} pts%0A` +
+    `✅ *Aciertos:* ${state.hits}/40 (${pct}%25)%0A` +
+    `⏱️ *Tiempo:* ${m}:${s}%0A%0A` +
+    `📚 Temas: Proposiciones lógicas, Tablas de verdad, Validación de argumentos, Sistemas de numeración%0A%0A` +
+    `¿Te animas a superar mi puntaje? 💪`;
+}
+
+function shareWhatsApp() {
+  waText = buildWAText();
+  const target = document.getElementById('captureTarget');
+  html2canvas(target, {backgroundColor: '#ffffff', scale: 2}).then(canvas => {
+    canvas.toBlob(blob => {
+      // Intentar Web Share API nativa (móvil moderno)
+      if (navigator.canShare && blob) {
+        const file = new File([blob], 'quiz-resultado.png', {type: 'image/png'});
+        if (navigator.canShare({files: [file]})) {
+          navigator.share({
+            files: [file],
+            title: 'Mi resultado en Matemática Discreta',
+            text: decodeURIComponent(waText.replace(/%0A/g, '\n').replace(/%25/g, '%'))
+          }).catch(() => {
+            downloadCanvas(canvas);
+            showWAModal();
+          });
+          return;
+        }
+      }
+      downloadCanvas(canvas);
+      showWAModal();
+    }, 'image/png');
+  }).catch(() => {
+    showWAModal();
+  });
+}
+
+function downloadCanvas(canvas) {
+  try {
+    const link = document.createElement('a');
+    link.download = `quiz-matematica-${state.name}.png`;
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch(e) { console.log("download failed", e); }
+}
+
+function showWAModal() { document.getElementById('waModal').classList.add('show'); }
+function closeWAModal() { document.getElementById('waModal').classList.remove('show'); }
+function openWAWeb() { window.open(`https://wa.me/?text=${waText}`, '_blank'); }
+</script>
+</body>
+</html>

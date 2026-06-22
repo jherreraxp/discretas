@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semana 9 · Grafos — Simulador y Juego</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EAEEF4; --surface:#FFFFFF; --ink:#15233B; --ink-soft:#5B6B82;
+    --line:#C9D3E0; --grid:#D7DEE9; --accent:#5B49F0; --good:#0E9F6E;
+    --warn:#E11D48; --gold:#D97706; --soft-accent:#EEEBFE;
+    --shadow:0 1px 2px rgba(21,35,59,.06),0 8px 24px rgba(21,35,59,.08);
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:Inter,system-ui,sans-serif;color:var(--ink);background:var(--bg);
+    -webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100vh;
+  }
+  .topbar{
+    display:flex;align-items:center;gap:14px;padding:14px 20px;background:var(--surface);
+    border-bottom:1px solid var(--line);flex-wrap:wrap;
+  }
+  .brand{display:flex;flex-direction:column;line-height:1.1}
+  .brand .wk{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;font-weight:700}
+  .brand h1{font-family:'Space Grotesk',sans-serif;font-size:19px;margin:2px 0 0;font-weight:600;letter-spacing:-.01em}
+  .modes{margin-left:auto;display:flex;background:var(--bg);border-radius:10px;padding:4px;gap:4px}
+  .modes button{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;border:0;background:transparent;
+    color:var(--ink-soft);padding:8px 16px;border-radius:7px;cursor:pointer;transition:.18s;
+  }
+  .modes button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+  .wrap{flex:1;display:grid;grid-template-columns:1fr 340px;gap:0;min-height:0}
+  .stage{position:relative;overflow:hidden;
+    background-color:var(--bg);
+    background-image:radial-gradient(var(--grid) 1.4px,transparent 1.4px);
+    background-size:22px 22px;background-position:11px 11px;
+  }
+  svg{width:100%;height:100%;display:block;touch-action:none}
+  .panel{background:var(--surface);border-left:1px solid var(--line);padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+  .group{display:flex;flex-direction:column;gap:9px}
+  .group h3{font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin:0;font-weight:600}
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .btn{font-family:Inter,sans-serif;font-weight:500;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 12px;border-radius:9px;cursor:pointer;transition:.15s;flex:1;text-align:center;white-space:nowrap}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.act{background:var(--soft-accent);border-color:var(--accent);color:var(--accent)}
+  .btn.ghost{background:transparent}
+  .btn.full{flex-basis:100%}
+  .row{display:flex;gap:8px;align-items:center}
+  .row label{font-size:13px;color:var(--ink-soft);flex:1}
+  input[type=number]{width:64px;font-family:'JetBrains Mono',monospace;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:13px;color:var(--ink)}
+  .chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);cursor:pointer}
+  .chk input{width:16px;height:16px;accent-color:var(--accent)}
+  .readout{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:#0F1B2E;color:#D6E2F5;border-radius:10px;padding:12px;min-height:54px;line-height:1.55;white-space:pre-wrap;overflow-x:auto}
+  .readout .hl{color:#8AA0FF}
+  .readout .g{color:#4ADE9A}
+  .readout .w{color:#FB7185}
+  .readout .y{color:#FBBF24}
+  table.mtx{border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:12px;margin-top:6px}
+  table.mtx td,table.mtx th{border:1px solid var(--line);padding:4px 7px;text-align:center;color:var(--ink)}
+  table.mtx th{background:var(--bg);color:var(--ink-soft);font-weight:600}
+  table.mtx td.one{background:var(--soft-accent);color:var(--accent);font-weight:700}
+  .hint{font-size:12.5px;color:var(--ink-soft);line-height:1.5}
+  .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:700}
+  .badge.ok{background:#DCFCE7;color:#15803D}
+  .badge.no{background:#FFE4E6;color:#BE123C}
+  /* SVG element styles */
+  .edge{stroke:var(--line);stroke-width:3.4;transition:stroke .35s,stroke-width .35s}
+  .edge.tree{stroke:var(--accent);stroke-width:4.6}
+  .edge.path{stroke:var(--gold);stroke-width:5.2}
+  .edge.used{stroke:var(--good);stroke-width:5}
+  .edge.sel{stroke:var(--accent)}
+  .edge-hit{stroke:transparent;stroke-width:16;cursor:pointer}
+  .ew{font-family:'JetBrains Mono',monospace;font-size:12px;fill:var(--ink-soft);font-weight:700}
+  .node circle{fill:var(--surface);stroke:var(--ink);stroke-width:3;transition:fill .3s,stroke .3s}
+  .node.active circle{fill:var(--accent);stroke:var(--accent);animation:pulse 1s ease-out}
+  .node.done circle{fill:var(--good);stroke:var(--good)}
+  .node.source circle{fill:var(--gold);stroke:var(--gold)}
+  .node.cur circle{fill:var(--accent);stroke:var(--accent)}
+  .node text{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none;transition:fill .3s}
+  .node.active text,.node.done text,.node.source text,.node.cur text{fill:#fff}
+  .node .dist{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;fill:var(--accent)}
+  @keyframes pulse{0%{stroke-width:3}50%{stroke-width:11;opacity:.85}100%{stroke-width:3}}
+  .toast{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:#0F1B2E;color:#fff;font-size:13px;padding:9px 16px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transition:.25s;pointer-events:none;font-weight:500;max-width:80%;text-align:center}
+  .toast.show{opacity:1}
+  .gamebar{position:absolute;top:14px;left:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;box-shadow:var(--shadow);display:none;gap:18px;align-items:center}
+  .gamebar.show{display:flex}
+  .gamebar .stat{display:flex;flex-direction:column;line-height:1.1}
+  .gamebar .stat b{font-family:'Space Grotesk',sans-serif;font-size:18px}
+  .gamebar .stat span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft)}
+  @media(max-width:820px){
+    .wrap{grid-template-columns:1fr;grid-template-rows:46vh 1fr}
+    .panel{border-left:0;border-top:1px solid var(--line)}
+  }
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><span class="wk">Semana 9 · Estructuras Discretas</span><h1>Grafos: caminos, recorridos y algoritmos</h1></div>
+  <div class="modes">
+    <button id="mSim" class="on">Simulador</button>
+    <button id="mGame">Juego</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="stage">
+    <svg id="svg" viewBox="0 0 900 640" preserveAspectRatio="xMidYMid meet"></svg>
+    <div id="toast" class="toast"></div>
+    <div id="gamebar" class="gamebar">
+      <div class="stat"><b id="gLevel">1</b><span>Nivel</span></div>
+      <div class="stat"><b id="gScore">0</b><span>Puntos</span></div>
+      <div class="stat"><b id="gMoves">0/0</b><span>Aristas</span></div>
+    </div>
+  </div>
+
+  <!-- SIMULATOR PANEL -->
+  <div class="panel" id="panelSim">
+    <div class="group">
+      <h3>Construir el grafo</h3>
+      <div class="seg">
+        <button class="btn sel" data-mode="build" id="mb-build">Construir</button>
+        <button class="btn" data-mode="move" id="mb-move">Mover</button>
+        <button class="btn" data-mode="del" id="mb-del">Borrar</button>
+      </div>
+      <p class="hint" id="modeHint">Toca el lienzo para crear un nodo. Toca un nodo y luego otro para unirlos con una arista.</p>
+      <div class="row">
+        <label>Peso de la próxima arista</label>
+        <input type="number" id="wInput" value="1" min="1" max="99">
+      </div>
+      <label class="chk"><input type="checkbox" id="dirChk"> Grafo dirigido (flechas)</label>
+      <div class="seg">
+        <button class="btn ghost full" id="btnDemo">Cargar grafo de ejemplo</button>
+        <button class="btn ghost full" id="btnClear">Vaciar todo</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>Algoritmos</h3>
+      <div class="seg">
+        <button class="btn act full" id="btnDijkstra">▶ Dijkstra (camino mínimo)</button>
+      </div>
+      <p class="hint">Para Dijkstra: activa el botón y luego toca el nodo de origen.</p>
+      <div class="seg">
+        <button class="btn full" id="btnWarshall">Warshall · matriz de alcanzabilidad</button>
+      </div>
+      <div class="seg">
+        <button class="btn" id="btnEuler">Euler</button>
+        <button class="btn" id="btnHamilton">Hamilton</button>
+        <button class="btn" id="btnDeg">Grados</button>
+      </div>
+      <button class="btn ghost full" id="btnReset">Limpiar resaltado</button>
+    </div>
+
+    <div class="group">
+      <h3>Lectura</h3>
+      <div class="readout" id="readout">Construye un grafo y ejecuta un algoritmo. Aquí aparecerán los resultados paso a paso.</div>
+      <div id="mtxBox"></div>
+    </div>
+  </div>
+
+  <!-- GAME PANEL -->
+  <div class="panel" id="panelGame" style="display:none">
+    <div class="group">
+      <h3>Juego · El camino de Euler</h3>
+      <p class="hint">Un <b>camino euleriano</b> recorre <b>todas las aristas exactamente una vez</b>. Empieza tocando un nodo y luego ve tocando aristas contiguas hasta usarlas todas. Si te equivocas, la arista se rechaza.</p>
+      <p class="hint"><b>Pista del teorema:</b> existe un camino euleriano si el grafo es conexo y tiene 0 ó 2 vértices de grado impar. Busca un buen punto de partida.</p>
+    </div>
+    <div class="group">
+      <h3>Partida</h3>
+      <div class="seg">
+        <button class="btn sel full" id="gStart">Empezar / Reiniciar nivel</button>
+      </div>
+      <div class="seg">
+        <button class="btn" id="gPrev">◀ Anterior</button>
+        <button class="btn" id="gNext">Siguiente ▶</button>
+      </div>
+      <button class="btn ghost full" id="gUndo">Deshacer último paso</button>
+    </div>
+    <div class="group">
+      <h3>Estado</h3>
+      <div class="readout" id="gReadout">Pulsa “Empezar” y traza el camino.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(()=>{
+  const svg=document.getElementById('svg');
+  const NS='http://www.w3.org/2000/svg';
+  let nodes=[], edges=[], directed=false;
+  let mode='build', algoPick=null, firstNode=null, selEdge=null, animating=false;
+  let labelSeq=0;
+  const W=900,H=640;
+
+  /* ---------- helpers ---------- */
+  const lbl=i=>{ // A..Z then 1,2,3..
+    return i<26?String.fromCharCode(65+i):String(i-25);
+  };
+  function el(tag,attrs){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e;}
+  function pt(evt){const r=svg.getBoundingClientRect();const x=(evt.clientX-r.left)/r.width*W;const y=(evt.clientY-r.top)/r.height*H;return{x,y};}
+  function nodeAt(x,y){return nodes.find(n=>Math.hypot(n.x-x,n.y-y)<24);}
+  function findEdge(u,v){return edges.find(e=>(e.u===u&&e.v===v)||(!directed&&e.u===v&&e.v===u));}
+  function toast(msg,ms=1700){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+  /* ---------- render ---------- */
+  function render(){
+    svg.innerHTML='';
+    // defs arrow
+    const defs=el('defs',{});
+    defs.innerHTML='<marker id="arrow" viewBox="0 0 10 10" refX="20" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5B6B82"/></marker>';
+    svg.appendChild(defs);
+    const gE=el('g',{}); const gN=el('g',{});
+    edges.forEach(e=>{
+      const a=nodes[e.u],b=nodes[e.v];if(!a||!b)return;
+      const line=el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'edge',id:`e-${e.u}-${e.v}`});
+      if(directed)line.setAttribute('marker-end','url(#arrow)');
+      const hit=el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'edge-hit'});
+      hit.addEventListener('pointerdown',ev=>{ev.stopPropagation();onEdge(e);});
+      gE.appendChild(line);gE.appendChild(hit);
+      const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+      const bg=el('circle',{cx:mx,cy:my,r:10,fill:'#FFFFFF',stroke:'#C9D3E0','stroke-width':1});
+      const tw=el('text',{x:mx,y:my+0.5,class:'ew','text-anchor':'middle','dominant-baseline':'central'});
+      tw.textContent=e.w;gE.appendChild(bg);gE.appendChild(tw);
+    });
+    nodes.forEach((n,i)=>{
+      const g=el('g',{class:'node',id:`n-${i}`});
+      const c=el('circle',{cx:n.x,cy:n.y,r:20});
+      const t=el('text',{x:n.x,y:n.y});t.textContent=n.label;
+      g.appendChild(c);g.appendChild(t);
+      g.addEventListener('pointerdown',ev=>{ev.stopPropagation();onNode(i,ev);});
+      gN.appendChild(g);
+    });
+    svg.appendChild(gE);svg.appendChild(gN);
+  }
+
+  /* ---------- interactions ---------- */
+  svg.addEventListener('pointerdown',ev=>{
+    if(gameOn){gameEmptyTap();return;}
+    if(animating)return;
+    const p=pt(ev);
+    if(mode==='build'){
+      nodes.push({x:p.x,y:p.y,label:lbl(labelSeq++)});
+      firstNode=null;render();
+    }
+  });
+
+  let drag=null;
+  function onNode(i,ev){
+    if(gameOn){gameNodeTap(i);return;}
+    if(animating)return;
+    if(algoPick==='dijkstra'){runDijkstra(i);algoPick=null;document.getElementById('btnDijkstra').classList.remove('sel');return;}
+    if(mode==='del'){deleteNode(i);return;}
+    if(mode==='move'){drag=i;const mv=e=>{const p=pt(e);nodes[i].x=Math.max(24,Math.min(W-24,p.x));nodes[i].y=Math.max(24,Math.min(H-24,p.y));render();};const up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);drag=null;};window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up);return;}
+    // build mode: edges
+    if(firstNode===null){firstNode=i;document.getElementById(`n-${i}`).classList.add('cur');}
+    else if(firstNode===i){document.getElementById(`n-${i}`).classList.remove('cur');firstNode=null;}
+    else{
+      if(!findEdge(firstNode,i)){
+        const w=Math.max(1,parseInt(document.getElementById('wInput').value)||1);
+        edges.push({u:firstNode,v:i,w});
+      }
+      firstNode=null;render();
+    }
+  }
+  function onEdge(e){
+    if(gameOn){gameEdgeTap(e);return;}
+    if(animating)return;
+    if(mode==='del'){edges=edges.filter(x=>x!==e);render();return;}
+    // select & edit weight
+    const w=Math.max(1,parseInt(document.getElementById('wInput').value)||1);
+    e.w=w;render();toast(`Peso de la arista actualizado a ${w}`);
+  }
+  function deleteNode(i){
+    edges=edges.filter(e=>e.u!==i&&e.v!==i);
+    edges.forEach(e=>{if(e.u>i)e.u--;if(e.v>i)e.v--;});
+    nodes.splice(i,1);
+    // relabel
+    labelSeq=0;nodes.forEach(n=>n.label=lbl(labelSeq++));
+    firstNode=null;render();
+  }
+
+  /* ---------- mode buttons ---------- */
+  const hints={build:'Toca el lienzo para crear un nodo. Toca un nodo y luego otro para unirlos con una arista.',move:'Arrastra los nodos para reacomodar el grafo.',del:'Toca un nodo o una arista para eliminarlo.'};
+  document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('[data-mode]').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');mode=b.dataset.mode;firstNode=null;
+    document.getElementById('modeHint').textContent=hints[mode];render();
+  }));
+  document.getElementById('dirChk').addEventListener('change',e=>{directed=e.target.checked;render();});
+  document.getElementById('wInput').addEventListener('keydown',e=>e.stopPropagation());
+
+  /* ---------- adjacency ---------- */
+  function adj(){
+    const A=nodes.map(()=>[]);
+    edges.forEach(e=>{A[e.u].push({to:e.v,w:e.w,e});if(!directed)A[e.v].push({to:e.u,w:e.w,e});});
+    return A;
+  }
+  function setReadout(html){document.getElementById('readout').innerHTML=html;}
+  function clearMarks(){document.querySelectorAll('.node').forEach(n=>n.className.baseVal='node');document.querySelectorAll('.edge').forEach(e=>e.classList.remove('tree','path','used','sel'));document.querySelectorAll('.node .dist').forEach(d=>d.remove());document.getElementById('mtxBox').innerHTML='';}
+
+  /* ---------- Dijkstra ---------- */
+  async function runDijkstra(src){
+    if(nodes.length<2){toast('Agrega al menos 2 nodos');return;}
+    clearMarks();animating=true;
+    const A=adj();const n=nodes.length;const dist=Array(n).fill(Infinity);const prev=Array(n).fill(-1);const done=Array(n).fill(false);
+    dist[src]=0;
+    document.getElementById(`n-${src}`).classList.add('source');addDist(src,0);
+    let log=`<span class="hl">Dijkstra desde ${nodes[src].label}</span>\n`;
+    setReadout(log);
+    while(true){
+      let u=-1,best=Infinity;
+      for(let i=0;i<n;i++)if(!done[i]&&dist[i]<best){best=dist[i];u=i;}
+      if(u===-1)break;
+      done[u]=true;
+      const g=document.getElementById(`n-${u}`);
+      if(u!==src){g.className.baseVal='node cur';}
+      await sleep(620);
+      for(const {to,w,e} of A[u]){
+        if(done[to])continue;
+        const id=`e-${e.u}-${e.v}`,id2=`e-${e.v}-${e.u}`;
+        const line=document.getElementById(id)||document.getElementById(id2);
+        if(line){line.classList.add('sel');setTimeout(()=>line.classList.remove('sel'),500);}
+        if(dist[u]+w<dist[to]){
+          dist[to]=dist[u]+w;prev[to]=u;addDist(to,dist[to]);
+        }
+      }
+      if(u!==src){g.className.baseVal='node done';}
+      log+=`fijado <span class="g">${nodes[u].label}</span> · dist = ${dist[u]===Infinity?'∞':dist[u]}\n`;
+      setReadout(log);
+      await sleep(320);
+    }
+    // shortest path tree
+    for(let i=0;i<n;i++)if(prev[i]>=0){const e=findEdge(prev[i],i);if(e){const line=document.getElementById(`e-${e.u}-${e.v}`);if(line)line.classList.add('tree');}}
+    log+=`\n<span class="y">Distancias finales:</span>\n`;
+    for(let i=0;i<n;i++)log+=`  ${nodes[src].label} → ${nodes[i].label} : ${dist[i]===Infinity?'∞ (sin ruta)':dist[i]}\n`;
+    setReadout(log);
+    animating=false;
+  }
+  function addDist(i,d){
+    const g=document.getElementById(`n-${i}`);if(!g)return;
+    g.querySelector('.dist')?.remove();
+    const n=nodes[i];const t=el('text',{x:n.x+24,y:n.y-18,class:'dist'});t.textContent=d===Infinity?'∞':d;g.appendChild(t);
+  }
+  document.getElementById('btnDijkstra').addEventListener('click',function(){
+    if(animating)return;
+    algoPick=algoPick==='dijkstra'?null:'dijkstra';
+    this.classList.toggle('sel',algoPick==='dijkstra');
+    if(algoPick)toast('Toca el nodo de ORIGEN');
+  });
+
+  /* ---------- Warshall transitive closure ---------- */
+  document.getElementById('btnWarshall').addEventListener('click',()=>{
+    if(nodes.length<1){toast('Grafo vacío');return;}
+    clearMarks();
+    const n=nodes.length;const R=Array.from({length:n},()=>Array(n).fill(0));
+    edges.forEach(e=>{R[e.u][e.v]=1;if(!directed)R[e.v][e.u]=1;});
+    for(let i=0;i<n;i++)R[i][i]=1;
+    for(let k=0;k<n;k++)for(let i=0;i<n;i++)for(let j=0;j<n;j++)if(R[i][k]&&R[k][j])R[i][j]=1;
+    setReadout(`<span class="hl">Algoritmo de Warshall</span>\nMatriz de alcanzabilidad R* (1 = existe un camino de la fila a la columna).`);
+    let h='<table class="mtx"><tr><th></th>';
+    nodes.forEach(x=>h+=`<th>${x.label}</th>`);h+='</tr>';
+    for(let i=0;i<n;i++){h+=`<tr><th>${nodes[i].label}</th>`;for(let j=0;j<n;j++)h+=`<td class="${R[i][j]?'one':''}">${R[i][j]}</td>`;h+='</tr>';}
+    h+='</table>';document.getElementById('mtxBox').innerHTML=h;
+  });
+
+  /* ---------- Euler ---------- */
+  function components(){
+    const n=nodes.length;const seen=Array(n).fill(false);const A=adjUndirected();let comps=0;let nonIso=0;
+    for(let s=0;s<n;s++){if(seen[s])continue;let any=A[s].length>0;
+      if(!any){seen[s]=true;continue;}
+      comps++;const st=[s];seen[s]=true;while(st.length){const u=st.pop();for(const v of A[u])if(!seen[v]){seen[v]=true;st.push(v);}}}
+    return comps;
+  }
+  function adjUndirected(){const A=nodes.map(()=>[]);edges.forEach(e=>{A[e.u].push(e.v);A[e.v].push(e.u);});return A;}
+  document.getElementById('btnEuler').addEventListener('click',()=>{
+    if(edges.length===0){toast('Agrega aristas');return;}
+    clearMarks();
+    const n=nodes.length;const deg=Array(n).fill(0);edges.forEach(e=>{deg[e.u]++;deg[e.v]++;});
+    const odd=[];for(let i=0;i<n;i++)if(deg[i]%2)odd.push(i);
+    const comps=components();
+    let verdict,cls;
+    if(comps>1){verdict='No tiene camino euleriano: el grafo no es conexo.';cls='no';}
+    else if(odd.length===0){verdict='Tiene CIRCUITO euleriano (todos los grados son pares).';cls='ok';}
+    else if(odd.length===2){verdict=`Tiene CAMINO euleriano (no circuito). Inicia en ${nodes[odd[0]].label} y termina en ${nodes[odd[1]].label}.`;cls='ok';odd.forEach(i=>document.getElementById(`n-${i}`).classList.add('source'));}
+    else {verdict=`No tiene camino euleriano: hay ${odd.length} vértices de grado impar (deben ser 0 ó 2).`;cls='no';odd.forEach(i=>document.getElementById(`n-${i}`).classList.add('cur'));}
+    let log=`<span class="hl">Análisis euleriano</span>\nGrados: `+nodes.map((x,i)=>`${x.label}=${deg[i]}`).join('  ')+`\nVértices de grado impar: ${odd.length}\n\n`;
+    log+=`<span class="${cls==='ok'?'g':'w'}">${verdict}</span>`;
+    setReadout(log);
+  });
+
+  /* ---------- Hamilton ---------- */
+  document.getElementById('btnHamilton').addEventListener('click',()=>{
+    if(nodes.length<2){toast('Agrega más nodos');return;}
+    if(nodes.length>11){toast('Demasiados nodos para la búsqueda (máx 11)');return;}
+    clearMarks();
+    const n=nodes.length;const A=adjUndirected().map(a=>[...new Set(a)]);
+    const path=[];const used=Array(n).fill(false);
+    function bt(u){path.push(u);used[u]=true;if(path.length===n)return true;for(const v of A[u])if(!used[v]&&bt(v))return true;path.pop();used[u]=false;return false;}
+    let found=false;for(let s=0;s<n&&!found;s++)found=bt(s);
+    if(found){
+      for(let i=0;i<path.length;i++){document.getElementById(`n-${path[i]}`).classList.add('done');if(i<path.length-1){const e=findEdge(path[i],path[i+1]);if(e){const l=document.getElementById(`e-${e.u}-${e.v}`);if(l)l.classList.add('path');}}}
+      setReadout(`<span class="hl">Camino hamiltoniano</span>\n<span class="g">Encontrado:</span> `+path.map(i=>nodes[i].label).join(' → '));
+    } else setReadout(`<span class="hl">Camino hamiltoniano</span>\n<span class="w">No existe</span> un camino que pase por todos los vértices exactamente una vez.`);
+  });
+
+  /* ---------- Degrees ---------- */
+  document.getElementById('btnDeg').addEventListener('click',()=>{
+    if(nodes.length===0)return;clearMarks();
+    const n=nodes.length;
+    if(directed){const ind=Array(n).fill(0),out=Array(n).fill(0);edges.forEach(e=>{out[e.u]++;ind[e.v]++;});
+      setReadout(`<span class="hl">Grados (dirigido)</span>\n`+nodes.map((x,i)=>`${x.label}: entrada=${ind[i]}  salida=${out[i]}`).join('\n'));}
+    else{const deg=Array(n).fill(0);edges.forEach(e=>{deg[e.u]++;deg[e.v]++;});
+      const sum=deg.reduce((a,b)=>a+b,0);
+      setReadout(`<span class="hl">Grados</span>\n`+nodes.map((x,i)=>`${x.label} = ${deg[i]}`).join('\n')+`\n\nSuma de grados = ${sum} = 2·(nº aristas) = 2·${edges.length}  ✓`);}
+  });
+
+  document.getElementById('btnReset').addEventListener('click',clearMarks);
+  document.getElementById('btnClear').addEventListener('click',()=>{nodes=[];edges=[];labelSeq=0;firstNode=null;clearMarks();setReadout('Lienzo vacío.');render();});
+  document.getElementById('btnDemo').addEventListener('click',()=>{
+    nodes=[{x:200,y:150,label:'A'},{x:430,y:110,label:'B'},{x:650,y:170,label:'C'},{x:720,y:380,label:'D'},{x:470,y:470,label:'E'},{x:230,y:400,label:'F'}];
+    labelSeq=6;
+    edges=[{u:0,v:1,w:4},{u:0,v:5,w:2},{u:1,v:2,w:3},{u:1,v:4,w:7},{u:2,v:3,w:2},{u:3,v:4,w:5},{u:4,v:5,w:6},{u:5,v:1,w:8}];
+    directed=false;document.getElementById('dirChk').checked=false;clearMarks();render();
+    setReadout('Grafo de ejemplo cargado. Prueba Dijkstra desde A, o analiza Euler/Hamilton.');
+  });
+
+  /* ============== GAME: Eulerian path ============== */
+  let gameOn=false, gLevel=0, gScore=0, gTrail=[], gCurNode=null, gUsedEdges=new Set();
+  const levels=[
+    { // 0-odd: circuit (square + diagonal-less). Use a triangle pair -> all even
+      nodes:[{x:300,y:160},{x:600,y:160},{x:600,y:440},{x:300,y:440}],
+      edges:[[0,1],[1,2],[2,3],[3,0],[0,2]], // A square with one diagonal -> A,C degree 3 (2 odds) -> path
+    },
+    { // classic "envelope" / house shape — has Eulerian path
+      nodes:[{x:450,y:120},{x:280,y:280},{x:620,y:280},{x:330,y:470},{x:570,y:470}],
+      edges:[[0,1],[0,2],[1,2],[1,3],[2,4],[3,4],[1,4],[2,3]],
+    },
+    { // bowtie / two triangles sharing a vertex -> all even -> circuit
+      nodes:[{x:250,y:200},{x:250,y:430},{x:470,y:315},{x:690,y:200},{x:690,y:430}],
+      edges:[[0,1],[1,2],[2,0],[2,3],[3,4],[4,2]],
+    },
+    { // pentagon + inner star segments tuned to 2 odd
+      nodes:[{x:450,y:110},{x:660,y:270},{x:580,y:500},{x:320,y:500},{x:240,y:270}],
+      edges:[[0,1],[1,2],[2,3],[3,4],[4,0],[0,2],[0,3]], // 0 has degree 4, 2 deg3, 3 deg3 -> path
+    }
+  ];
+  function loadLevel(){
+    const L=levels[gLevel];
+    nodes=L.nodes.map((p,i)=>({x:p.x,y:p.y,label:lbl(i)}));labelSeq=nodes.length;
+    edges=L.edges.map(([u,v])=>({u,v,w:1}));directed=false;
+    gTrail=[];gCurNode=null;gUsedEdges=new Set();
+    render();updateGameBar();
+    document.getElementById('gReadout').innerHTML=`Nivel ${gLevel+1}. Total de aristas: <b>${edges.length}</b>. Toca un nodo para empezar el camino.`;
+  }
+  function updateGameBar(){
+    document.getElementById('gLevel').textContent=gLevel+1;
+    document.getElementById('gScore').textContent=gScore;
+    document.getElementById('gMoves').textContent=`${gUsedEdges.size}/${edges.length}`;
+  }
+  function edgeKey(e){return edges.indexOf(e);}
+  function highlightCur(){document.querySelectorAll('.node').forEach(n=>n.className.baseVal='node');if(gCurNode!==null)document.getElementById(`n-${gCurNode}`).className.baseVal='node cur';}
+  function gameNodeTap(i){
+    if(gCurNode===null){gCurNode=i;gTrail=[i];highlightCur();document.getElementById('gReadout').innerHTML=`Inicio en <b>${nodes[i].label}</b>. Ahora toca una arista que salga de aquí.`;}
+    else toast('Toca una ARISTA contigua, no un nodo');
+  }
+  function gameEdgeTap(e){
+    if(gCurNode===null){toast('Primero toca un nodo de inicio');return;}
+    const k=edgeKey(e);
+    if(gUsedEdges.has(k)){toast('Esa arista ya se usó');return;}
+    let other=null;
+    if(e.u===gCurNode)other=e.v;else if(e.v===gCurNode)other=e.u;
+    if(other===null){toast('Esa arista no toca tu nodo actual');flashWrong(e);return;}
+    gUsedEdges.add(k);gTrail.push(other);gCurNode=other;
+    const line=document.getElementById(`e-${e.u}-${e.v}`);if(line)line.classList.add('used');
+    highlightCur();updateGameBar();
+    if(gUsedEdges.size===edges.length){
+      const pts=100+Math.max(0,60-gTrail.length*3);gScore+=pts;updateGameBar();
+      document.getElementById('gReadout').innerHTML=`<span class="g">¡Camino euleriano completo! +${pts} puntos</span>\nRecorrido: `+gTrail.map(i=>nodes[i].label).join(' → ');
+      toast('¡Excelente! Camino euleriano logrado 🎉',2400);
+    } else {
+      document.getElementById('gReadout').innerHTML=`Vas por <b>${nodes[gCurNode].label}</b>. Aristas usadas: ${gUsedEdges.size}/${edges.length}. Sigue.`;
+    }
+  }
+  function flashWrong(e){const l=document.getElementById(`e-${e.u}-${e.v}`);if(!l)return;l.style.stroke='var(--warn)';setTimeout(()=>l.style.stroke='',400);}
+  function gameEmptyTap(){}
+  function gameNode(){}
+  document.getElementById('gStart').addEventListener('click',loadLevel);
+  document.getElementById('gNext').addEventListener('click',()=>{gLevel=(gLevel+1)%levels.length;loadLevel();});
+  document.getElementById('gPrev').addEventListener('click',()=>{gLevel=(gLevel-1+levels.length)%levels.length;loadLevel();});
+  document.getElementById('gUndo').addEventListener('click',()=>{
+    if(gTrail.length<=1){toast('Nada que deshacer');return;}
+    gTrail.pop();const from=gTrail[gTrail.length-1];
+    // find last used edge between from and gCurNode
+    const e=findEdge(from,gCurNode);if(e){gUsedEdges.delete(edgeKey(e));const l=document.getElementById(`e-${e.u}-${e.v}`);if(l)l.classList.remove('used');}
+    gCurNode=from;highlightCur();updateGameBar();
+    document.getElementById('gReadout').innerHTML=`Paso deshecho. Estás en <b>${nodes[gCurNode].label}</b>.`;
+  });
+
+  /* ---------- mode switch ---------- */
+  document.getElementById('mSim').addEventListener('click',()=>{
+    document.getElementById('mSim').classList.add('on');document.getElementById('mGame').classList.remove('on');
+    document.getElementById('panelSim').style.display='flex';document.getElementById('panelGame').style.display='none';
+    document.getElementById('gamebar').classList.remove('show');gameOn=false;clearMarks();
+  });
+  document.getElementById('mGame').addEventListener('click',()=>{
+    document.getElementById('mGame').classList.add('on');document.getElementById('mSim').classList.remove('on');
+    document.getElementById('panelGame').style.display='flex';document.getElementById('panelSim').style.display='none';
+    document.getElementById('gamebar').classList.add('show');gameOn=true;gScore=0;gLevel=0;loadLevel();
+  });
+
+  // init
+  document.getElementById('btnDemo').click();
+})();
+</script>
+</body>
+</html>

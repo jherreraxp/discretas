@@ -1,0 +1,2164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leyes de equivalencia lógica</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>html,body{margin:0;padding:0;min-height:100vh;background:#EAEEF4;font-family:Inter,system-ui,sans-serif}#root{min-height:100vh}</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="vendor/react.min.js"></script>
+<script src="vendor/react-dom.min.js"></script>
+<script>
+const {
+  useState,
+  useEffect,
+  useRef
+} = React;
+const MODULES = [{
+  id: "home",
+  label: "Inicio",
+  icon: "🏠"
+}, {
+  id: "equiv",
+  label: "Equivalencias",
+  icon: "⚖️"
+}, {
+  id: "notables",
+  label: "Leyes Notables",
+  icon: "📜"
+}, {
+  id: "argumento",
+  label: "Argumentos",
+  icon: "🎯"
+}, {
+  id: "tablavv",
+  label: "Tabla de Verdad",
+  icon: "📊"
+}, {
+  id: "indirecto",
+  label: "Método Indirecto",
+  icon: "🔍"
+}, {
+  id: "circuitos",
+  label: "Circuitos",
+  icon: "⚡"
+}, {
+  id: "practica",
+  label: "Práctica",
+  icon: "🧪"
+}, {
+  id: "quiz",
+  label: "Quiz Final",
+  icon: "🏆"
+}];
+const COLORS = {
+  bg: "#0a0e1a",
+  card: "#111827",
+  cardHover: "#1a2236",
+  accent: "#7d6ff5",
+  accentDim: "#7d6ff533",
+  accent2: "#5b49f0",
+  accent2Dim: "#5b49f033",
+  accent3: "#f59e0b",
+  accent3Dim: "#f59e0b33",
+  red: "#ef4444",
+  redDim: "#ef444433",
+  text: "#e2e8f0",
+  textDim: "#94a3b8",
+  border: "#1e293b",
+  success: "#10b981",
+  warning: "#f59e0b"
+};
+const fonts = {
+  title: "'Playfair Display', Georgia, serif",
+  body: "'Source Sans 3', 'Segoe UI', sans-serif",
+  mono: "'JetBrains Mono', 'Fira Code', monospace"
+};
+function evalProp(expr, vals) {
+  let s = expr;
+  for (const [k, v] of Object.entries(vals)) {
+    s = s.replaceAll(k, v ? "T" : "F");
+  }
+  const MAX = 100;
+  let i = 0;
+  while (s.includes("(") && i < MAX) {
+    s = s.replace(/\(([^()]+)\)/, (_, g) => evalSimple(g));
+    i++;
+  }
+  return evalSimple(s) === "T";
+}
+function evalSimple(s) {
+  s = s.trim();
+  let i = 0;
+  const MAX = 50;
+  while (s.includes("~") && i < MAX) {
+    s = s.replace(/~\s*T/, "F").replace(/~\s*F/, "T");
+    i++;
+  }
+  i = 0;
+  while (s.includes("<->") && i < MAX) {
+    s = s.replace(/(T|F)\s*<->\s*(T|F)/, (_, a, b) => a === b ? "T" : "F");
+    i++;
+  }
+  i = 0;
+  while (s.includes("->") && i < MAX) {
+    s = s.replace(/(T|F)\s*->\s*(T|F)/, (_, a, b) => a === "T" && b === "F" ? "F" : "T");
+    i++;
+  }
+  i = 0;
+  while (s.includes("v") && i < MAX) {
+    s = s.replace(/(T|F)\s*v\s*(T|F)/, (_, a, b) => a === "T" || b === "T" ? "T" : "F");
+    i++;
+  }
+  i = 0;
+  while (s.includes("^") && i < MAX) {
+    s = s.replace(/(T|F)\s*\^\s*(T|F)/, (_, a, b) => a === "T" && b === "T" ? "T" : "F");
+    i++;
+  }
+  return s.trim();
+}
+function TruthBadge({
+  value
+}) {
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "inline-block",
+      padding: "2px 10px",
+      borderRadius: 6,
+      fontSize: 13,
+      fontWeight: 700,
+      fontFamily: fonts.mono,
+      background: value ? COLORS.accentDim : COLORS.redDim,
+      color: value ? COLORS.accent : COLORS.red,
+      border: `1px solid ${value ? COLORS.accent + "44" : COLORS.red + "44"}`
+    }
+  }, value ? "V" : "F");
+}
+function Formula({
+  children
+}) {
+  return /*#__PURE__*/React.createElement("code", {
+    style: {
+      fontFamily: fonts.mono,
+      background: COLORS.accent2Dim,
+      color: "#a5b4fc",
+      padding: "3px 8px",
+      borderRadius: 6,
+      fontSize: 14,
+      whiteSpace: "nowrap"
+    }
+  }, children);
+}
+function Card({
+  children,
+  accent,
+  title,
+  style
+}) {
+  const c = accent === "green" ? COLORS.accent : accent === "purple" ? COLORS.accent2 : accent === "amber" ? COLORS.accent3 : COLORS.accent;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.card,
+      borderRadius: 14,
+      border: `1px solid ${COLORS.border}`,
+      borderLeft: `4px solid ${c}`,
+      padding: "20px 22px",
+      marginBottom: 18,
+      ...style
+    }
+  }, title && /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: "0 0 12px 0",
+      color: c,
+      fontFamily: fonts.title,
+      fontSize: 18
+    }
+  }, title), children);
+}
+function MotivationBanner({
+  icon,
+  text
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: `linear-gradient(135deg, ${COLORS.accent}15, ${COLORS.accent2}15)`,
+      border: `1px solid ${COLORS.accent}33`,
+      borderRadius: 12,
+      padding: "14px 18px",
+      marginBottom: 20,
+      display: "flex",
+      alignItems: "center",
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 28
+    }
+  }, icon), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      color: COLORS.accent,
+      fontStyle: "italic",
+      fontSize: 15,
+      lineHeight: 1.5
+    }
+  }, text));
+}
+function RealApp({
+  icon,
+  title,
+  desc
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.accent3Dim,
+      border: `1px solid ${COLORS.accent3}33`,
+      borderRadius: 10,
+      padding: "12px 16px",
+      marginBottom: 10,
+      display: "flex",
+      gap: 12,
+      alignItems: "flex-start"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 22
+    }
+  }, icon), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent3,
+      fontSize: 14
+    }
+  }, title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "4px 0 0",
+      color: COLORS.textDim,
+      fontSize: 13,
+      lineHeight: 1.4
+    }
+  }, desc)));
+}
+
+// ===== HOME =====
+function HomeModule({
+  goTo
+}) {
+  const topics = [{
+    mod: "equiv",
+    icon: "⚖️",
+    title: "Equivalencias Lógicas",
+    desc: "Cuándo dos fórmulas dicen lo mismo"
+  }, {
+    mod: "notables",
+    icon: "📜",
+    title: "Leyes Notables",
+    desc: "De Morgan, doble negación, absorción..."
+  }, {
+    mod: "argumento",
+    icon: "🎯",
+    title: "Argumentos",
+    desc: "Definición y simbolización formal"
+  }, {
+    mod: "tablavv",
+    icon: "📊",
+    title: "Validez por Tabla",
+    desc: "Verificación exhaustiva con tablas de verdad"
+  }, {
+    mod: "indirecto",
+    icon: "🔍",
+    title: "Método Indirecto",
+    desc: "Demostración por contradicción (reducción al absurdo)"
+  }, {
+    mod: "circuitos",
+    icon: "⚡",
+    title: "Circuitos Lógicos",
+    desc: "De la lógica al hardware real"
+  }, {
+    mod: "practica",
+    icon: "🧪",
+    title: "Práctica Guiada",
+    desc: "Ejercicios paso a paso con retroalimentación"
+  }, {
+    mod: "quiz",
+    icon: "🏆",
+    title: "Quiz Final",
+    desc: "Pon a prueba todo lo aprendido"
+  }];
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      marginBottom: 30
+    }
+  }, /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontFamily: fonts.title,
+      fontSize: 32,
+      color: COLORS.text,
+      margin: "0 0 4px"
+    }
+  }, "L\xF3gica Proposicional"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.accent,
+      fontSize: 16,
+      margin: "0 0 2px",
+      fontFamily: fonts.title
+    }
+  }, "Equivalencias, Argumentos y Circuitos"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 13,
+      margin: 0
+    }
+  }, "Prof. Jos\xE9 Herrera \xB7 Matem\xE1tica Discreta")), /*#__PURE__*/React.createElement(MotivationBanner, {
+    icon: "\uD83D\uDCA1",
+    text: "\xABLa l\xF3gica es la anatom\xEDa del pensamiento.\xBB \u2014 John Locke. Dominar estas herramientas te da superpoderes para razonar, programar y dise\xF1ar circuitos."
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+      gap: 14
+    }
+  }, topics.map(t => /*#__PURE__*/React.createElement("div", {
+    key: t.mod,
+    onClick: () => goTo(t.mod),
+    style: {
+      background: COLORS.card,
+      border: `1px solid ${COLORS.border}`,
+      borderRadius: 12,
+      padding: "18px 16px",
+      cursor: "pointer",
+      transition: "all 0.2s"
+    },
+    onMouseEnter: e => {
+      e.currentTarget.style.borderColor = COLORS.accent;
+      e.currentTarget.style.transform = "translateY(-3px)";
+    },
+    onMouseLeave: e => {
+      e.currentTarget.style.borderColor = COLORS.border;
+      e.currentTarget.style.transform = "translateY(0)";
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 28,
+      marginBottom: 8
+    }
+  }, t.icon), /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: "0 0 6px",
+      color: COLORS.text,
+      fontSize: 15,
+      fontFamily: fonts.title
+    }
+  }, t.title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      color: COLORS.textDim,
+      fontSize: 12,
+      lineHeight: 1.4
+    }
+  }, t.desc)))));
+}
+
+// ===== EQUIVALENCIAS =====
+function EquivModule() {
+  const [pVal, setPVal] = useState(true);
+  const [qVal, setQVal] = useState(true);
+  const expr1 = !(pVal && qVal);
+  const expr2 = !pVal || !qVal;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: fonts.title,
+      color: COLORS.text,
+      fontSize: 24,
+      marginBottom: 6
+    }
+  }, "\u2696\uFE0F F\xF3rmulas L\xF3gicamente Equivalentes"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      lineHeight: 1.6,
+      fontSize: 14
+    }
+  }, "Dos f\xF3rmulas ", /*#__PURE__*/React.createElement(Formula, null, "\u03B1"), " y ", /*#__PURE__*/React.createElement(Formula, null, "\u03B2"), " son ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent
+    }
+  }, "l\xF3gicamente equivalentes"), " (\u03B1 \u2261 \u03B2) si y solo si tienen ", /*#__PURE__*/React.createElement("em", null, "el mismo valor de verdad"), " para toda asignaci\xF3n posible de sus variables proposicionales. Esto es: la bicondicional \u03B1 \u2194 \u03B2 es una ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent
+    }
+  }, "tautolog\xEDa"), "."), /*#__PURE__*/React.createElement(MotivationBanner, {
+    icon: "\uD83D\uDD27",
+    text: "En programaci\xF3n, saber que dos condiciones son equivalentes te permite simplificar c\xF3digo. En ciberseguridad, simplificar reglas de firewall usa exactamente estos principios."
+  }), /*#__PURE__*/React.createElement(Card, {
+    accent: "green",
+    title: "\uD83E\uDDEA Laboratorio Interactivo: Ley de De Morgan"
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 13,
+      margin: "0 0 14px"
+    }
+  }, "Verifica que ", /*#__PURE__*/React.createElement(Formula, null, "~(p \u2227 q) \u2261 ~p \u2228 ~q"), " cambiando los valores:"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 20,
+      marginBottom: 16,
+      flexWrap: "wrap"
+    }
+  }, [["p", pVal, setPVal], ["q", qVal, setQVal]].map(([name, val, set]) => /*#__PURE__*/React.createElement("div", {
+    key: name,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: fonts.mono,
+      color: COLORS.text,
+      fontSize: 16
+    }
+  }, name, " ="), /*#__PURE__*/React.createElement("button", {
+    onClick: () => set(!val),
+    style: {
+      padding: "6px 18px",
+      borderRadius: 8,
+      border: "none",
+      cursor: "pointer",
+      fontWeight: 700,
+      fontFamily: fonts.mono,
+      fontSize: 14,
+      background: val ? COLORS.accent : COLORS.red,
+      color: "#000",
+      transition: "all 0.2s"
+    }
+  }, val ? "V" : "F")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.bg,
+      borderRadius: 10,
+      padding: 14,
+      border: `1px solid ${COLORS.border}`
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 12,
+      margin: "0 0 6px"
+    }
+  }, "Lado izquierdo"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: fonts.mono,
+      color: "#a5b4fc",
+      margin: "0 0 8px",
+      fontSize: 14
+    }
+  }, "~(p \u2227 q)"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 12
+    }
+  }, "~(", pVal ? "V" : "F", " \u2227 ", qVal ? "V" : "F", ") ="), /*#__PURE__*/React.createElement(TruthBadge, {
+    value: expr1
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.bg,
+      borderRadius: 10,
+      padding: 14,
+      border: `1px solid ${COLORS.border}`
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 12,
+      margin: "0 0 6px"
+    }
+  }, "Lado derecho"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: fonts.mono,
+      color: "#a5b4fc",
+      margin: "0 0 8px",
+      fontSize: 14
+    }
+  }, "~p \u2228 ~q"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 12
+    }
+  }, !pVal ? "V" : "F", " \u2228 ", !qVal ? "V" : "F", " ="), /*#__PURE__*/React.createElement(TruthBadge, {
+    value: expr2
+  })))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14,
+      padding: "10px 14px",
+      borderRadius: 8,
+      background: expr1 === expr2 ? COLORS.accentDim : COLORS.redDim,
+      border: `1px solid ${expr1 === expr2 ? COLORS.accent : COLORS.red}44`,
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: expr1 === expr2 ? COLORS.accent : COLORS.red,
+      fontWeight: 700,
+      fontSize: 14
+    }
+  }, expr1 === expr2 ? "✅ ¡Coinciden! La equivalencia se cumple para estos valores." : "❌ No coinciden (esto nunca pasará con De Morgan)."))), /*#__PURE__*/React.createElement(Card, {
+    accent: "amber",
+    title: "\uD83C\uDF0D Aplicaciones Reales"
+  }, /*#__PURE__*/React.createElement(RealApp, {
+    icon: "\uD83D\uDCBB",
+    title: "Programaci\xF3n",
+    desc: "if (!(a && b)) es lo mismo que if (!a || !b). Simplificar condiciones hace el c\xF3digo m\xE1s legible y mantenible."
+  }), /*#__PURE__*/React.createElement(RealApp, {
+    icon: "\uD83D\uDD12",
+    title: "Ciberseguridad",
+    desc: "Reglas de firewall: 'Denegar si NO (puerto v\xE1lido Y IP autorizada)' \u2261 'Denegar si puerto inv\xE1lido O IP no autorizada'. Misma pol\xEDtica, expresi\xF3n m\xE1s clara."
+  }), /*#__PURE__*/React.createElement(RealApp, {
+    icon: "\uD83D\uDD0C",
+    title: "Dise\xF1o de Circuitos",
+    desc: "Reemplazar una compuerta NAND por una combinaci\xF3n OR-NOT puede reducir el costo del chip."
+  })));
+}
+
+// ===== LEYES NOTABLES =====
+function NotablesModule() {
+  const [selected, setSelected] = useState(null);
+  const laws = [{
+    name: "Doble Negación",
+    formula: "~~p ≡ p",
+    example: "No es cierto que NO llueve ≡ Llueve",
+    detail: "Negar dos veces devuelve al valor original. En código: !!true === true."
+  }, {
+    name: "Idempotencia (∧)",
+    formula: "p ∧ p ≡ p",
+    example: "(x > 0) && (x > 0) simplifica a (x > 0)",
+    detail: "Repetir la misma condición con AND no agrega información."
+  }, {
+    name: "Idempotencia (∨)",
+    formula: "p ∨ p ≡ p",
+    example: "(esMayor || esMayor) simplifica a esMayor",
+    detail: "Repetir la misma condición con OR tampoco agrega información."
+  }, {
+    name: "Conmutativa (∧)",
+    formula: "p ∧ q ≡ q ∧ p",
+    example: "El orden de las condiciones AND no importa",
+    detail: "Puedes reorganizar condiciones en un if sin cambiar resultado."
+  }, {
+    name: "Conmutativa (∨)",
+    formula: "p ∨ q ≡ q ∨ p",
+    example: "El orden de las condiciones OR no importa",
+    detail: "Reorganizar condiciones OR libremente."
+  }, {
+    name: "Asociativa (∧)",
+    formula: "(p ∧ q) ∧ r ≡ p ∧ (q ∧ r)",
+    example: "Agrupar ANDs como quieras",
+    detail: "No importa cómo agrupes, el resultado es el mismo. Útil para reorganizar queries SQL."
+  }, {
+    name: "Asociativa (∨)",
+    formula: "(p ∨ q) ∨ r ≡ p ∨ (q ∨ r)",
+    example: "Agrupar ORs como quieras",
+    detail: "Flexible agrupación de disyunciones."
+  }, {
+    name: "Distributiva (∧ sobre ∨)",
+    formula: "p ∧ (q ∨ r) ≡ (p∧q) ∨ (p∧r)",
+    example: "Distribuir AND sobre OR como multiplicación sobre suma",
+    detail: "Fundamental para convertir entre formas normales (CNF ↔ DNF)."
+  }, {
+    name: "Distributiva (∨ sobre ∧)",
+    formula: "p ∨ (q ∧ r) ≡ (p∨q) ∧ (p∨r)",
+    example: "Distribuir OR sobre AND",
+    detail: "Usada en optimización de circuitos y simplificación de consultas."
+  }, {
+    name: "De Morgan (∧)",
+    formula: "~(p ∧ q) ≡ ~p ∨ ~q",
+    example: "NOT(A AND B) = (NOT A) OR (NOT B)",
+    detail: "Una de las leyes más usadas en programación e ingeniería digital."
+  }, {
+    name: "De Morgan (∨)",
+    formula: "~(p ∨ q) ≡ ~p ∧ ~q",
+    example: "NOT(A OR B) = (NOT A) AND (NOT B)",
+    detail: "Complemento de la otra ley de De Morgan."
+  }, {
+    name: "Absorción (1)",
+    formula: "p ∨ (p ∧ q) ≡ p",
+    example: "Si ya tienes p, añadir p∧q con OR es redundante",
+    detail: "Útil para simplificar condiciones anidadas en código."
+  }, {
+    name: "Absorción (2)",
+    formula: "p ∧ (p ∨ q) ≡ p",
+    example: "Si exiges p con AND, p∨q no aporta nada nuevo",
+    detail: "Reduce complejidad de expresiones lógicas."
+  }, {
+    name: "Condicional",
+    formula: "p → q ≡ ~p ∨ q",
+    example: "'Si llueve entonces llevo paraguas' ≡ 'No llueve o llevo paraguas'",
+    detail: "Fundamental: toda implicación se puede reescribir sin el →."
+  }, {
+    name: "Contraposición",
+    formula: "p → q ≡ ~q → ~p",
+    example: "'Si apruebo, festejo' ≡ 'Si no festejo, no aprobé'",
+    detail: "Base del método de demostración por contrapositiva."
+  }, {
+    name: "Bicondicional",
+    formula: "p ↔ q ≡ (p→q) ∧ (q→p)",
+    example: "Equivalencia = implicación en ambos sentidos",
+    detail: "Para demostrar p↔q debes probar ambas implicaciones."
+  }, {
+    name: "Complemento (∧)",
+    formula: "p ∧ ~p ≡ F",
+    example: "Algo no puede ser verdadero y falso a la vez",
+    detail: "Principio de no contradicción. Base del método indirecto."
+  }, {
+    name: "Complemento (∨)",
+    formula: "p ∨ ~p ≡ V",
+    example: "O llueve, o no llueve. Siempre verdadero.",
+    detail: "Principio del tercio excluido. Tautología fundamental."
+  }];
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: fonts.title,
+      color: COLORS.text,
+      fontSize: 24,
+      marginBottom: 6
+    }
+  }, "\uD83D\uDCDC Equivalencias L\xF3gicas Notables"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 14,
+      lineHeight: 1.6
+    }
+  }, "Estas son las \"f\xF3rmulas algebraicas\" de la l\xF3gica. Memorizarlas te permite simplificar expresiones sin necesidad de tablas de verdad completas."), /*#__PURE__*/React.createElement(MotivationBanner, {
+    icon: "\uD83E\uDDE0",
+    text: "As\xED como en \xE1lgebra usas a(b+c) = ab + ac, en l\xF3gica usas estas leyes para transformar y simplificar. \xA1Son tu caja de herramientas!"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 8
+    }
+  }, laws.map((law, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    onClick: () => setSelected(selected === i ? null : i),
+    style: {
+      background: selected === i ? COLORS.cardHover : COLORS.card,
+      border: `1px solid ${selected === i ? COLORS.accent + "66" : COLORS.border}`,
+      borderRadius: 10,
+      padding: "12px 16px",
+      cursor: "pointer",
+      transition: "all 0.2s"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      background: COLORS.accent2Dim,
+      color: COLORS.accent2,
+      fontSize: 11,
+      fontWeight: 700,
+      padding: "2px 8px",
+      borderRadius: 6,
+      fontFamily: fonts.mono
+    }
+  }, i + 1), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.text,
+      fontWeight: 600,
+      fontSize: 14
+    }
+  }, law.name)), /*#__PURE__*/React.createElement("code", {
+    style: {
+      fontFamily: fonts.mono,
+      color: COLORS.accent,
+      fontSize: 13
+    }
+  }, law.formula)), selected === i && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12,
+      paddingTop: 12,
+      borderTop: `1px solid ${COLORS.border}`
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "#a5b4fc",
+      fontSize: 13,
+      margin: "0 0 6px"
+    }
+  }, "\uD83D\uDCDD ", law.example), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 12,
+      margin: 0,
+      lineHeight: 1.5
+    }
+  }, "\uD83D\uDCA1 ", law.detail))))));
+}
+
+// ===== ARGUMENTOS =====
+function ArgumentoModule() {
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: fonts.title,
+      color: COLORS.text,
+      fontSize: 24,
+      marginBottom: 6
+    }
+  }, "\uD83C\uDFAF Definici\xF3n y Simbolizaci\xF3n de Argumentos"), /*#__PURE__*/React.createElement(Card, {
+    accent: "green",
+    title: "\uD83D\uDCD6 \xBFQu\xE9 es un argumento l\xF3gico?"
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 14,
+      lineHeight: 1.7,
+      margin: 0
+    }
+  }, "Un ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent
+    }
+  }, "argumento"), " es un conjunto de proposiciones donde una de ellas (la ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent3
+    }
+  }, "conclusi\xF3n"), ") se afirma que se sigue l\xF3gicamente de las dem\xE1s (las ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent2
+    }
+  }, "premisas"), ")."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.bg,
+      borderRadius: 10,
+      padding: 16,
+      marginTop: 14,
+      fontFamily: fonts.mono,
+      fontSize: 14,
+      color: COLORS.text,
+      lineHeight: 2
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent2
+    }
+  }, "Premisa 1:"), " P\u2081", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent2
+    }
+  }, "Premisa 2:"), " P\u2082", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textDim
+    }
+  }, "\u22EE"), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent2
+    }
+  }, "Premisa n:"), " P\u2099", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textDim
+    }
+  }, "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent3
+    }
+  }, "\u2234 Conclusi\xF3n:"), " C", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 12
+    }
+  }, "Forma simb\xF3lica: (P\u2081 \u2227 P\u2082 \u2227 ... \u2227 P\u2099) \u2192 C"))), /*#__PURE__*/React.createElement(Card, {
+    accent: "purple",
+    title: "\u270D\uFE0F Ejemplo: Simbolizaci\xF3n paso a paso"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.bg,
+      borderRadius: 10,
+      padding: 16,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.accent3,
+      fontSize: 13,
+      fontWeight: 700,
+      margin: "0 0 8px"
+    }
+  }, "Argumento en lenguaje natural:"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.text,
+      fontSize: 14,
+      lineHeight: 1.7,
+      margin: 0,
+      fontStyle: "italic"
+    }
+  }, "\xABSi este es un buen libro, vale la pena leerlo. La matem\xE1tica es f\xE1cil o este libro no vale la pena leerlo. Pero la matem\xE1tica no es f\xE1cil. Por tanto, este no es un buen libro.\xBB")), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.accent2,
+      fontSize: 13,
+      fontWeight: 700,
+      margin: "0 0 8px"
+    }
+  }, "Paso 1: Identificar proposiciones simples"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: fonts.mono,
+      fontSize: 13,
+      color: COLORS.text,
+      lineHeight: 2.2,
+      marginBottom: 14,
+      paddingLeft: 12
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent
+    }
+  }, "p"), " = \"Este es un buen libro\"", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent
+    }
+  }, "q"), " = \"Vale la pena leerlo\"", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent
+    }
+  }, "r"), " = \"La matem\xE1tica es f\xE1cil\""), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.accent2,
+      fontSize: 13,
+      fontWeight: 700,
+      margin: "0 0 8px"
+    }
+  }, "Paso 2: Simbolizar premisas y conclusi\xF3n"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.bg,
+      borderRadius: 10,
+      padding: 14,
+      fontFamily: fonts.mono,
+      fontSize: 14,
+      color: COLORS.text,
+      lineHeight: 2.2
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent2
+    }
+  }, "P\u2081:"), " p \u2192 q", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent2
+    }
+  }, "P\u2082:"), " r \u2228 ~q", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent2
+    }
+  }, "P\u2083:"), " ~r", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textDim
+    }
+  }, "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent3
+    }
+  }, "\u2234"), " ~p")), /*#__PURE__*/React.createElement(Card, {
+    accent: "amber",
+    title: "\uD83C\uDF0D \xBFD\xF3nde se usan argumentos l\xF3gicos?"
+  }, /*#__PURE__*/React.createElement(RealApp, {
+    icon: "\uD83E\uDD16",
+    title: "Inteligencia Artificial",
+    desc: "Los sistemas expertos y motores de inferencia usan cadenas de argumentos l\xF3gicos para tomar decisiones."
+  }), /*#__PURE__*/React.createElement(RealApp, {
+    icon: "\u2696\uFE0F",
+    title: "Derecho",
+    desc: "Los abogados estructuran sus alegatos como argumentos formales: si se cumplen las premisas (hechos + leyes), la conclusi\xF3n (sentencia) es v\xE1lida."
+  }), /*#__PURE__*/React.createElement(RealApp, {
+    icon: "\uD83D\uDD10",
+    title: "Verificaci\xF3n de Protocolos",
+    desc: "En ciberseguridad, se usa l\xF3gica formal para demostrar que un protocolo criptogr\xE1fico es seguro bajo ciertas premisas."
+  })));
+}
+
+// ===== TABLA DE VERDAD =====
+function TablaVVModule() {
+  const [showResult, setShowResult] = useState(false);
+  const rows = [];
+  for (let p = 1; p >= 0; p--) {
+    for (let q = 1; q >= 0; q--) {
+      for (let r = 1; r >= 0; r--) {
+        const pb = !!p,
+          qb = !!q,
+          rb = !!r;
+        const p1 = !pb || qb;
+        const p2 = rb || !qb;
+        const p3 = !rb;
+        const conc = !pb;
+        const premisas = p1 && p2 && p3;
+        const argValid = !premisas || conc;
+        rows.push({
+          p: pb,
+          q: qb,
+          r: rb,
+          p1,
+          p2,
+          p3,
+          conc,
+          premisas,
+          argValid
+        });
+      }
+    }
+  }
+  const isValid = rows.every(r => r.argValid);
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: fonts.title,
+      color: COLORS.text,
+      fontSize: 24,
+      marginBottom: 6
+    }
+  }, "\uD83D\uDCCA Validez por Tabla de Verdad"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 14,
+      lineHeight: 1.6
+    }
+  }, "Un argumento es ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent
+    }
+  }, "v\xE1lido"), " si y solo si ", /*#__PURE__*/React.createElement("em", null, "no existe"), " ninguna fila donde todas las premisas sean V y la conclusi\xF3n sea F. Equivalentemente: (P\u2081 \u2227 P\u2082 \u2227 ... \u2227 P\u2099) \u2192 C es una ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent
+    }
+  }, "tautolog\xEDa"), "."), /*#__PURE__*/React.createElement(MotivationBanner, {
+    icon: "\uD83D\uDCCB",
+    text: "La tabla de verdad es el m\xE9todo 'fuerza bruta': exhaustivo e infalible. Para n variables, se eval\xFAan 2\u207F filas. Con 3 variables: 8 filas. Con 10 variables: \xA11024 filas!"
+  }), /*#__PURE__*/React.createElement(Card, {
+    accent: "green",
+    title: "Ejemplo: El argumento del buen libro"
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 13,
+      margin: "0 0 8px"
+    }
+  }, /*#__PURE__*/React.createElement(Formula, null, "P\u2081: p\u2192q"), " , ", /*#__PURE__*/React.createElement(Formula, null, "P\u2082: r\u2228~q"), " , ", /*#__PURE__*/React.createElement(Formula, null, "P\u2083: ~r"), " \u2234 ", /*#__PURE__*/React.createElement(Formula, null, "~p")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setShowResult(!showResult),
+    style: {
+      padding: "8px 20px",
+      borderRadius: 8,
+      border: "none",
+      background: COLORS.accent,
+      color: "#000",
+      fontWeight: 700,
+      cursor: "pointer",
+      fontSize: 13,
+      marginBottom: 14
+    }
+  }, showResult ? "Ocultar tabla" : "Generar tabla de verdad"), showResult && /*#__PURE__*/React.createElement("div", {
+    style: {
+      overflowX: "auto"
+    }
+  }, /*#__PURE__*/React.createElement("table", {
+    style: {
+      width: "100%",
+      borderCollapse: "collapse",
+      fontFamily: fonts.mono,
+      fontSize: 12
+    }
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, ["p", "q", "r", "p→q", "r∨~q", "~r", "Prem.", "~p", "Válida?"].map((h, i) => /*#__PURE__*/React.createElement("th", {
+    key: i,
+    style: {
+      padding: "8px 6px",
+      borderBottom: `2px solid ${COLORS.accent}`,
+      color: i < 3 ? COLORS.accent : i < 6 ? COLORS.accent2 : i === 7 ? COLORS.accent3 : COLORS.textDim,
+      textAlign: "center",
+      fontSize: 11,
+      whiteSpace: "nowrap"
+    }
+  }, h)))), /*#__PURE__*/React.createElement("tbody", null, rows.map((r, i) => {
+    const critical = r.premisas && !r.conc;
+    return /*#__PURE__*/React.createElement("tr", {
+      key: i,
+      style: {
+        background: critical ? COLORS.redDim : r.premisas ? COLORS.accentDim : "transparent"
+      }
+    }, [r.p, r.q, r.r, r.p1, r.p2, r.p3, r.premisas, r.conc, r.argValid].map((v, j) => /*#__PURE__*/React.createElement("td", {
+      key: j,
+      style: {
+        padding: "6px",
+        textAlign: "center",
+        borderBottom: `1px solid ${COLORS.border}`,
+        color: v ? COLORS.accent : COLORS.red,
+        fontWeight: j >= 6 ? 700 : 400
+      }
+    }, v ? "V" : "F")));
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14,
+      padding: "12px 16px",
+      borderRadius: 8,
+      background: isValid ? COLORS.accentDim : COLORS.redDim,
+      border: `1px solid ${isValid ? COLORS.accent : COLORS.red}44`,
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: isValid ? COLORS.accent : COLORS.red,
+      fontWeight: 700,
+      fontSize: 14
+    }
+  }, isValid ? "✅ ARGUMENTO VÁLIDO — No existe fila con premisas V y conclusión F." : "❌ ARGUMENTO INVÁLIDO — Existe al menos una fila con premisas V y conclusión F.")))));
+}
+
+// ===== MÉTODO INDIRECTO =====
+function IndirectoModule() {
+  const [step, setStep] = useState(0);
+  const steps = [{
+    title: "Paso 0: Idea clave",
+    content: "Suponemos que el argumento es INVÁLIDO: todas las premisas V y la conclusión F. Si llegamos a contradicción, el argumento es válido.",
+    color: COLORS.accent
+  }, {
+    title: "Paso 1: Negar la conclusión",
+    content: "La conclusión es ~p, así que suponemos ~p = F, lo que implica p = V.",
+    color: COLORS.accent2
+  }, {
+    title: "Paso 2: Analizar P₃: ~r",
+    content: "P₃ debe ser V, entonces ~r = V, lo que implica r = F.",
+    color: COLORS.accent2
+  }, {
+    title: "Paso 3: Analizar P₁: p → q",
+    content: "P₁ debe ser V. Sabemos p = V, entonces para que p→q sea V, necesitamos q = V.",
+    color: COLORS.accent2
+  }, {
+    title: "Paso 4: Analizar P₂: r ∨ ~q",
+    content: "P₂ debe ser V. Tenemos r = F y q = V, entonces ~q = F. Así: F ∨ F = F. ¡P₂ sale FALSA!",
+    color: COLORS.accent3
+  }, {
+    title: "Paso 5: ¡CONTRADICCIÓN!",
+    content: "Pedimos que P₂ sea V pero nos dio F. La suposición de invalidez es imposible. ∴ El argumento es VÁLIDO. ✅",
+    color: COLORS.accent
+  }];
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: fonts.title,
+      color: COLORS.text,
+      fontSize: 24,
+      marginBottom: 6
+    }
+  }, "\uD83D\uDD0D M\xE9todo Indirecto (Reducci\xF3n al Absurdo)"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 14,
+      lineHeight: 1.6
+    }
+  }, "En lugar de evaluar 2\u207F filas, ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent
+    }
+  }, "suponemos que el argumento es inv\xE1lido"), " (premisas V, conclusi\xF3n F) y buscamos una contradicci\xF3n. Si la encontramos, el argumento es v\xE1lido."), /*#__PURE__*/React.createElement(MotivationBanner, {
+    icon: "\u26A1",
+    text: "Este m\xE9todo es MUCHO m\xE1s r\xE1pido que la tabla de verdad cuando hay muchas variables. Con 10 variables: tabla = 1024 filas vs. indirecto = unos pocos pasos."
+  }), /*#__PURE__*/React.createElement(Card, {
+    accent: "purple",
+    title: "Demostraci\xF3n paso a paso: Argumento del buen libro"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.bg,
+      borderRadius: 8,
+      padding: 12,
+      fontFamily: fonts.mono,
+      fontSize: 13,
+      color: COLORS.textDim,
+      marginBottom: 14,
+      lineHeight: 1.8
+    }
+  }, "P\u2081: p \u2192 q \xA0|\xA0 P\u2082: r \u2228 ~q \xA0|\xA0 P\u2083: ~r \xA0\u2234\xA0 ~p"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap",
+      marginBottom: 16
+    }
+  }, steps.map((_, i) => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    onClick: () => setStep(i),
+    style: {
+      padding: "6px 14px",
+      borderRadius: 8,
+      border: `1px solid ${step === i ? COLORS.accent : COLORS.border}`,
+      background: step === i ? COLORS.accentDim : "transparent",
+      color: step === i ? COLORS.accent : COLORS.textDim,
+      cursor: "pointer",
+      fontSize: 12,
+      fontWeight: step === i ? 700 : 400
+    }
+  }, "Paso ", i))), steps.slice(0, step + 1).map((s, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      background: `${s.color}11`,
+      border: `1px solid ${s.color}33`,
+      borderRadius: 10,
+      padding: "12px 16px",
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 4px",
+      color: s.color,
+      fontWeight: 700,
+      fontSize: 13
+    }
+  }, s.title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      color: COLORS.text,
+      fontSize: 13,
+      lineHeight: 1.5
+    }
+  }, s.content))), step < steps.length - 1 && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setStep(step + 1),
+    style: {
+      marginTop: 8,
+      padding: "8px 20px",
+      borderRadius: 8,
+      border: "none",
+      background: COLORS.accent2,
+      color: "#fff",
+      fontWeight: 700,
+      cursor: "pointer",
+      fontSize: 13
+    }
+  }, "Siguiente paso \u2192")), /*#__PURE__*/React.createElement(Card, {
+    accent: "green",
+    title: "\uD83D\uDCDD Resumen del m\xE9todo"
+  }, /*#__PURE__*/React.createElement("ol", {
+    style: {
+      color: COLORS.text,
+      fontSize: 13,
+      lineHeight: 2,
+      paddingLeft: 20,
+      margin: 0
+    }
+  }, /*#__PURE__*/React.createElement("li", null, "Suponer la conclusi\xF3n ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.red
+    }
+  }, "FALSA")), /*#__PURE__*/React.createElement("li", null, "Suponer todas las premisas ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent
+    }
+  }, "VERDADERAS")), /*#__PURE__*/React.createElement("li", null, "Propagar valores obligados paso a paso"), /*#__PURE__*/React.createElement("li", null, "Si hay ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent3
+    }
+  }, "contradicci\xF3n"), " \u2192 Argumento ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent
+    }
+  }, "V\xC1LIDO")), /*#__PURE__*/React.createElement("li", null, "Si no hay contradicci\xF3n \u2192 Argumento ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.red
+    }
+  }, "INV\xC1LIDO"), " (y la asignaci\xF3n es el contraejemplo)"))));
+}
+
+// ===== CIRCUITOS =====
+function CircuitosModule() {
+  const [pVal, setPVal] = useState(true);
+  const [qVal, setQVal] = useState(false);
+  const seriesResult = pVal && qVal;
+  const parallelResult = pVal || qVal;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: fonts.title,
+      color: COLORS.text,
+      fontSize: 24,
+      marginBottom: 6
+    }
+  }, "\u26A1 Circuitos L\xF3gicos"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 14,
+      lineHeight: 1.6
+    }
+  }, "Cada expresi\xF3n l\xF3gica tiene un ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent
+    }
+  }, "circuito equivalente"), ". Los interruptores en ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent2
+    }
+  }, "serie"), " = AND (\u2227), los interruptores en ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent3
+    }
+  }, "paralelo"), " = OR (\u2228), y un interruptor ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.red
+    }
+  }, "invertido"), " = NOT (~)."), /*#__PURE__*/React.createElement(MotivationBanner, {
+    icon: "\uD83D\uDD0C",
+    text: "Toda la computaci\xF3n moderna se reduce a compuertas l\xF3gicas. Tu procesador tiene miles de millones de estos circuitos. \xA1Lo que aprendes aqu\xED es el fundamento del hardware!"
+  }), /*#__PURE__*/React.createElement(Card, {
+    accent: "green",
+    title: "\uD83E\uDDEA Simulador Interactivo"
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 13,
+      margin: "0 0 14px"
+    }
+  }, "Cambia los interruptores y observa c\xF3mo fluye la corriente:"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 20,
+      marginBottom: 16,
+      flexWrap: "wrap"
+    }
+  }, [["p", pVal, setPVal], ["q", qVal, setQVal]].map(([name, val, set]) => /*#__PURE__*/React.createElement("div", {
+    key: name,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: fonts.mono,
+      color: COLORS.text
+    }
+  }, name, " ="), /*#__PURE__*/React.createElement("button", {
+    onClick: () => set(!val),
+    style: {
+      padding: "6px 18px",
+      borderRadius: 8,
+      border: "none",
+      cursor: "pointer",
+      fontWeight: 700,
+      fontFamily: fonts.mono,
+      fontSize: 14,
+      background: val ? COLORS.accent : COLORS.red,
+      color: "#000"
+    }
+  }, val ? "ON" : "OFF")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.bg,
+      borderRadius: 10,
+      padding: 16,
+      border: `1px solid ${COLORS.border}`
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.accent2,
+      fontWeight: 700,
+      fontSize: 14,
+      margin: "0 0 10px"
+    }
+  }, "Serie (AND): p \u2227 q"), /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 300 60",
+    style: {
+      width: "100%"
+    }
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: "10",
+    y1: "30",
+    x2: "80",
+    y2: "30",
+    stroke: pVal ? COLORS.accent : COLORS.textDim,
+    strokeWidth: "3"
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "80",
+    y: "18",
+    width: "50",
+    height: "24",
+    rx: "4",
+    fill: pVal ? COLORS.accent + "44" : COLORS.redDim,
+    stroke: pVal ? COLORS.accent : COLORS.red,
+    strokeWidth: "2"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "105",
+    y: "34",
+    fill: COLORS.text,
+    fontSize: "12",
+    textAnchor: "middle",
+    fontFamily: fonts.mono
+  }, "p"), /*#__PURE__*/React.createElement("line", {
+    x1: "130",
+    y1: "30",
+    x2: "170",
+    y2: "30",
+    stroke: pVal ? COLORS.accent : COLORS.textDim,
+    strokeWidth: "3"
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "170",
+    y: "18",
+    width: "50",
+    height: "24",
+    rx: "4",
+    fill: qVal ? COLORS.accent + "44" : COLORS.redDim,
+    stroke: qVal ? COLORS.accent : COLORS.red,
+    strokeWidth: "2"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "195",
+    y: "34",
+    fill: COLORS.text,
+    fontSize: "12",
+    textAnchor: "middle",
+    fontFamily: fonts.mono
+  }, "q"), /*#__PURE__*/React.createElement("line", {
+    x1: "220",
+    y1: "30",
+    x2: "260",
+    y2: "30",
+    stroke: seriesResult ? COLORS.accent : COLORS.textDim,
+    strokeWidth: "3"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "270",
+    cy: "30",
+    r: "10",
+    fill: seriesResult ? COLORS.accent : "#333",
+    stroke: COLORS.textDim,
+    strokeWidth: "1"
+  })), /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: "center",
+      margin: "8px 0 0",
+      fontSize: 13
+    }
+  }, "Resultado: ", /*#__PURE__*/React.createElement(TruthBadge, {
+    value: seriesResult
+  }), " ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 12
+    }
+  }, "\u2014 Ambos deben estar ON"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.bg,
+      borderRadius: 10,
+      padding: 16,
+      border: `1px solid ${COLORS.border}`
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.accent3,
+      fontWeight: 700,
+      fontSize: 14,
+      margin: "0 0 10px"
+    }
+  }, "Paralelo (OR): p \u2228 q"), /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 300 80",
+    style: {
+      width: "100%"
+    }
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: "10",
+    y1: "40",
+    x2: "60",
+    y2: "40",
+    stroke: COLORS.textDim,
+    strokeWidth: "3"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "60",
+    y1: "40",
+    x2: "60",
+    y2: "20",
+    stroke: COLORS.textDim,
+    strokeWidth: "2"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "60",
+    y1: "40",
+    x2: "60",
+    y2: "60",
+    stroke: COLORS.textDim,
+    strokeWidth: "2"
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "70",
+    y: "8",
+    width: "50",
+    height: "24",
+    rx: "4",
+    fill: pVal ? COLORS.accent + "44" : COLORS.redDim,
+    stroke: pVal ? COLORS.accent : COLORS.red,
+    strokeWidth: "2"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "95",
+    y: "24",
+    fill: COLORS.text,
+    fontSize: "12",
+    textAnchor: "middle",
+    fontFamily: fonts.mono
+  }, "p"), /*#__PURE__*/React.createElement("rect", {
+    x: "70",
+    y: "48",
+    width: "50",
+    height: "24",
+    rx: "4",
+    fill: qVal ? COLORS.accent + "44" : COLORS.redDim,
+    stroke: qVal ? COLORS.accent : COLORS.red,
+    strokeWidth: "2"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "95",
+    y: "64",
+    fill: COLORS.text,
+    fontSize: "12",
+    textAnchor: "middle",
+    fontFamily: fonts.mono
+  }, "q"), /*#__PURE__*/React.createElement("line", {
+    x1: "120",
+    y1: "20",
+    x2: "180",
+    y2: "20",
+    stroke: pVal ? COLORS.accent : COLORS.textDim,
+    strokeWidth: "2"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "120",
+    y1: "60",
+    x2: "180",
+    y2: "60",
+    stroke: qVal ? COLORS.accent : COLORS.textDim,
+    strokeWidth: "2"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "180",
+    y1: "20",
+    x2: "180",
+    y2: "60",
+    stroke: COLORS.textDim,
+    strokeWidth: "2"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "180",
+    y1: "40",
+    x2: "260",
+    y2: "40",
+    stroke: parallelResult ? COLORS.accent : COLORS.textDim,
+    strokeWidth: "3"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "270",
+    cy: "40",
+    r: "10",
+    fill: parallelResult ? COLORS.accent : "#333",
+    stroke: COLORS.textDim,
+    strokeWidth: "1"
+  })), /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: "center",
+      margin: "8px 0 0",
+      fontSize: 13
+    }
+  }, "Resultado: ", /*#__PURE__*/React.createElement(TruthBadge, {
+    value: parallelResult
+  }), " ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 12
+    }
+  }, "\u2014 Al menos uno ON"))))), /*#__PURE__*/React.createElement(Card, {
+    accent: "purple",
+    title: "\uD83D\uDCD0 Simplificar = Menos compuertas = Menor costo"
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 13,
+      lineHeight: 1.6
+    }
+  }, "Cuando simplificas una expresi\xF3n l\xF3gica usando equivalencias, est\xE1s ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.accent2
+    }
+  }, "reduciendo el n\xFAmero de compuertas"), " del circuito. Menos compuertas = menos transistores = menor consumo de energ\xEDa y menor costo de fabricaci\xF3n."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.bg,
+      borderRadius: 10,
+      padding: 14,
+      marginTop: 10,
+      fontFamily: fonts.mono,
+      fontSize: 13,
+      lineHeight: 2
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.red
+    }
+  }, "Original:"), " ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.text
+    }
+  }, "(p \u2227 ~q) \u2227 (q \u2192 p) \u2227 r) \u2228 p"), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textDim
+    }
+  }, "q \u2192 p \u2261 ~q \u2228 p, absorci\xF3n, simplificaciones..."), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent
+    }
+  }, "Simplificado:"), " ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.text
+    }
+  }, "p"), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent3,
+      fontSize: 12
+    }
+  }, "\xA1De un circuito complejo a un solo cable!"))));
+}
+
+// ===== PRÁCTICA =====
+function PracticaModule() {
+  const [currentEx, setCurrentEx] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [showFeedback, setShowFeedback] = useState({});
+  const exercises = [{
+    id: 1,
+    type: "tautologia",
+    question: "¿Es tautología?  [(p → q) ∧ ~q] → ~(p ∧ q)",
+    hint: "Sugerencia: Intenta con p=V, q=F. Si en TODAS las combinaciones sale V, es tautología.",
+    answer: "si",
+    explanation: "Sí es tautología. Para verificar: la premisa (p→q)∧~q obliga a p=F por Modus Tollens. Entonces p∧q = F, luego ~(p∧q) = V. La implicación resulta V siempre."
+  }, {
+    id: 2,
+    type: "equivalencia",
+    question: "Simplifica: ~(~p ∨ q) ∨ (p ∧ q)",
+    hint: "Aplica De Morgan al primer término: ~(~p ∨ q) = p ∧ ~q. Luego factoriza.",
+    answer: "p",
+    explanation: "~(~p ∨ q) = p ∧ ~q (De Morgan). Entonces: (p ∧ ~q) ∨ (p ∧ q) = p ∧ (~q ∨ q) = p ∧ V = p."
+  }, {
+    id: 3,
+    type: "indirecto",
+    question: "Verifica por método indirecto: p → q, q → r ∴ p → r",
+    hint: "Supón la conclusión falsa: p→r = F. Entonces p=V, r=F. Ahora propaga en las premisas.",
+    answer: "valido",
+    explanation: "Si p→r = F: p=V, r=F. De P₂ (q→r=V, r=F): q=F. De P₁ (p→q=V, p=V): q=V. ¡Contradicción! q no puede ser V y F. ∴ Argumento VÁLIDO (Silogismo Hipotético)."
+  }, {
+    id: 4,
+    type: "simplificacion",
+    question: "Simplifica: [(p→q) ∧ ~(q↔p)] → [(p∨q) ∧ p]",
+    hint: "Analiza cuándo el antecedente puede ser V. Recuerda: ~(q↔p) significa que p≠q.",
+    answer: "tautologia",
+    explanation: "Si p≠q: caso p=V,q=F → p→q = F, así el antecedente = F → implicación V. Caso p=F,q=V → antecedente = V, consecuente = (V)∧F = F... Espera, revisemos: (p∨q)∧p = F∧... Evaluemos con tabla: cuando p=F,q=V: antecedente = (V∧V) = V, consecuente = (V∧F) = F. Entonces NO es tautología. Se simplifica a ~p → q (equivalente: p ∨ q)."
+  }];
+  const ex = exercises[currentEx];
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: fonts.title,
+      color: COLORS.text,
+      fontSize: 24,
+      marginBottom: 6
+    }
+  }, "\uD83E\uDDEA Pr\xE1ctica Guiada"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 14,
+      lineHeight: 1.6
+    }
+  }, "Resuelve cada ejercicio. Usa las pistas si necesitas ayuda, y luego verifica tu respuesta."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 16,
+      flexWrap: "wrap"
+    }
+  }, exercises.map((e, i) => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    onClick: () => {
+      setCurrentEx(i);
+    },
+    style: {
+      padding: "8px 16px",
+      borderRadius: 8,
+      border: `1px solid ${currentEx === i ? COLORS.accent : COLORS.border}`,
+      background: currentEx === i ? COLORS.accentDim : "transparent",
+      color: currentEx === i ? COLORS.accent : COLORS.textDim,
+      cursor: "pointer",
+      fontSize: 13,
+      fontWeight: currentEx === i ? 700 : 400
+    }
+  }, "Ej. ", i + 1))), /*#__PURE__*/React.createElement(Card, {
+    accent: "green",
+    title: `Ejercicio ${currentEx + 1}: ${ex.type.charAt(0).toUpperCase() + ex.type.slice(1)}`
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.text,
+      fontSize: 15,
+      lineHeight: 1.7,
+      margin: "0 0 14px",
+      fontFamily: fonts.mono
+    }
+  }, ex.question), /*#__PURE__*/React.createElement("details", {
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("summary", {
+    style: {
+      color: COLORS.accent3,
+      cursor: "pointer",
+      fontSize: 13,
+      fontWeight: 600
+    }
+  }, "\uD83D\uDCA1 Ver pista"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 13,
+      lineHeight: 1.5,
+      marginTop: 8,
+      paddingLeft: 12,
+      borderLeft: `2px solid ${COLORS.accent3}44`
+    }
+  }, ex.hint)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      alignItems: "center",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    placeholder: "Tu respuesta...",
+    value: answers[ex.id] || "",
+    onChange: e => setAnswers({
+      ...answers,
+      [ex.id]: e.target.value
+    }),
+    style: {
+      padding: "8px 14px",
+      borderRadius: 8,
+      border: `1px solid ${COLORS.border}`,
+      background: COLORS.bg,
+      color: COLORS.text,
+      fontFamily: fonts.mono,
+      fontSize: 14,
+      flex: 1,
+      minWidth: 150
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setShowFeedback({
+      ...showFeedback,
+      [ex.id]: true
+    }),
+    style: {
+      padding: "8px 18px",
+      borderRadius: 8,
+      border: "none",
+      background: COLORS.accent2,
+      color: "#fff",
+      fontWeight: 700,
+      cursor: "pointer",
+      fontSize: 13
+    }
+  }, "Ver soluci\xF3n")), showFeedback[ex.id] && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14,
+      padding: "14px 16px",
+      borderRadius: 10,
+      background: COLORS.accent2Dim,
+      border: `1px solid ${COLORS.accent2}44`
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.accent2,
+      fontWeight: 700,
+      fontSize: 13,
+      margin: "0 0 6px"
+    }
+  }, "\uD83D\uDCD6 Soluci\xF3n detallada:"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.text,
+      fontSize: 13,
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, ex.explanation))));
+}
+
+// ===== QUIZ =====
+function QuizModule() {
+  const [current, setCurrent] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [score, setScore] = useState(0);
+  const [answered, setAnswered] = useState(false);
+  const [finished, setFinished] = useState(false);
+  const questions = [{
+    q: "¿Cuál es la forma equivalente de p → q?",
+    opts: ["p ∧ q", "~p ∨ q", "~q → ~p", "B y C son correctas"],
+    correct: 3,
+    explain: "p→q ≡ ~p∨q (Condicional) y también p→q ≡ ~q→~p (Contraposición). Ambas son equivalentes."
+  }, {
+    q: "¿Qué ley dice que ~(p ∧ q) ≡ ~p ∨ ~q?",
+    opts: ["Ley de Absorción", "Ley de De Morgan", "Ley Distributiva", "Ley de Idempotencia"],
+    correct: 1,
+    explain: "Es la primera Ley de De Morgan: la negación de una conjunción es la disyunción de las negaciones."
+  }, {
+    q: "Un argumento es válido cuando:",
+    opts: ["Todas las premisas son verdaderas", "La conclusión es siempre verdadera", "No existe caso con premisas V y conclusión F", "Al menos una premisa es verdadera"],
+    correct: 2,
+    explain: "Un argumento es válido si NO es posible que todas las premisas sean V y la conclusión F simultáneamente."
+  }, {
+    q: "En el método indirecto, si encuentras contradicción:",
+    opts: ["El argumento es inválido", "El argumento es válido", "Necesitas más información", "Hay un error en el planteo"],
+    correct: 1,
+    explain: "Si al suponer premisas V y conclusión F llegas a contradicción, la suposición era imposible → el argumento es VÁLIDO."
+  }, {
+    q: "Dos interruptores en serie representan:",
+    opts: ["Disyunción (∨)", "Conjunción (∧)", "Implicación (→)", "Bicondicional (↔)"],
+    correct: 1,
+    explain: "En serie, AMBOS deben estar cerrados (ON) para que pase corriente. Esto es AND (∧)."
+  }, {
+    q: "¿Cuántas filas tiene la tabla de verdad de una expresión con 4 variables?",
+    opts: ["8", "12", "16", "32"],
+    correct: 2,
+    explain: "Con n variables hay 2ⁿ filas. Con 4 variables: 2⁴ = 16 filas."
+  }, {
+    q: "p ∧ (p ∨ q) se simplifica a:",
+    opts: ["p ∨ q", "p ∧ q", "p", "q"],
+    correct: 2,
+    explain: "Por la Ley de Absorción: p ∧ (p ∨ q) ≡ p. Si p es V, toda la expresión es V; si p es F, todo es F."
+  }, {
+    q: "La expresión p ∨ ~p es:",
+    opts: ["Tautología", "Contradicción", "Contingencia", "Equivalencia"],
+    correct: 0,
+    explain: "Es una tautología (siempre V). Es el Principio del Tercio Excluido: algo es verdadero o su negación lo es."
+  }];
+  const handleAnswer = idx => {
+    if (answered) return;
+    setSelected(idx);
+    setAnswered(true);
+    if (idx === questions[current].correct) setScore(score + 1);
+  };
+  const nextQ = () => {
+    if (current < questions.length - 1) {
+      setCurrent(current + 1);
+      setSelected(null);
+      setAnswered(false);
+    } else {
+      setFinished(true);
+    }
+  };
+  if (finished) {
+    const pct = Math.round(score / questions.length * 100);
+    const msg = pct >= 80 ? "🎉 ¡Excelente! Dominas los conceptos." : pct >= 50 ? "👍 Buen trabajo. Repasa los temas con puntaje bajo." : "📚 Necesitas repasar. Vuelve a los módulos de teoría.";
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: "center",
+        padding: "40px 20px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 64,
+        marginBottom: 16
+      }
+    }, pct >= 80 ? "🏆" : pct >= 50 ? "⭐" : "📖"), /*#__PURE__*/React.createElement("h2", {
+      style: {
+        fontFamily: fonts.title,
+        color: COLORS.text,
+        fontSize: 28,
+        margin: "0 0 8px"
+      }
+    }, "Quiz Completado"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        color: COLORS.accent,
+        fontSize: 36,
+        fontWeight: 800,
+        fontFamily: fonts.mono,
+        margin: "0 0 8px"
+      }
+    }, score, "/", questions.length, " (", pct, "%)"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        color: COLORS.textDim,
+        fontSize: 15,
+        margin: "0 0 20px"
+      }
+    }, msg), /*#__PURE__*/React.createElement("button", {
+      onClick: () => {
+        setCurrent(0);
+        setSelected(null);
+        setAnswered(false);
+        setScore(0);
+        setFinished(false);
+      },
+      style: {
+        padding: "10px 24px",
+        borderRadius: 10,
+        border: "none",
+        background: COLORS.accent,
+        color: "#000",
+        fontWeight: 700,
+        cursor: "pointer",
+        fontSize: 14
+      }
+    }, "Reintentar Quiz"));
+  }
+  const q = questions[current];
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: fonts.title,
+      color: COLORS.text,
+      fontSize: 24,
+      marginBottom: 6
+    }
+  }, "\uD83C\uDFC6 Quiz Final"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 13
+    }
+  }, "Pregunta ", current + 1, " de ", questions.length), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent,
+      fontFamily: fonts.mono,
+      fontWeight: 700,
+      fontSize: 14
+    }
+  }, "Puntaje: ", score, "/", current + (answered ? 1 : 0))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 4,
+      background: COLORS.border,
+      borderRadius: 2,
+      marginBottom: 20,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: "100%",
+      width: `${(current + (answered ? 1 : 0)) / questions.length * 100}%`,
+      background: `linear-gradient(90deg, ${COLORS.accent}, ${COLORS.accent2})`,
+      borderRadius: 2,
+      transition: "width 0.5s"
+    }
+  })), /*#__PURE__*/React.createElement(Card, {
+    accent: "purple"
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: COLORS.text,
+      fontSize: 16,
+      lineHeight: 1.6,
+      margin: "0 0 18px",
+      fontWeight: 600
+    }
+  }, q.q), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 10
+    }
+  }, q.opts.map((opt, i) => {
+    let bg = COLORS.bg;
+    let border = COLORS.border;
+    let color = COLORS.text;
+    if (answered) {
+      if (i === q.correct) {
+        bg = COLORS.accentDim;
+        border = COLORS.accent;
+        color = COLORS.accent;
+      } else if (i === selected) {
+        bg = COLORS.redDim;
+        border = COLORS.red;
+        color = COLORS.red;
+      }
+    } else if (i === selected) {
+      bg = COLORS.accent2Dim;
+      border = COLORS.accent2;
+    }
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      onClick: () => handleAnswer(i),
+      style: {
+        padding: "12px 16px",
+        borderRadius: 10,
+        border: `1px solid ${border}`,
+        background: bg,
+        cursor: answered ? "default" : "pointer",
+        transition: "all 0.2s",
+        display: "flex",
+        alignItems: "center",
+        gap: 10
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: 26,
+        height: 26,
+        borderRadius: 8,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 12,
+        fontWeight: 700,
+        fontFamily: fonts.mono,
+        background: `${border}33`,
+        color,
+        flexShrink: 0
+      }
+    }, String.fromCharCode(65 + i)), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color,
+        fontSize: 14
+      }
+    }, opt));
+  })), answered && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 16,
+      padding: "12px 16px",
+      borderRadius: 10,
+      background: selected === q.correct ? COLORS.accentDim : COLORS.redDim,
+      border: `1px solid ${selected === q.correct ? COLORS.accent : COLORS.red}33`
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 6px",
+      color: selected === q.correct ? COLORS.accent : COLORS.red,
+      fontWeight: 700,
+      fontSize: 14
+    }
+  }, selected === q.correct ? "✅ ¡Correcto!" : "❌ Incorrecto"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      color: COLORS.text,
+      fontSize: 13,
+      lineHeight: 1.5
+    }
+  }, q.explain)), answered && /*#__PURE__*/React.createElement("button", {
+    onClick: nextQ,
+    style: {
+      marginTop: 14,
+      padding: "8px 22px",
+      borderRadius: 8,
+      border: "none",
+      background: COLORS.accent,
+      color: "#000",
+      fontWeight: 700,
+      cursor: "pointer",
+      fontSize: 13
+    }
+  }, current < questions.length - 1 ? "Siguiente →" : "Ver resultado final")));
+}
+
+// ===== MAIN APP =====
+function App() {
+  const [activeModule, setActiveModule] = useState("home");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const contentRef = useRef(null);
+  useEffect(() => {
+    if (contentRef.current) contentRef.current.scrollTop = 0;
+  }, [activeModule]);
+  const goTo = mod => {
+    setActiveModule(mod);
+    setMenuOpen(false);
+  };
+  const renderModule = () => {
+    switch (activeModule) {
+      case "home":
+        return /*#__PURE__*/React.createElement(HomeModule, {
+          goTo: goTo
+        });
+      case "equiv":
+        return /*#__PURE__*/React.createElement(EquivModule, null);
+      case "notables":
+        return /*#__PURE__*/React.createElement(NotablesModule, null);
+      case "argumento":
+        return /*#__PURE__*/React.createElement(ArgumentoModule, null);
+      case "tablavv":
+        return /*#__PURE__*/React.createElement(TablaVVModule, null);
+      case "indirecto":
+        return /*#__PURE__*/React.createElement(IndirectoModule, null);
+      case "circuitos":
+        return /*#__PURE__*/React.createElement(CircuitosModule, null);
+      case "practica":
+        return /*#__PURE__*/React.createElement(PracticaModule, null);
+      case "quiz":
+        return /*#__PURE__*/React.createElement(QuizModule, null);
+      default:
+        return /*#__PURE__*/React.createElement(HomeModule, {
+          goTo: goTo
+        });
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: fonts.body,
+      background: COLORS.bg,
+      color: COLORS.text,
+      minHeight: "100vh",
+      display: "flex",
+      flexDirection: "column"
+    }
+  }, /*#__PURE__*/React.createElement("link", {
+    href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap",
+    rel: "stylesheet"
+  }), /*#__PURE__*/React.createElement("header", {
+    style: {
+      background: COLORS.card,
+      borderBottom: `1px solid ${COLORS.border}`,
+      padding: "10px 20px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      position: "sticky",
+      top: 0,
+      zIndex: 100
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setMenuOpen(!menuOpen),
+    style: {
+      background: "none",
+      border: "none",
+      color: COLORS.text,
+      fontSize: 22,
+      cursor: "pointer",
+      padding: 4
+    }
+  }, "\u2630"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: fonts.title,
+      fontSize: 16,
+      color: COLORS.accent
+    }
+  }, "Matem\xE1tica Discreta")), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textDim,
+      fontSize: 12
+    }
+  }, "Prof. Jos\xE9 Herrera")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flex: 1,
+      position: "relative"
+    }
+  }, menuOpen && /*#__PURE__*/React.createElement("div", {
+    onClick: () => setMenuOpen(false),
+    style: {
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.5)",
+      zIndex: 50
+    }
+  }), /*#__PURE__*/React.createElement("nav", {
+    style: {
+      position: "fixed",
+      left: menuOpen ? 0 : -280,
+      top: 0,
+      bottom: 0,
+      width: 260,
+      background: COLORS.card,
+      borderRight: `1px solid ${COLORS.border}`,
+      zIndex: 60,
+      transition: "left 0.3s",
+      paddingTop: 60,
+      overflowY: "auto"
+    }
+  }, MODULES.map(m => /*#__PURE__*/React.createElement("div", {
+    key: m.id,
+    onClick: () => goTo(m.id),
+    style: {
+      padding: "12px 20px",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      background: activeModule === m.id ? COLORS.accentDim : "transparent",
+      borderLeft: activeModule === m.id ? `3px solid ${COLORS.accent}` : "3px solid transparent",
+      transition: "all 0.2s"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18
+    }
+  }, m.icon), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      color: activeModule === m.id ? COLORS.accent : COLORS.textDim,
+      fontWeight: activeModule === m.id ? 700 : 400
+    }
+  }, m.label)))), /*#__PURE__*/React.createElement("main", {
+    ref: contentRef,
+    style: {
+      flex: 1,
+      padding: "24px 20px 40px",
+      maxWidth: 820,
+      margin: "0 auto",
+      width: "100%"
+    }
+  }, renderModule(), activeModule !== "home" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      marginTop: 30,
+      paddingTop: 20,
+      borderTop: `1px solid ${COLORS.border}`
+    }
+  }, (() => {
+    const idx = MODULES.findIndex(m => m.id === activeModule);
+    const prev = idx > 0 ? MODULES[idx - 1] : null;
+    const next = idx < MODULES.length - 1 ? MODULES[idx + 1] : null;
+    return /*#__PURE__*/React.createElement(React.Fragment, null, prev ? /*#__PURE__*/React.createElement("button", {
+      onClick: () => goTo(prev.id),
+      style: {
+        padding: "8px 16px",
+        borderRadius: 8,
+        border: `1px solid ${COLORS.border}`,
+        background: "transparent",
+        color: COLORS.textDim,
+        cursor: "pointer",
+        fontSize: 13
+      }
+    }, "\u2190 ", prev.label) : /*#__PURE__*/React.createElement("div", null), next && /*#__PURE__*/React.createElement("button", {
+      onClick: () => goTo(next.id),
+      style: {
+        padding: "8px 16px",
+        borderRadius: 8,
+        border: "none",
+        background: COLORS.accent,
+        color: "#000",
+        fontWeight: 700,
+        cursor: "pointer",
+        fontSize: 13
+      }
+    }, next.label, " \u2192"));
+  })()))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>

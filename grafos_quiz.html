@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Gamificado — Teoría de Grafos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
+body{background:linear-gradient(135deg,#5b49f0 0%,#7d6ff5 100%);min-height:100vh;padding:20px;color:#333}
+.container{max-width:900px;margin:0 auto;background:#fff;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.3);padding:35px;position:relative;overflow:hidden}
+.screen{display:none;animation:fadeIn .4s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes flash-green{0%,100%{background:transparent}50%{background:#d4edda}}
+@keyframes flash-red{0%,100%{background:transparent}50%{background:#f8d7da}}
+@keyframes confetti{0%{transform:translateY(-100vh) rotate(0)}100%{transform:translateY(100vh) rotate(720deg)}}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+h1{color:#5b49f0;font-size:2em;margin-bottom:10px;text-align:center}
+h2{color:#5a4a8a;font-size:1.4em;margin:15px 0 10px}
+.hero-emoji{font-size:4em;text-align:center;display:block;margin:10px 0;animation:bounce 2s infinite}
+.units-list{background:#f0eaff;border-radius:12px;padding:18px;margin:18px 0}
+.units-list .unit{padding:6px 0;font-size:1.05em}
+.commitment{background:#fff8dc;border:2px dashed #d4a017;border-radius:12px;padding:18px;margin:18px 0}
+.commitment label{display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:.95em;line-height:1.5}
+.commitment input{margin-top:4px;width:18px;height:18px;flex-shrink:0;cursor:pointer}
+.privacy{background:#e3f2fd;border-left:4px solid #2196f3;border-radius:8px;padding:14px 18px;margin:18px 0;font-size:.92em;line-height:1.5}
+input[type=text]{width:100%;padding:14px;border:2px solid #ddd;border-radius:10px;font-size:1em;margin:10px 0}
+input[type=text]:focus{outline:none;border-color:#5b49f0}
+.btn-primary{background:linear-gradient(135deg,#5b49f0,#7d6ff5);color:#fff;border:none;padding:15px 35px;border-radius:30px;font-size:1.1em;font-weight:bold;cursor:pointer;transition:.3s;display:block;margin:18px auto;box-shadow:0 4px 15px rgba(102,126,234,.4)}
+.btn-primary:hover:not(:disabled){transform:translateY(-3px);box-shadow:0 6px 20px rgba(102,126,234,.6)}
+.btn-primary:disabled{background:#ccc;cursor:not-allowed;box-shadow:none}
+.btn-secondary{background:#f0eaff;color:#5a4a8a;border:2px solid #5b49f0;padding:10px 22px;border-radius:25px;font-size:.95em;font-weight:bold;cursor:pointer;transition:.2s}
+.btn-secondary:hover{background:#5b49f0;color:#fff}
+.btn-wa{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none;padding:14px 32px;border-radius:30px;font-size:1.05em;font-weight:bold;cursor:pointer;transition:.3s;box-shadow:0 4px 15px rgba(37,211,102,.4);display:inline-flex;align-items:center;gap:10px;margin:8px}
+.btn-wa:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(37,211,102,.6)}
+.quiz-header{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#5b49f0,#7d6ff5);color:#fff;padding:12px 20px;border-radius:12px;margin-bottom:15px;flex-wrap:wrap;gap:10px}
+.quiz-header div{font-size:.95em}
+.quiz-header strong{font-size:1.1em}
+.progress-bar{background:#eee;border-radius:10px;height:10px;overflow:hidden;margin-bottom:15px}
+.progress-fill{background:linear-gradient(90deg,#5b49f0,#7d6ff5);height:100%;transition:width .4s;border-radius:10px}
+.unit-tag{display:inline-block;background:#f0eaff;color:#5a4a8a;padding:5px 12px;border-radius:15px;font-size:.85em;font-weight:bold;margin-bottom:10px}
+.q-text{font-size:1.15em;margin:14px 0;line-height:1.5;color:#222}
+.hint-box{background:#fff8dc;border:2px dashed #d4a017;border-radius:10px;padding:12px 16px;margin:10px 0;font-size:.95em;line-height:1.4}
+.scenario-box{background:#ffe8d6;border-left:4px solid #ff8c42;border-radius:8px;padding:10px 14px;margin:10px 0;font-style:italic;font-size:.95em}
+.premise-box{background:#e3f2fd;border-radius:8px;padding:12px 16px;margin:10px 0;font-family:'Consolas',monospace;white-space:pre;font-size:.95em;color:#0b2a5b}
+.pencil-notice{background:#fff3cd;border:2px solid #ffc107;border-radius:12px;padding:14px 18px;margin:14px 0;text-align:center;font-weight:bold;animation:pop .8s ease}
+.options{display:grid;gap:10px;margin:18px 0}
+.option{background:#f7f8fc;border:2px solid #e0e0e0;border-radius:10px;padding:14px 18px;cursor:pointer;transition:.2s;font-size:1em;text-align:left;line-height:1.4}
+.option:hover:not(:disabled){background:#f0eaff;border-color:#5b49f0;transform:translateX(4px)}
+.option.correct{background:#d4edda;border-color:#28a745;color:#155724;animation:pop .4s}
+.option.wrong{background:#f8d7da;border-color:#dc3545;color:#721c24;animation:shake .4s}
+.option:disabled{cursor:not-allowed}
+.feedback{margin:14px 0;padding:14px 18px;border-radius:10px;font-size:.95em;line-height:1.5;animation:fadeIn .3s}
+.feedback.ok{background:#d4edda;border-left:4px solid #28a745;color:#155724}
+.feedback.no{background:#f8d7da;border-left:4px solid #dc3545;color:#721c24}
+.feedback strong{display:block;margin-bottom:6px;font-size:1.05em}
+.mg-title{text-align:center;color:#5a4a8a;font-size:1.6em;margin-bottom:10px}
+.mg-desc{text-align:center;color:#666;margin-bottom:18px;font-size:.95em;line-height:1.4}
+.mg-stats{display:flex;justify-content:space-around;background:#f0eaff;border-radius:12px;padding:12px;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.mg-stat{text-align:center}
+.mg-stat-val{font-size:1.5em;font-weight:bold;color:#5b49f0}
+.mg-stat-lbl{font-size:.8em;color:#666;text-transform:uppercase}
+.graph-canvas{display:block;margin:14px auto;background:#fafbfd;border:2px solid #e0e0e0;border-radius:12px}
+.vf-buttons{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+.vf-btn{padding:18px;border:none;border-radius:14px;font-size:1.15em;font-weight:bold;cursor:pointer;transition:.2s;color:#fff}
+.vf-btn.v{background:linear-gradient(135deg,#28a745,#1e7e34)}
+.vf-btn.f{background:linear-gradient(135deg,#dc3545,#a71d2a)}
+.vf-btn:hover:not(:disabled){transform:scale(1.04)}
+.vf-btn:disabled{opacity:.5;cursor:not-allowed}
+.classify-card{background:#fff;border:2px solid #e0e0e0;border-radius:14px;padding:22px;text-align:center;margin:14px auto;max-width:520px;font-size:1.1em;animation:fadeIn .3s}
+.classify-icon{font-size:3em;display:block;margin-bottom:8px}
+.classify-buttons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;max-width:520px;margin-left:auto;margin-right:auto}
+.classify-btn{padding:16px;border:none;border-radius:12px;font-size:1.05em;font-weight:bold;cursor:pointer;transition:.2s;color:#fff}
+.classify-btn.a{background:linear-gradient(135deg,#5e72e4,#2c3e90)}
+.classify-btn.b{background:linear-gradient(135deg,#ff8c42,#c44d10)}
+.classify-btn:hover:not(:disabled){transform:scale(1.04)}
+.classify-btn:disabled{opacity:.5;cursor:not-allowed}
+.mst-edges{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:14px 0}
+.mst-edge{background:#fff;border:2px solid #ccc;border-radius:10px;padding:10px 14px;cursor:pointer;font-family:Consolas,monospace;font-size:.95em;transition:.2s;user-select:none}
+.mst-edge:hover{border-color:#5b49f0}
+.mst-edge.on{background:#d4edda;border-color:#28a745;color:#155724}
+.mst-info{background:#f0eaff;border-radius:12px;padding:14px;margin:14px 0;text-align:center;font-size:1.05em}
+.mst-info span{font-weight:bold;color:#5a4a8a}
+.skip-btn{background:#f7f8fc;color:#888;border:1px solid #ccc;padding:8px 18px;border-radius:20px;font-size:.85em;cursor:pointer;float:right;margin-bottom:10px}
+.skip-btn:hover{background:#eee}
+.final-card{background:linear-gradient(135deg,#fff,#f0eaff);border-radius:18px;padding:28px;margin:18px 0;text-align:center;box-shadow:0 4px 20px rgba(102,126,234,.2)}
+.final-card .trophy{font-size:4em;display:block;margin-bottom:10px}
+.final-card .name{font-size:1.5em;font-weight:bold;color:#5a4a8a;margin-bottom:14px}
+.final-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin:18px 0}
+.final-stat{background:#fff;border:2px solid #e0e0e0;border-radius:12px;padding:14px;text-align:center}
+.final-stat-val{font-size:1.8em;font-weight:bold;color:#5b49f0;display:block}
+.final-stat-lbl{font-size:.85em;color:#666;text-transform:uppercase;margin-top:4px}
+.review-box{background:#f7f8fc;border-radius:12px;padding:18px;margin:18px 0}
+.review-unit{padding:10px 0;border-bottom:1px solid #eee;line-height:1.5;font-size:.92em}
+.review-unit:last-child{border-bottom:none}
+.review-unit b{color:#5a4a8a;display:block;margin-bottom:4px}
+.confetti-piece{position:fixed;width:10px;height:10px;top:-20px;animation:confetti 3s linear forwards;z-index:9999;pointer-events:none}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex;animation:fadeIn .3s}
+.modal-content{background:#fff;border-radius:18px;padding:28px;max-width:520px;text-align:center;animation:pop .3s}
+.modal-content h3{color:#5a4a8a;margin-bottom:14px}
+.modal-content p{margin:10px 0;line-height:1.5;text-align:left;font-size:.95em}
+.modal-content .shortcut{background:#f0eaff;padding:6px 10px;border-radius:6px;font-family:Consolas,monospace;display:inline-block;margin:2px 4px;font-size:.9em}
+@media (max-width:600px){
+  body{padding:10px}
+  .container{padding:20px}
+  h1{font-size:1.5em}
+  .hero-emoji{font-size:3em}
+  .quiz-header{font-size:.85em;padding:10px 14px}
+  .option{padding:12px 14px;font-size:.95em}
+  .q-text{font-size:1em}
+}
+</style>
+</head>
+<body>
+<div class="container" id="app">
+
+<!-- ============ START SCREEN ============ -->
+<div class="screen active" id="screen-start">
+  <span class="hero-emoji">🕸️</span>
+  <h1>Quiz Gamificado — Teoría de Grafos</h1>
+  <p style="text-align:center;color:#666;margin-bottom:10px">40 preguntas · 3 minijuegos · 4 unidades</p>
+
+  <div class="units-list">
+    <div class="unit">📘 <b>Unidad 1</b> — Conceptos fundamentales (vértices, aristas, grado)</div>
+    <div class="unit">📗 <b>Unidad 2</b> — Tipos de grafos y propiedades</div>
+    <div class="unit">📙 <b>Unidad 3</b> — Representaciones y algoritmos (BFS, DFS, Dijkstra, MST)</div>
+    <div class="unit">📕 <b>Unidad 4</b> — Aplicaciones y modelado en el mundo real</div>
+  </div>
+
+  <div class="commitment">
+    <label>
+      <input type="checkbox" id="commit-check">
+      <span><b>Compromiso académico:</b> Me comprometo a resolver este quiz con lápiz y papel, sin usar IA, sin buscar respuestas en internet y sin colaborar con compañeros. Sé que la honestidad es parte del aprendizaje.</span>
+    </label>
+  </div>
+
+  <div class="privacy">
+    🔒 <b>Aviso:</b> Al finalizar podrás compartir tus resultados (nombre, puntaje, tiempo y aciertos) por WhatsApp con tu docente. Es opcional.
+  </div>
+
+  <input type="text" id="player-name" placeholder="Escribe tu nombre completo">
+  <button class="btn-primary" id="start-btn" disabled onclick="startQuiz()">Empezar 🚀</button>
+</div>
+
+<!-- ============ QUIZ SCREEN ============ -->
+<div class="screen" id="screen-quiz">
+  <div class="quiz-header">
+    <div>👤 <strong id="hud-name">—</strong></div>
+    <div>⏱️ <strong id="hud-timer">00:00</strong></div>
+    <div>🏆 <strong id="hud-score">0</strong> pts</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="hud-progress" style="width:0%"></div></div>
+  <div id="q-pencil-notice" style="display:none" class="pencil-notice">✏️📝 ¡Hora de agarrar lápiz y papel! No te tientes a usar la IA 🤖🚫</div>
+  <div class="unit-tag" id="q-unit">📘 Unidad 1</div>
+  <div class="q-text" id="q-text"></div>
+  <div id="q-scenario"></div>
+  <div id="q-premise"></div>
+  <div id="q-hint"></div>
+  <div class="options" id="q-options"></div>
+  <div id="q-feedback"></div>
+  <button class="btn-primary" id="q-next" style="display:none" onclick="nextQuestion()">Siguiente ➡️</button>
+</div>
+
+<!-- ============ MINIGAME 1: Inspector de Grafos ============ -->
+<div class="screen" id="screen-mg1">
+  <button class="skip-btn" onclick="skipMinigame(1)">Saltar minijuego ⏭️</button>
+  <h2 class="mg-title">🔍 Minijuego 1 — Inspector de Grafos</h2>
+  <p class="mg-desc">Observa el grafo y decide si la afirmación es <b>Verdadera</b> o <b>Falsa</b>. 10 rondas, +5 pts por acierto.</p>
+  <div class="mg-stats">
+    <div class="mg-stat"><div class="mg-stat-val" id="mg1-round">1</div><div class="mg-stat-lbl">Ronda</div></div>
+    <div class="mg-stat"><div class="mg-stat-val" id="mg1-hits">0</div><div class="mg-stat-lbl">Aciertos</div></div>
+    <div class="mg-stat"><div class="mg-stat-val" id="mg1-pts">0</div><div class="mg-stat-lbl">Puntos</div></div>
+  </div>
+  <div id="mg1-graph" style="text-align:center"></div>
+  <div class="q-text" style="text-align:center;font-weight:bold" id="mg1-q"></div>
+  <div class="vf-buttons">
+    <button class="vf-btn v" onclick="mg1Answer(true)">✓ Verdadero</button>
+    <button class="vf-btn f" onclick="mg1Answer(false)">✗ Falso</button>
+  </div>
+  <div id="mg1-feedback" style="text-align:center;min-height:30px;font-weight:bold"></div>
+</div>
+
+<!-- ============ MINIGAME 2: Clasifica el grafo ============ -->
+<div class="screen" id="screen-mg2">
+  <button class="skip-btn" onclick="skipMinigame(2)">Saltar minijuego ⏭️</button>
+  <h2 class="mg-title">🗂️ Minijuego 2 — Clasifica el grafo</h2>
+  <p class="mg-desc">Cada escenario lo modelamos como un grafo. Decide si es <b>Dirigido</b> o <b>No dirigido</b>. 10 escenarios, 2:00 minutos, +5 pts por acierto.</p>
+  <div class="mg-stats">
+    <div class="mg-stat"><div class="mg-stat-val" id="mg2-round">1</div><div class="mg-stat-lbl">Tarjeta</div></div>
+    <div class="mg-stat"><div class="mg-stat-val" id="mg2-hits">0</div><div class="mg-stat-lbl">Aciertos</div></div>
+    <div class="mg-stat"><div class="mg-stat-val" id="mg2-timer">2:00</div><div class="mg-stat-lbl">Tiempo</div></div>
+  </div>
+  <div class="classify-card" id="mg2-card">
+    <span class="classify-icon" id="mg2-icon">📦</span>
+    <div id="mg2-text">—</div>
+  </div>
+  <div class="classify-buttons">
+    <button class="classify-btn a" onclick="mg2Answer('dir')">➡️ Dirigido</button>
+    <button class="classify-btn b" onclick="mg2Answer('und')">🔄 No dirigido</button>
+  </div>
+  <div id="mg2-feedback" style="text-align:center;min-height:30px;font-weight:bold"></div>
+</div>
+
+<!-- ============ MINIGAME 3: Constructor de MST ============ -->
+<div class="screen" id="screen-mg3">
+  <button class="skip-btn" onclick="skipMinigame(3)">Saltar minijuego ⏭️</button>
+  <h2 class="mg-title">🌲 Minijuego 3 — Constructor de MST</h2>
+  <p class="mg-desc">Selecciona las aristas que forman el <b>Árbol Generador Mínimo</b>. Necesitas n−1 aristas, sin ciclos, con peso total mínimo. +10 pts por nivel.</p>
+  <div class="mg-stats">
+    <div class="mg-stat"><div class="mg-stat-val" id="mg3-level">1</div><div class="mg-stat-lbl">Nivel</div></div>
+    <div class="mg-stat"><div class="mg-stat-val" id="mg3-hits">0</div><div class="mg-stat-lbl">Aciertos</div></div>
+    <div class="mg-stat"><div class="mg-stat-val" id="mg3-pts">0</div><div class="mg-stat-lbl">Puntos</div></div>
+  </div>
+  <div id="mg3-graph" style="text-align:center"></div>
+  <div class="mst-info">
+    Meta: peso total mínimo con <span id="mg3-target-edges">3</span> aristas seleccionadas.
+    Peso actual: <span id="mg3-current-weight">0</span> · Aristas seleccionadas: <span id="mg3-current-count">0</span>
+  </div>
+  <div class="mst-edges" id="mg3-edges"></div>
+  <button class="btn-primary" onclick="mg3Submit()" style="margin:10px auto">Enviar respuesta ✓</button>
+  <div id="mg3-feedback" style="text-align:center;min-height:30px;font-weight:bold"></div>
+</div>
+
+<!-- ============ FINAL SCREEN ============ -->
+<div class="screen" id="screen-final">
+  <div class="final-card" id="final-capture">
+    <span class="trophy" id="final-trophy">🏆</span>
+    <div class="name" id="final-name">—</div>
+    <p style="color:#666">Quiz Teoría de Grafos · Matemática Discreta</p>
+    <div class="final-stats">
+      <div class="final-stat"><span class="final-stat-val" id="final-score">0</span><span class="final-stat-lbl">Puntaje</span></div>
+      <div class="final-stat"><span class="final-stat-val" id="final-hits">0/40</span><span class="final-stat-lbl">Preguntas</span></div>
+      <div class="final-stat"><span class="final-stat-val" id="final-pct">0%</span><span class="final-stat-lbl">Acierto</span></div>
+      <div class="final-stat"><span class="final-stat-val" id="final-time">00:00</span><span class="final-stat-lbl">Tiempo</span></div>
+    </div>
+  </div>
+  <div class="review-box">
+    <h2>📚 Repaso por unidad</h2>
+    <div class="review-unit"><b>📘 Conceptos:</b> G=(V,E). Vértices y aristas, grado deg(v), camino y ciclo, conexidad, árbol (conexo + acíclico), teorema del apretón de manos (Σdeg=2|E|).</div>
+    <div class="review-unit"><b>📗 Tipos:</b> dirigido vs no dirigido, ponderado, completo Kₙ con n(n−1)/2 aristas, bipartito (sin ciclos impares), Euler (todas las aristas, grado par) vs Hamilton (todos los vértices, NP-completo).</div>
+    <div class="review-unit"><b>📙 Repr/Alg:</b> matriz O(n²) vs lista O(n+m), BFS (cola, camino más corto en aristas), DFS (pila, ciclos y orden topológico), Dijkstra (pesos ≥0), Kruskal/Prim (MST).</div>
+    <div class="review-unit"><b>📕 Aplicaciones:</b> 7 puentes de Königsberg (Euler 1736), GPS, redes sociales, PageRank, mallas curriculares (DAG), redes de fibra (MST), TSP (NP-difícil), GNN.</div>
+  </div>
+  <div style="text-align:center;margin-top:20px">
+    <button class="btn-wa" onclick="shareWA()">📲 Compartir por WhatsApp</button>
+    <button class="btn-secondary" onclick="location.reload()">🔁 Jugar de nuevo</button>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- Share Modal -->
+<div class="modal" id="share-modal">
+  <div class="modal-content">
+    <h3>📲 Comparte tu resultado</h3>
+    <p>Tu imagen se descargó a tu carpeta de <b>Descargas</b>. Síguela compartiendo:</p>
+    <p>1. Abre WhatsApp con el botón de abajo</p>
+    <p>2. Elige el chat o contacto del docente</p>
+    <p>3. Adjunta la imagen descargada</p>
+    <p style="margin-top:14px;font-size:.85em;color:#666">📸 También puedes capturar pantalla manualmente:<br>
+      <span class="shortcut">Windows: Win+Shift+S</span>
+      <span class="shortcut">Mac: Cmd+Shift+4</span></p>
+    <button class="btn-wa" id="wa-open">📲 Abrir WhatsApp</button>
+    <button class="btn-secondary" onclick="closeModal()">Cerrar</button>
+  </div>
+</div>
+
+<script>
+// ============== AUDIO ==============
+let audioCtx = null;
+function initAudio(){ if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } }
+function beep(freq, dur, type='sine', vol=0.2){
+  if(!audioCtx) return;
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + dur);
+}
+function playCorrect(){ initAudio(); beep(523,.1,'sine',.2); setTimeout(()=>beep(659,.1,'sine',.2),80); setTimeout(()=>beep(784,.18,'sine',.2),160); }
+function playWrong(){ initAudio(); beep(311,.1,'sawtooth',.18); setTimeout(()=>beep(233,.2,'sawtooth',.18),100); }
+function playClick(){ initAudio(); beep(800,.04,'square',.1); }
+function playVictory(){ initAudio(); [523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.25,'sine',.22),i*180)); }
+
+// ============== QUESTIONS DATA ==============
+const QUESTIONS = [
+// === BLOQUE 1: Conceptos fundamentales ===
+{w:"📘 Unidad 1", t:"🤔 Un grafo G se define formalmente como un par:", o:["G=(N,A) donde N son números y A son áreas","G=(V,E) donde V son vértices y E son aristas","G=(P,L) donde P son puntos y L son líneas","G=(X,Y) donde X e Y son coordenadas"], a:1, exp:"Un grafo es una estructura abstracta formada por un conjunto de vértices V (nodos) y un conjunto de aristas E (edges) que conectan pares de vértices. G=(V,E) es la notación estándar en toda la literatura matemática."},
+{w:"📘 Unidad 1", t:"📐 El grado de un vértice v en un grafo no dirigido es:", o:["La cantidad de vértices del grafo","El número de aristas incidentes en v","La distancia al vértice más lejano","El número total de aristas del grafo"], a:1, exp:"deg(v) cuenta cuántas aristas tocan a v. En grafos dirigidos se distingue deg⁻(v) (entrada) de deg⁺(v) (salida). Un vértice de grado 0 se llama aislado; uno de grado 1, hoja."},
+{w:"📘 Unidad 1", t:"🤝 El teorema del apretón de manos afirma que:", o:["La suma de los grados es 2·|E|","La suma de los grados es |V|","Hay un número par de vértices","Cada vértice toca a todos los demás"], a:0, exp:"Σ deg(v) = 2·|E| porque cada arista contribuye 1 al grado de cada extremo, sumando 2 al total. Corolario importante: el número de vértices con grado impar siempre es par."},
+{w:"📘 Unidad 1", t:"🛤️ Un camino simple entre dos vértices es:", o:["Cualquier secuencia de aristas","Una secuencia de vértices conectados sin repetir vértices","Un recorrido que pasa por todos los vértices","La arista directa entre los extremos"], a:1, exp:"La longitud del camino es el número de aristas que contiene. Si los vértices pueden repetirse pero no las aristas se llama recorrido (walk). Si nada se repite, camino simple (path)."},
+{w:"📘 Unidad 1", t:"🔁 Un ciclo en un grafo es:", o:["Cualquier camino largo","Una arista doble","Un camino que empieza y termina en el mismo vértice sin repetir aristas","Un grafo completo"], a:2, exp:"Un ciclo de longitud 3 forma un triángulo (C₃); de longitud 4, un cuadrilátero (C₄). Los grafos sin ciclos se llaman acíclicos; los conexos y acíclicos son árboles."},
+{w:"📘 Unidad 1", t:"🌐 Un grafo es conexo si:", o:["Tiene muchas aristas","Es un grafo completo","Existe un camino entre todo par de vértices","Todos los vértices tienen el mismo grado"], a:2, exp:"Si no es conexo, se descompone en componentes conexas (subgrafos máximos que sí son conexos). En grafos dirigidos hay además fuertemente conexo (camino dirigido en ambas direcciones) y débilmente conexo."},
+{w:"📘 Unidad 1", t:"🌳 Un árbol es un grafo:", o:["Conexo y sin ciclos","Con muchos vértices","Dirigido y completo","Bipartito"], a:0, exp:"Un árbol con n vértices tiene exactamente n−1 aristas. Otras caracterizaciones equivalentes: (1) conexo con n−1 aristas, (2) acíclico con n−1 aristas, (3) entre cada par de vértices existe un único camino."},
+{w:"📘 Unidad 1", t:"✂️ Un subgrafo H=(V',E') de G=(V,E) cumple:", o:["V'=V y E'=E","V'⊆V y E'⊆E (con E' conectando solo vértices de V')","Tiene más vértices que G","Es siempre un árbol"], a:1, exp:"Un subgrafo inducido por V' incluye todas las aristas de E que conectan vértices de V'. Los subgrafos son útiles para analizar regiones, comunidades o estructuras locales dentro de un grafo grande."},
+{w:"📘 Unidad 1", t:"⚖️ Sea G con V={1,2,3,4} y E={(1,2),(2,3),(3,4),(4,1)}. ¿Cuál es deg(2)?", p:"V = {1, 2, 3, 4}\nE = {(1,2), (2,3), (3,4), (4,1)}", o:["1","2","3","4"], a:1, exp:"El vértice 2 aparece en las aristas (1,2) y (2,3), entonces deg(2)=2. Como verificación: deg(1)=2, deg(3)=2, deg(4)=2 y Σ=8=2·|E|=2·4. ✓ (Es un ciclo C₄.)"},
+{w:"📘 Unidad 1", t:"🎯 En un grafo con 6 vértices todos de grado 3, ¿cuántas aristas hay?", h:"💡 Usa el teorema del apretón de manos: Σdeg(v)=2|E|.", pencil:true, o:["6","12","9","18"], a:2, exp:"Σ deg(v) = 6·3 = 18 = 2·|E| ⟹ |E| = 9. Este tipo de grafo se llama 3-regular (todos los vértices tienen el mismo grado 3). El cubo Q₃ y el grafo de Petersen son ejemplos famosos."},
+
+// === BLOQUE 2: Tipos de grafos ===
+{w:"📗 Unidad 2", t:"➡️ En un grafo dirigido (digrafo):", o:["Las aristas no tienen dirección","Cada arista tiene un origen y un destino: (A,B)≠(B,A)","Es siempre conexo","No puede tener ciclos"], a:1, exp:"Los digrafos modelan relaciones asimétricas: 'A sigue a B en Twitter', 'A es prerrequisito de B', 'la calle A→B es de un solo sentido'. La arista (A,B) es distinta de (B,A) en un digrafo."},
+{w:"📗 Unidad 2", t:"⚖️ Un grafo ponderado tiene:", o:["Más vértices que aristas","Un valor numérico (peso/costo) asociado a cada arista","Vértices con etiquetas","Solo aristas dirigidas"], a:1, exp:"El peso representa distancia, tiempo, costo, capacidad, etc. Algoritmos como Dijkstra, Bellman-Ford, Kruskal y Prim requieren un grafo ponderado para funcionar correctamente."},
+{w:"📗 Unidad 2", t:"⭐ El grafo completo K₅ tiene:", h:"💡 En Kₙ todas los pares están conectados: |E| = n(n−1)/2.", o:["5 aristas","10 aristas","15 aristas","25 aristas"], a:1, exp:"En un grafo completo cada par de vértices está conectado: |E|=C(n,2)=n(n−1)/2. Para K₅: 5·4/2=10. K₅ es famoso porque es el grafo más pequeño que NO es plano (no se puede dibujar sin que las aristas se crucen)."},
+{w:"📗 Unidad 2", t:"⭐ El grafo completo K₇ tiene:", o:["14 aristas","21 aristas","49 aristas","7 aristas"], a:1, exp:"Aplicando 7·6/2=21. Cada uno de los 7 vértices se conecta con los otros 6, pero cada arista se cuenta dos veces, de ahí la división. Sin pista esta vez 😉"},
+{w:"📗 Unidad 2", t:"🎨 Un grafo es bipartito si:", o:["Tiene exactamente 2 aristas","Se puede colorear con 2 colores tal que aristas conecten colores distintos","Tiene 2 componentes conexas","Es plano"], a:1, exp:"V se parte en dos conjuntos disjuntos X, Y y toda arista cruza entre X e Y. Teorema: un grafo es bipartito ↔ no contiene ciclos de longitud impar. Aplicaciones: asignación tareas/personas, sistemas de recomendación, matching."},
+{w:"📗 Unidad 2", t:"🎲 ¿Cuál de los siguientes NO es bipartito?", o:["Un cuadrado C₄","Un cubo Q₃","Un triángulo K₃","Un camino lineal P₅"], a:2, exp:"K₃ es un ciclo de longitud 3 (impar), por lo tanto no es bipartito. Los ciclos pares (C₄, C₆, ...) sí son bipartitos; los impares (C₃, C₅, ...) no. Los árboles siempre son bipartitos."},
+{w:"📗 Unidad 2", t:"🚶 Un ciclo euleriano es un recorrido que:", o:["Visita todos los vértices una vez","Pasa por cada arista exactamente una vez y vuelve al inicio","Es el ciclo más corto","Solo existe en grafos dirigidos"], a:1, exp:"Teorema de Euler (1736): un grafo conexo tiene ciclo euleriano ↔ todos los vértices tienen grado par. Si exactamente dos tienen grado impar, hay un camino euleriano (pero no ciclo). Este teorema resolvió el problema de los 7 puentes de Königsberg."},
+{w:"📗 Unidad 2", t:"🧭 Un ciclo hamiltoniano es un recorrido que:", o:["Pasa por todas las aristas","Visita cada vértice exactamente una vez y vuelve al inicio","Es el camino más corto","Solo existe en árboles"], a:1, exp:"A diferencia del euleriano (aristas), el hamiltoniano se enfoca en vértices. Determinar si un grafo tiene ciclo hamiltoniano es NP-completo: uno de los problemas computacionalmente más difíciles. El TSP es una variante ponderada."},
+{w:"📗 Unidad 2", t:"🪞 En un grafo simple (sin lazos ni aristas múltiples), si |V|=n, el número máximo de aristas es:", o:["n","n²","n(n−1)/2","2n"], a:2, exp:"Es el número de aristas de Kₙ. Un grafo denso tiene |E|≈n²; uno disperso (sparse) tiene |E|≈n. La densidad determina qué representación y algoritmos conviene usar (matriz vs lista de adyacencia)."},
+{w:"📗 Unidad 2", t:"🌲 ¿Cuál de los siguientes es SIEMPRE un árbol?", o:["Cualquier grafo bipartito","Cualquier grafo conexo","Un grafo conexo con n−1 aristas","Un grafo con todos los vértices de grado 2"], a:2, exp:"Conexo + (n−1) aristas ⟹ árbol. Si tuviera n o más aristas habría un ciclo; si tuviera menos no sería conexo. Otra caracterización: entre cada par de vértices hay un único camino."},
+
+// === BLOQUE 3: Representaciones y algoritmos ===
+{w:"📙 Unidad 3", t:"🧮 Para un grafo con n vértices, la matriz de adyacencia ocupa memoria:", pencil:true, o:["O(n)","O(n²)","O(n+m)","O(log n)"], a:1, exp:"La matriz es n×n incluso si hay pocas aristas. Es eficiente para grafos densos (|E|≈n²) o cuando necesitamos consultar rápidamente si existe arista (A,B) — operación O(1). Mala elección para n grande con pocas aristas."},
+{w:"📙 Unidad 3", t:"📋 Para un grafo con n vértices y m aristas, la lista de adyacencia ocupa:", o:["O(n²)","O(n+m)","O(n·m)","O(1)"], a:1, exp:"Cada vértice guarda solo sus vecinos reales. Es la representación estándar para grafos dispersos (lo más común en la práctica). Recorrer los vecinos de v es O(deg(v)); comprobar si existe arista (A,B) es O(deg(A))."},
+{w:"📙 Unidad 3", t:"🔍 Dado el grafo dirigido A→[B,C], B→[D], C→[D], D→[]. La matriz de adyacencia tiene:", h:"💡 Cuenta el número total de aristas dirigidas.", p:"A -> [B, C]\nB -> [D]\nC -> [D]\nD -> [ ]", o:["4 unos","8 unos","16 unos","2 unos"], a:0, exp:"Hay 4 aristas: (A,B), (A,C), (B,D), (C,D). En matriz: M[A][B]=M[A][C]=M[B][D]=M[C][D]=1, el resto 0. Si fuera no dirigido tendríamos 8 unos (cada arista cuenta dos veces, la matriz sería simétrica)."},
+{w:"📙 Unidad 3", t:"🔍 Dado el grafo no dirigido con E={(1,2),(2,3),(3,1)} (triángulo), la matriz de adyacencia tiene:", p:"E = {(1,2), (2,3), (3,1)}", o:["3 unos","6 unos","9 unos","0 unos"], a:1, exp:"Cada arista no dirigida se refleja en ambos sentidos: M[i][j]=M[j][i]=1. Aristas {(1,2),(2,3),(3,1)} ⟹ 6 unos. La matriz de un grafo no dirigido siempre es simétrica respecto a la diagonal."},
+{w:"📙 Unidad 3", t:"🌊 El algoritmo BFS (búsqueda en anchura) usa la estructura:", o:["Pila (LIFO)","Cola (FIFO)","Heap","Diccionario"], a:1, exp:"BFS explora por niveles: primero los vecinos directos, luego los vecinos de los vecinos, etc. Por eso encuentra el camino más corto en número de aristas (sin pesos). Complejidad: O(V+E)."},
+{w:"📙 Unidad 3", t:"🪜 El algoritmo DFS (búsqueda en profundidad) se implementa típicamente con:", o:["Cola (FIFO)","Pila (LIFO) o recursión","Lista ordenada","Tabla hash"], a:1, exp:"DFS profundiza por una rama hasta el fondo antes de retroceder (backtracking). Útil para: detectar ciclos, ordenar topológicamente un DAG, encontrar componentes conexas, resolver laberintos."},
+{w:"📙 Unidad 3", t:"🚗 El algoritmo de Dijkstra resuelve:", o:["Si el grafo es bipartito","Camino más corto desde un origen, con pesos ≥ 0","Árbol generador mínimo","Componentes conexas"], a:1, exp:"Selecciona en cada paso el vértice no visitado de menor distancia y relaja sus aristas. NO funciona con pesos negativos (para eso se usa Bellman-Ford). Complejidad: O((V+E) log V) con cola de prioridad."},
+{w:"📙 Unidad 3", t:"🛣️ Para el grafo con aristas A-B:4, A-C:2, B-C:1, B-D:5, C-D:8, ¿cuál es el camino más corto A→D?", p:"Aristas con pesos:\nA-B : 4    A-C : 2\nB-C : 1    B-D : 5\nC-D : 8", o:["A→B→D (peso 9)","A→C→D (peso 10)","A→C→B→D (peso 8)","A→B→C→D (peso 13)"], a:2, exp:"A→C cuesta 2, C→B cuesta 1, B→D cuesta 5, total 8. Es contraintuitivo pero ese desvío por C-B es óptimo. Dijkstra encuentra estas rutas no obvias automáticamente."},
+{w:"📙 Unidad 3", t:"🌳 El algoritmo de Kruskal construye:", o:["El camino más corto","Un recorrido euleriano","Un árbol generador mínimo (MST)","Un orden topológico"], a:2, exp:"Kruskal ordena las aristas por peso ascendente y las agrega al MST si no forman ciclo (usando estructura union-find). El MST conecta todos los vértices con costo total mínimo y tiene exactamente n−1 aristas."},
+{w:"📙 Unidad 3", t:"📚 El orden topológico se aplica a:", o:["Cualquier grafo","Grafos completos","Árboles","DAGs (grafos dirigidos acíclicos)"], a:3, exp:"Un orden topológico es una linealización del DAG donde cada nodo aparece después de todos sus prerrequisitos. Aplicaciones: planificación de tareas con dependencias, orden de compilación de archivos, malla curricular de cursos."},
+
+// === BLOQUE 4: Aplicaciones ===
+{w:"📕 Unidad 4", t:"🌉 El problema de los 7 puentes de Königsberg fue resuelto por:", o:["Newton en 1700","Euler en 1736","Gauss en 1850","Riemann en 1900"], a:1, exp:"Leonhard Euler demostró que no era posible recorrer los 7 puentes pasando por cada uno una sola vez, porque los 4 nodos del grafo correspondiente tenían grado impar. Este resultado fundó la teoría de grafos como disciplina matemática."},
+{w:"📕 Unidad 4", t:"🗺️ En Google Maps, los vértices y aristas representan típicamente:", o:["Países / fronteras","Intersecciones / segmentos de calle","Usuarios / amistades","Páginas / enlaces"], a:1, exp:"Las intersecciones son nodos, las calles entre intersecciones son aristas ponderadas por distancia o tiempo. Para encontrar la ruta más rápida, Google usa variantes optimizadas de Dijkstra y A* (A-estrella)."},
+{w:"📕 Unidad 4", t:"👥 Para modelar una red social como una red de amistades:", o:["Grafo no dirigido (la amistad es mutua)","Grafo dirigido obligatoriamente","Árbol","Grafo completo"], a:0, exp:"Facebook usa grafo no dirigido (amistad mutua). Instagram y Twitter usan dirigido (follow asimétrico). El análisis de grafos sociales permite detectar comunidades, influencers (alta centralidad) y caminos cortos entre personas (los '6 grados de separación')."},
+{w:"📕 Unidad 4", t:"🔍 El algoritmo PageRank de Google utiliza:", o:["BFS","Kruskal","Iteración sobre el grafo de enlaces web","Orden topológico"], a:2, exp:"PageRank modela la web como un grafo dirigido (páginas → enlaces) y asigna una 'importancia' a cada página basada en cuántas páginas importantes la enlazan. La fórmula es recursiva y se resuelve iterando hasta converger."},
+{w:"📕 Unidad 4", t:"📡 Para tender fibra óptica entre 5 oficinas minimizando costo total, se usa:", o:["Dijkstra","BFS","Árbol generador mínimo (Kruskal o Prim)","Orden topológico"], a:2, exp:"El MST conecta todos los vértices con costo mínimo. Diferencia clave con Dijkstra: Dijkstra optimiza distancia desde UN origen a cada destino; Kruskal/Prim optimizan el costo total de conectar toda la red."},
+{w:"📕 Unidad 4", t:"🎓 Una malla curricular con prerrequisitos se modela como:", o:["Grafo no dirigido","Árbol no dirigido","DAG (grafo dirigido acíclico)","Grafo bipartito"], a:2, exp:"Los cursos son vértices; 'A es prerrequisito de B' se modela como arista dirigida A→B. NO debe haber ciclos (un curso no puede ser prerrequisito de sí mismo). El orden de matrícula corresponde a un orden topológico."},
+{w:"📕 Unidad 4", t:"🚚 El problema del viajante de comercio (TSP) consiste en:", o:["Encontrar el árbol generador mínimo","Encontrar el ciclo hamiltoniano de peso mínimo","Encontrar el camino más corto","Detectar ciclos"], a:1, exp:"TSP busca visitar todas las ciudades exactamente una vez y volver al inicio con costo mínimo. Es NP-difícil: no se conoce algoritmo eficiente exacto para n grande. En la práctica se usan heurísticas (vecino más cercano, 2-opt, algoritmos genéticos)."},
+{w:"📕 Unidad 4", t:"🧬 En bioinformática, los grafos se usan para modelar:", o:["Redes de interacción de proteínas","Ecuaciones diferenciales","Solo árboles filogenéticos","Bases de datos relacionales"], a:0, exp:"Las proteínas son vértices y las interacciones físicas o funcionales son aristas. También se usan grafos para reconstruir genomas (grafos de De Bruijn), modelar redes metabólicas y representar árboles evolutivos."},
+{w:"📕 Unidad 4", t:"🤖 Las Graph Neural Networks (GNN) son:", o:["Redes neuronales tradicionales","Redes neuronales que operan sobre datos estructurados como grafos","Algoritmos clásicos no de IA","Una técnica de SQL"], a:1, exp:"Las GNN aprenden representaciones de los vértices propagando información a través de las aristas. Aplicaciones: predicción de propiedades moleculares, sistemas de recomendación (Pinterest, Uber Eats), detección de fraude, descubrimiento de fármacos."},
+{w:"📕 Unidad 4", t:"🎯 Si modelaras el sistema de transporte público de Lima como un grafo, ¿qué representarían los vértices?", o:["Las rutas","Las estaciones / paraderos","Los pasajeros","Los horarios"], a:1, exp:"Las estaciones son los nodos; las conexiones entre estaciones consecutivas son las aristas; el peso puede ser tiempo de viaje o distancia. Es el mismo modelo que usan apps como Google Maps Transit o Citymapper para sugerir la mejor ruta multimodal."}
+];
+
+// ============== MINIGAME 1 DATA: Inspector de Grafos ==============
+// Each round: {graph definition, question, correct V/F}
+const MG1 = [
+  {nodes:[{l:"A",x:100,y:80},{l:"B",x:240,y:80},{l:"C",x:100,y:200},{l:"D",x:240,y:200}], edges:[[0,1],[0,2],[1,3],[2,3]], q:"¿deg(A) = 2?", ans:true, exp:"deg(A)=2 (vecinos B y C)."},
+  {nodes:[{l:"A",x:100,y:80},{l:"B",x:240,y:80},{l:"C",x:100,y:200},{l:"D",x:240,y:200}], edges:[[0,1],[0,2],[1,3],[2,3]], q:"¿Existe la arista A–D?", ans:false, exp:"No existe arista directa entre A y D, solo a través de B o C."},
+  {nodes:[{l:"1",x:100,y:80},{l:"2",x:240,y:80},{l:"3",x:170,y:200}], edges:[[0,1],[1,2],[0,2]], q:"¿El grafo es completo (K₃)?", ans:true, exp:"Es un triángulo: K₃. Tiene 3·2/2=3 aristas, todos conectados con todos."},
+  {nodes:[{l:"A",x:80,y:140},{l:"B",x:180,y:80},{l:"C",x:280,y:140},{l:"D",x:180,y:200}], edges:[[0,1],[1,2],[2,3],[3,0]], q:"¿El grafo es bipartito?", ans:true, exp:"Sí: V={A,C} y V={B,D}, no hay ciclos de longitud impar (es un C₄)."},
+  {nodes:[{l:"X",x:100,y:80},{l:"Y",x:240,y:80},{l:"Z",x:170,y:200}], edges:[[0,1]], q:"¿El grafo es conexo?", ans:false, exp:"Z está aislado (sin aristas), no es conexo. Tiene 2 componentes."},
+  {nodes:[{l:"1",x:80,y:80},{l:"2",x:200,y:80},{l:"3",x:320,y:80},{l:"4",x:200,y:200}], edges:[[0,1],[1,2],[1,3]], q:"¿Hay un ciclo?", ans:false, exp:"Es un árbol con raíz en 2. Sin ciclos: 4 vértices y 3 aristas (n−1). 1, 3 y 4 son hojas."},
+  {nodes:[{l:"A",x:80,y:140},{l:"B",x:200,y:80},{l:"C",x:320,y:140},{l:"D",x:200,y:200}], edges:[[0,1],[1,2],[2,3],[3,0],[0,2]], q:"¿deg(A) = 3?", ans:true, exp:"deg(A)=3 (vecinos B, D y C por la diagonal)."},
+  {nodes:[{l:"P",x:100,y:80},{l:"Q",x:240,y:80},{l:"R",x:100,y:200},{l:"S",x:240,y:200}], edges:[[0,1],[0,2],[1,3],[2,3],[0,3]], q:"¿Σ deg(v) = 10?", ans:true, exp:"5 aristas ⟹ Σdeg=2·5=10. ✓ (deg(P)=3, deg(Q)=2, deg(R)=2, deg(S)=3)"},
+  {nodes:[{l:"a",x:100,y:80},{l:"b",x:240,y:80},{l:"c",x:170,y:200}], edges:[[0,1],[1,2]], q:"¿Es un árbol?", ans:true, exp:"3 vértices, 2 aristas (n−1), conexo y sin ciclos = árbol (camino P₃)."},
+  {nodes:[{l:"1",x:80,y:80},{l:"2",x:200,y:80},{l:"3",x:320,y:80},{l:"4",x:80,y:200},{l:"5",x:200,y:200},{l:"6",x:320,y:200}], edges:[[0,1],[1,2],[3,4],[4,5]], q:"¿El grafo es conexo?", ans:false, exp:"Hay 2 componentes: {1,2,3} y {4,5,6}. No es conexo."}
+];
+
+// ============== MINIGAME 2 DATA: Clasifica el grafo ==============
+const MG2 = [
+  {ic:"🐦", t:"Red de seguidores en Twitter (A sigue a B)", ans:"dir"},
+  {ic:"👥", t:"Amistades en Facebook (amistad mutua)", ans:"und"},
+  {ic:"🛣️", t:"Calles de un solo sentido en una ciudad", ans:"dir"},
+  {ic:"☎️", t:"Llamadas telefónicas (A llamó a B)", ans:"dir"},
+  {ic:"🚇", t:"Estaciones del metro conectadas por las vías", ans:"und"},
+  {ic:"✈️", t:"Vuelos comerciales programados (origen→destino)", ans:"dir"},
+  {ic:"🤝", t:"Apretones de manos en una reunión", ans:"und"},
+  {ic:"📧", t:"Correos electrónicos enviados (emisor→receptor)", ans:"dir"},
+  {ic:"🗺️", t:"Carreteras con doble sentido entre ciudades", ans:"und"},
+  {ic:"🔗", t:"Enlaces hipertexto entre páginas web", ans:"dir"}
+];
+
+// ============== MINIGAME 3 DATA: MST Builder ==============
+// Each level: nodes + edges with weights + correct subset (indices)
+const MG3 = [
+  {
+    title:"Nivel 1 · 4 vértices, 5 aristas",
+    nodes:[{l:"A",x:80,y:80},{l:"B",x:280,y:80},{l:"C",x:80,y:240},{l:"D",x:280,y:240}],
+    edges:[
+      {from:0,to:1,w:5,id:0},{from:0,to:2,w:2,id:1},{from:1,to:3,w:3,id:2},
+      {from:2,to:3,w:7,id:3},{from:0,to:3,w:8,id:4}
+    ],
+    correct:[0,1,2], // A-B(5) + A-C(2) + B-D(3) = 10
+    targetEdges:3,
+    minWeight:10
+  },
+  {
+    title:"Nivel 2 · 5 vértices, 7 aristas",
+    nodes:[{l:"A",x:80,y:160},{l:"B",x:200,y:60},{l:"C",x:320,y:160},{l:"D",x:200,y:260},{l:"E",x:440,y:160}],
+    edges:[
+      {from:0,to:1,w:3,id:0},{from:1,to:2,w:4,id:1},{from:0,to:3,w:6,id:2},
+      {from:2,to:3,w:2,id:3},{from:2,to:4,w:5,id:4},{from:1,to:3,w:8,id:5},
+      {from:3,to:4,w:9,id:6}
+    ],
+    correct:[0,1,3,4], // A-B(3) + B-C(4) + C-D(2) + C-E(5) = 14
+    targetEdges:4,
+    minWeight:14
+  },
+  {
+    title:"Nivel 3 · 6 vértices, 9 aristas",
+    nodes:[{l:"1",x:80,y:80},{l:"2",x:280,y:60},{l:"3",x:460,y:120},{l:"4",x:120,y:240},{l:"5",x:320,y:260},{l:"6",x:480,y:280}],
+    edges:[
+      {from:0,to:1,w:4,id:0},{from:0,to:3,w:3,id:1},{from:1,to:2,w:5,id:2},
+      {from:1,to:4,w:7,id:3},{from:2,to:5,w:2,id:4},{from:3,to:4,w:6,id:5},
+      {from:4,to:5,w:1,id:6},{from:1,to:3,w:9,id:7},{from:2,to:4,w:8,id:8}
+    ],
+    correct:[1,0,6,4,2], // 1-4(3) + 1-2(4) + 5-6(1) + 3-6(2) + 2-3(5) = 15
+    targetEdges:5,
+    minWeight:15
+  }
+];
+
+// ============== STATE ==============
+let state = {
+  name:"",
+  qIdx:0,
+  score:0,
+  hits:0,
+  startTime:null,
+  pencilShown:false,
+  mg1: {idx:0, hits:0, pts:0, locked:false},
+  mg2: {idx:0, hits:0, timeLeft:120, timer:null, locked:false},
+  mg3: {level:0, selected:new Set(), pts:0, hits:0}
+};
+
+// ============== HELPERS ==============
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function fmtTime(secs){
+  const m = Math.floor(secs/60), s = secs%60;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+// ============== START SCREEN ==============
+function checkReady(){
+  const ok = document.getElementById('commit-check').checked && document.getElementById('player-name').value.trim().length>=2;
+  document.getElementById('start-btn').disabled = !ok;
+}
+document.getElementById('commit-check').addEventListener('change', checkReady);
+document.getElementById('player-name').addEventListener('input', checkReady);
+
+function startQuiz(){
+  initAudio(); playClick();
+  state.name = document.getElementById('player-name').value.trim();
+  state.startTime = Date.now();
+  document.getElementById('hud-name').textContent = state.name;
+  startGlobalTimer();
+  showScreen('screen-quiz');
+  renderQuestion();
+}
+
+function startGlobalTimer(){
+  setInterval(()=>{
+    if(state.startTime){
+      const elapsed = Math.floor((Date.now()-state.startTime)/1000);
+      document.getElementById('hud-timer').textContent = fmtTime(elapsed);
+    }
+  }, 1000);
+}
+
+// ============== QUIZ LOGIC ==============
+function renderQuestion(){
+  const q = QUESTIONS[state.qIdx];
+  document.getElementById('q-unit').textContent = q.w;
+  document.getElementById('q-text').textContent = q.t;
+  document.getElementById('q-scenario').innerHTML = q.s ? `<div class="scenario-box">${q.s}</div>` : '';
+  document.getElementById('q-premise').innerHTML = q.p ? `<div class="premise-box">${q.p}</div>` : '';
+  document.getElementById('q-hint').innerHTML = q.h ? `<div class="hint-box">${q.h}</div>` : '';
+  // Pencil notice on first pencil:true question
+  if(q.pencil && !state.pencilShown){
+    document.getElementById('q-pencil-notice').style.display = 'block';
+    state.pencilShown = true;
+  } else {
+    document.getElementById('q-pencil-notice').style.display = 'none';
+  }
+  // Options
+  const opts = document.getElementById('q-options');
+  opts.innerHTML = '';
+  q.o.forEach((opt, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = `${String.fromCharCode(65+i)}) ${opt}`;
+    btn.onclick = ()=>answerQuestion(i);
+    opts.appendChild(btn);
+  });
+  document.getElementById('q-feedback').innerHTML = '';
+  document.getElementById('q-next').style.display = 'none';
+  // HUD
+  document.getElementById('hud-progress').style.width = `${(state.qIdx/40)*100}%`;
+  document.getElementById('hud-score').textContent = state.score;
+}
+
+function answerQuestion(idx){
+  playClick();
+  const q = QUESTIONS[state.qIdx];
+  const opts = document.querySelectorAll('#q-options .option');
+  opts.forEach((b,i)=>{ b.disabled = true; if(i===q.a) b.classList.add('correct'); });
+  const ok = idx === q.a;
+  if(ok){
+    state.score += 10;
+    state.hits++;
+    playCorrect();
+  } else {
+    opts[idx].classList.add('wrong');
+    playWrong();
+  }
+  document.getElementById('hud-score').textContent = state.score;
+  document.getElementById('q-feedback').innerHTML = `<div class="feedback ${ok?'ok':'no'}"><strong>${ok?'✅ ¡Correcto!':'❌ Incorrecto'}</strong>${q.exp}</div>`;
+  document.getElementById('q-next').style.display = 'block';
+  document.getElementById('q-next').textContent = (state.qIdx===39)?'Ver resultados 🏁':'Siguiente ➡️';
+}
+
+function nextQuestion(){
+  playClick();
+  state.qIdx++;
+  // Trigger minigames at 10, 20, 30
+  if(state.qIdx===10){ startMG1(); return; }
+  if(state.qIdx===20){ startMG2(); return; }
+  if(state.qIdx===30){ startMG3(); return; }
+  if(state.qIdx>=40){ finishQuiz(); return; }
+  renderQuestion();
+}
+
+// ============== MINIGAME 1: Inspector ==============
+function startMG1(){
+  state.mg1 = {idx:0, hits:0, pts:0, locked:false};
+  showScreen('screen-mg1');
+  renderMG1();
+}
+
+function renderMG1(){
+  const round = MG1[state.mg1.idx];
+  document.getElementById('mg1-round').textContent = state.mg1.idx+1;
+  document.getElementById('mg1-hits').textContent = state.mg1.hits;
+  document.getElementById('mg1-pts').textContent = state.mg1.pts;
+  document.getElementById('mg1-q').textContent = round.q;
+  document.getElementById('mg1-feedback').innerHTML = '';
+  document.getElementById('mg1-graph').innerHTML = renderGraphSVG(round.nodes, round.edges, false);
+  state.mg1.locked = false;
+}
+
+function mg1Answer(userYes){
+  if(state.mg1.locked) return;
+  state.mg1.locked = true;
+  playClick();
+  const round = MG1[state.mg1.idx];
+  const ok = userYes === round.ans;
+  if(ok){
+    state.mg1.hits++;
+    state.mg1.pts += 5;
+    state.score += 5;
+    playCorrect();
+    document.getElementById('mg1-feedback').innerHTML = `<span style="color:#28a745">✅ ¡Correcto! ${round.exp}</span>`;
+  } else {
+    playWrong();
+    document.getElementById('mg1-feedback').innerHTML = `<span style="color:#dc3545">❌ Incorrecto. ${round.exp}</span>`;
+  }
+  document.getElementById('mg1-hits').textContent = state.mg1.hits;
+  document.getElementById('mg1-pts').textContent = state.mg1.pts;
+  document.getElementById('hud-score').textContent = state.score;
+  setTimeout(()=>{
+    state.mg1.idx++;
+    if(state.mg1.idx>=MG1.length){
+      showScreen('screen-quiz');
+      renderQuestion();
+    } else {
+      renderMG1();
+    }
+  }, 1700);
+}
+
+// ============== MINIGAME 2: Clasifica ==============
+function startMG2(){
+  state.mg2 = {idx:0, hits:0, timeLeft:120, timer:null, locked:false};
+  showScreen('screen-mg2');
+  renderMG2();
+  state.mg2.timer = setInterval(()=>{
+    state.mg2.timeLeft--;
+    document.getElementById('mg2-timer').textContent = fmtTime(state.mg2.timeLeft);
+    if(state.mg2.timeLeft<=0){
+      clearInterval(state.mg2.timer);
+      endMG2();
+    }
+  }, 1000);
+}
+
+function renderMG2(){
+  const card = MG2[state.mg2.idx];
+  document.getElementById('mg2-round').textContent = state.mg2.idx+1;
+  document.getElementById('mg2-hits').textContent = state.mg2.hits;
+  document.getElementById('mg2-icon').textContent = card.ic;
+  document.getElementById('mg2-text').textContent = card.t;
+  document.getElementById('mg2-feedback').innerHTML = '';
+  state.mg2.locked = false;
+}
+
+function mg2Answer(ans){
+  if(state.mg2.locked) return;
+  state.mg2.locked = true;
+  playClick();
+  const card = MG2[state.mg2.idx];
+  const ok = ans === card.ans;
+  if(ok){
+    state.mg2.hits++;
+    state.score += 5;
+    playCorrect();
+    document.getElementById('mg2-feedback').innerHTML = `<span style="color:#28a745">✅ ¡Correcto!</span>`;
+  } else {
+    playWrong();
+    const correct = card.ans==='dir' ? 'Dirigido' : 'No dirigido';
+    document.getElementById('mg2-feedback').innerHTML = `<span style="color:#dc3545">❌ Era: ${correct}</span>`;
+  }
+  document.getElementById('mg2-hits').textContent = state.mg2.hits;
+  document.getElementById('hud-score').textContent = state.score;
+  setTimeout(()=>{
+    state.mg2.idx++;
+    if(state.mg2.idx>=MG2.length){
+      endMG2();
+    } else {
+      renderMG2();
+    }
+  }, 900);
+}
+
+function endMG2(){
+  if(state.mg2.timer) clearInterval(state.mg2.timer);
+  showScreen('screen-quiz');
+  renderQuestion();
+}
+
+// ============== MINIGAME 3: MST Builder ==============
+function startMG3(){
+  state.mg3 = {level:0, selected:new Set(), pts:0, hits:0};
+  showScreen('screen-mg3');
+  renderMG3();
+}
+
+function renderMG3(){
+  const lvl = MG3[state.mg3.level];
+  state.mg3.selected = new Set();
+  document.getElementById('mg3-level').textContent = state.mg3.level+1;
+  document.getElementById('mg3-hits').textContent = state.mg3.hits;
+  document.getElementById('mg3-pts').textContent = state.mg3.pts;
+  document.getElementById('mg3-target-edges').textContent = lvl.targetEdges;
+  document.getElementById('mg3-feedback').innerHTML = '';
+  document.getElementById('mg3-graph').innerHTML = renderGraphSVG(lvl.nodes, lvl.edges.map(e=>[e.from,e.to,e.w]), false, 540, 320);
+
+  const eContainer = document.getElementById('mg3-edges');
+  eContainer.innerHTML = '';
+  lvl.edges.forEach(e=>{
+    const btn = document.createElement('div');
+    btn.className = 'mst-edge';
+    btn.dataset.id = e.id;
+    btn.innerHTML = `${lvl.nodes[e.from].l}—${lvl.nodes[e.to].l}<br><b>peso ${e.w}</b>`;
+    btn.onclick = ()=>{
+      playClick();
+      if(state.mg3.selected.has(e.id)){
+        state.mg3.selected.delete(e.id);
+        btn.classList.remove('on');
+      } else {
+        state.mg3.selected.add(e.id);
+        btn.classList.add('on');
+      }
+      updateMG3Info();
+    };
+    eContainer.appendChild(btn);
+  });
+  updateMG3Info();
+}
+
+function updateMG3Info(){
+  const lvl = MG3[state.mg3.level];
+  let total = 0;
+  state.mg3.selected.forEach(id=>{
+    const e = lvl.edges.find(x=>x.id===id);
+    if(e) total += e.w;
+  });
+  document.getElementById('mg3-current-weight').textContent = total;
+  document.getElementById('mg3-current-count').textContent = state.mg3.selected.size;
+}
+
+function mg3Submit(){
+  playClick();
+  const lvl = MG3[state.mg3.level];
+  const sel = Array.from(state.mg3.selected).sort((a,b)=>a-b);
+  const correct = [...lvl.correct].sort((a,b)=>a-b);
+  let total = 0;
+  sel.forEach(id=>{ const e = lvl.edges.find(x=>x.id===id); if(e) total += e.w; });
+  const validCount = state.mg3.selected.size === lvl.targetEdges;
+  const validWeight = total === lvl.minWeight;
+  // Accept any subset with correct count AND correct total weight (some MSTs have ties)
+  const ok = validCount && validWeight;
+  if(ok){
+    state.mg3.hits++;
+    state.mg3.pts += 10;
+    state.score += 10;
+    playCorrect();
+    document.getElementById('mg3-feedback').innerHTML = `<span style="color:#28a745">✅ ¡MST correcto! Peso total óptimo: ${total}</span>`;
+  } else {
+    playWrong();
+    let msg = '';
+    if(!validCount) msg = `Necesitas exactamente ${lvl.targetEdges} aristas (tienes ${state.mg3.selected.size}).`;
+    else if(!validWeight) msg = `Peso óptimo: ${lvl.minWeight}, tu peso: ${total}.`;
+    document.getElementById('mg3-feedback').innerHTML = `<span style="color:#dc3545">❌ ${msg}</span>`;
+  }
+  document.getElementById('mg3-hits').textContent = state.mg3.hits;
+  document.getElementById('mg3-pts').textContent = state.mg3.pts;
+  document.getElementById('hud-score').textContent = state.score;
+  setTimeout(()=>{
+    state.mg3.level++;
+    if(state.mg3.level>=MG3.length){
+      showScreen('screen-quiz');
+      renderQuestion();
+    } else {
+      renderMG3();
+    }
+  }, 2200);
+}
+
+// ============== SKIP MINIGAME ==============
+function skipMinigame(n){
+  playClick();
+  if(n===2 && state.mg2.timer) clearInterval(state.mg2.timer);
+  showScreen('screen-quiz');
+  renderQuestion();
+}
+
+// ============== GRAPH SVG RENDERER ==============
+function renderGraphSVG(nodes, edges, directed=false, w=400, h=300){
+  // edges as [[from,to]] or [[from,to,weight]]
+  let svg = `<svg class="graph-canvas" viewBox="0 0 ${w} ${h}" width="${Math.min(w,520)}" height="${Math.min(h,320)}">`;
+  // Draw edges
+  edges.forEach(e=>{
+    const from = nodes[e[0]], to = nodes[e[1]], weight = e[2];
+    const mx = (from.x+to.x)/2, my = (from.y+to.y)/2;
+    svg += `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="#0b2a5b" stroke-width="2.5"/>`;
+    if(weight!==undefined){
+      svg += `<rect x="${mx-15}" y="${my-12}" width="30" height="20" fill="#fff" stroke="#ff8c42" stroke-width="1.5" rx="4"/>`;
+      svg += `<text x="${mx}" y="${my+3}" text-anchor="middle" font-size="13" font-weight="bold" fill="#ff8c42">${weight}</text>`;
+    }
+  });
+  // Draw nodes
+  nodes.forEach(n=>{
+    svg += `<circle cx="${n.x}" cy="${n.y}" r="22" fill="#5b49f0" stroke="#0b2a5b" stroke-width="2.5"/>`;
+    svg += `<text x="${n.x}" y="${n.y+6}" text-anchor="middle" font-size="16" font-weight="bold" fill="#fff">${n.l}</text>`;
+  });
+  svg += '</svg>';
+  return svg;
+}
+
+// ============== FINAL SCREEN ==============
+function finishQuiz(){
+  playVictory();
+  const elapsed = Math.floor((Date.now()-state.startTime)/1000);
+  const pct = Math.round((state.hits/40)*100);
+  document.getElementById('final-name').textContent = state.name;
+  document.getElementById('final-score').textContent = state.score;
+  document.getElementById('final-hits').textContent = `${state.hits}/40`;
+  document.getElementById('final-pct').textContent = `${pct}%`;
+  document.getElementById('final-time').textContent = fmtTime(elapsed);
+
+  let trophy = '📚';
+  if(pct>=90) trophy = '🏆';
+  else if(pct>=75) trophy = '🥇';
+  else if(pct>=60) trophy = '🥈';
+  else if(pct>=40) trophy = '🥉';
+  document.getElementById('final-trophy').textContent = trophy;
+
+  showScreen('screen-final');
+  launchConfetti();
+}
+
+function launchConfetti(){
+  const colors = ['#5b49f0','#7d6ff5','#ff8c42','#25D366','#ffd700','#e91e63'];
+  for(let i=0;i<60;i++){
+    setTimeout(()=>{
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      c.style.left = Math.random()*100+'vw';
+      c.style.background = colors[Math.floor(Math.random()*colors.length)];
+      c.style.animationDuration = (2+Math.random()*2)+'s';
+      c.style.transform = `rotate(${Math.random()*360}deg)`;
+      document.body.appendChild(c);
+      setTimeout(()=>c.remove(),4500);
+    }, i*40);
+  }
+}
+
+// ============== SHARE WHATSAPP ==============
+async function shareWA(){
+  playClick();
+  const elapsed = Math.floor((Date.now()-state.startTime)/1000);
+  const pct = Math.round((state.hits/40)*100);
+  let emoji = '📚';
+  if(pct>=90) emoji = '🏆';
+  else if(pct>=75) emoji = '🥇';
+  else if(pct>=60) emoji = '🥈';
+  else if(pct>=40) emoji = '🥉';
+  const txt = `${emoji} ¡Completé el Quiz de Teoría de Grafos!\n\n👤 ${state.name}\n🎯 Puntaje: ${state.score} pts\n✅ Aciertos: ${state.hits}/40 (${pct}%)\n⏱️ Tiempo: ${fmtTime(elapsed)}\n\nTemas: vértices y aristas, tipos de grafos, BFS/DFS/Dijkstra/Kruskal, aplicaciones.\n\n¿Te animas a probarlo?`;
+
+  try {
+    const canvas = await html2canvas(document.getElementById('final-capture'), {scale:2, backgroundColor:'#ffffff'});
+    const blob = await new Promise(res=>canvas.toBlob(res,'image/png'));
+    const file = new File([blob], 'quiz_grafos.png', {type:'image/png'});
+
+    // Try native share with files (mobile)
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try {
+        await navigator.share({files:[file], text:txt, title:'Resultado Quiz de Grafos'});
+        return;
+      } catch(e){ /* fallback */ }
+    }
+    // Fallback: download + modal
+    const url = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'quiz_grafos.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    document.getElementById('wa-open').onclick = ()=>{
+      window.open('https://wa.me/?text='+encodeURIComponent(txt), '_blank');
+    };
+    document.getElementById('share-modal').classList.add('show');
+  } catch(err){
+    console.error(err);
+    // Last resort: open WhatsApp with text only
+    window.open('https://wa.me/?text='+encodeURIComponent(txt), '_blank');
+  }
+}
+
+function closeModal(){
+  document.getElementById('share-modal').classList.remove('show');
+}
+</script>
+</body>
+</html>
