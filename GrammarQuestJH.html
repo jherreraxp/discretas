@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gramáticas Formales — Objeto de Aprendizaje | Matemática Discreta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#EEEEF7;--card:#FFFFFF;--ink:#17172E;--mut:#6B7080;--bdr:#E3E3EF;
+  --ind:#5B4FE8;--indD:#4338CA;--indL:#EEECFD;
+  --org:#E8930C;--orgD:#B36F05;--orgL:#FBF1DE;
+  --grn:#10B981;--grnD:#067647;--grnL:#E4F7EF;
+  --red:#DC2626;--redL:#FDECEC;
+  --nvy:#17172E;--nvyL:#E8E8F2;
+  --mono:'JetBrains Mono',monospace;--disp:'Space Grotesk',sans-serif;--sans:'Inter',sans-serif;
+}
+body{font-family:var(--sans);color:var(--ink);min-height:100vh;
+  background-color:var(--bg);
+  background-image:radial-gradient(#D6D6E6 1px,transparent 1px);
+  background-size:22px 22px}
+.wrap{max-width:960px;margin:0 auto;padding:1.25rem 1.25rem 3rem}
+
+/* ===== TOPBAR (slim) ===== */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1.4rem;flex-wrap:wrap}
+.brand{font-family:var(--mono);font-size:.74rem;font-weight:700;letter-spacing:1.5px;color:var(--ind);
+  display:flex;align-items:center;gap:8px;cursor:pointer}
+.brand::before{content:'';width:22px;height:2px;background:var(--ind)}
+.hdr-tools{display:flex;gap:8px;align-items:center}
+.xp-pill{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--bdr);
+  border-radius:999px;padding:6px 14px;font-family:var(--mono);font-size:.78rem;font-weight:700;color:var(--org);
+  box-shadow:0 1px 3px rgba(23,23,46,.06)}
+.snd-btn{background:var(--card);border:1px solid var(--bdr);border-radius:999px;padding:6px 12px;
+  cursor:pointer;font-size:.85rem;box-shadow:0 1px 3px rgba(23,23,46,.06);transition:all .15s}
+.snd-btn:hover{border-color:var(--ind)}
+
+/* ===== VIEWS ===== */
+.view{display:none}.view.on{display:block;animation:fin .35s ease}
+@keyframes fin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ===== WELCOME ===== */
+.hero{text-align:center;padding:1.5rem 1rem 1rem}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.66rem;
+  letter-spacing:2px;color:var(--ind);font-weight:700;margin-bottom:.9rem;
+  background:var(--card);border:1px solid var(--bdr);padding:6px 16px;border-radius:999px;
+  box-shadow:0 1px 3px rgba(23,23,46,.05)}
+h1.big{font-family:var(--disp);font-size:2.7rem;font-weight:700;line-height:1.06;letter-spacing:-.5px}
+h1.big em{font-style:normal;color:var(--ind)}
+.hero .sub{color:var(--mut);font-size:.95rem;max-width:540px;line-height:1.7;margin:.9rem auto 0}
+.hero .sub strong{color:var(--ink)}
+.stats{display:flex;gap:2rem;margin:1.4rem 0 .5rem;justify-content:center}
+.stat .n{font-family:var(--disp);font-size:1.55rem;font-weight:700}
+.stat .l{font-family:var(--mono);font-size:.6rem;letter-spacing:1.5px;color:var(--mut)}
+.goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1.4rem 0}
+.goal{background:var(--card);border:1px solid var(--bdr);border-radius:13px;padding:.95rem 1.05rem;
+  display:flex;gap:12px;align-items:flex-start;text-align:left;box-shadow:0 1px 3px rgba(23,23,46,.05)}
+.goal .gi{font-size:1.25rem;line-height:1}
+.goal .gt{font-size:.82rem;font-weight:700;margin-bottom:2px}
+.goal .gd{font-size:.74rem;color:var(--mut);line-height:1.55}
+.how{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:1.1rem 0 1.6rem}
+.how .step{background:var(--card);border:1px solid var(--bdr);border-radius:13px;padding:.9rem;
+  text-align:center;box-shadow:0 1px 3px rgba(23,23,46,.05)}
+.how .sn{font-family:var(--mono);font-size:.62rem;font-weight:700;color:var(--ind);letter-spacing:1.5px;margin-bottom:5px}
+.how .st{font-size:.78rem;color:var(--mut);line-height:1.55}
+.how .st b{color:var(--ink)}
+.cta-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:.5rem}
+.btn{padding:9px 18px;border-radius:10px;border:none;font-family:var(--sans);font-size:.85rem;
+  font-weight:600;cursor:pointer;transition:all .15s}
+.btn-big{padding:13px 30px;font-size:.95rem;border-radius:12px;font-family:var(--disp);font-weight:700;letter-spacing:.2px}
+.btn-pri{background:var(--ind);color:#fff;box-shadow:0 4px 14px rgba(91,79,232,.3)}
+.btn-pri:hover{background:var(--indD);transform:translateY(-2px)}
+.btn-ghost{background:var(--card);color:var(--mut);border:1px solid var(--bdr)}
+.btn-ghost:hover{color:var(--ink);border-color:var(--ink)}
+.btn-grn{background:var(--grn);color:#fff}.btn-grn:hover{background:var(--grnD)}
+
+/* ===== SECTION HEADINGS ===== */
+.sec-h{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--bdr);
+  padding-bottom:.6rem;margin:1.6rem 0 1rem}
+.sec-h .num{font-family:var(--mono);font-size:.8rem;color:var(--ind);font-weight:700}
+.sec-h .t{font-family:var(--disp);font-size:1.15rem;font-weight:700}
+.sec-h .r{margin-left:auto;font-family:var(--mono);font-size:.66rem;color:var(--mut)}
+
+/* ===== RUTA (dashboard) ===== */
+.route-head{font-family:var(--disp);font-size:1.5rem;font-weight:700;margin-bottom:.3rem}
+.route-sub{color:var(--mut);font-size:.85rem;margin-bottom:.4rem}
+.rbar{height:8px;background:#DEDEEC;border-radius:5px;margin:0.8rem 0 1.4rem;overflow:hidden}
+.rfill{height:100%;background:linear-gradient(90deg,var(--ind),var(--grn));border-radius:5px;transition:width .5s}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.panel{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:1.1rem 1.2rem;
+  border-left:4px solid var(--ind);cursor:pointer;transition:all .18s;position:relative;
+  box-shadow:0 1px 3px rgba(23,23,46,.06)}
+.panel:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(23,23,46,.1)}
+.panel.pgrn{border-left-color:var(--grn)}.panel.pind{border-left-color:var(--ind)}
+.panel.porg{border-left-color:var(--org)}.panel.pnvy{border-left-color:var(--nvy)}
+.pill{display:inline-block;font-family:var(--mono);font-size:.6rem;font-weight:700;letter-spacing:1px;
+  padding:3px 10px;border-radius:999px;margin-bottom:.55rem}
+.pill.grn{background:var(--grnL);color:var(--grnD)}
+.pill.ind{background:var(--indL);color:var(--indD)}
+.pill.org{background:var(--orgL);color:var(--orgD)}
+.pill.nvy{background:var(--nvyL);color:var(--nvy)}
+.panel h3{font-family:var(--disp);font-size:1.05rem;font-weight:700;margin-bottom:3px}
+.panel .pd{font-size:.78rem;color:var(--mut);line-height:1.55;margin-bottom:.7rem}
+.panel .meta{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.64rem;color:var(--mut)}
+.panel .prog{margin-left:auto;font-weight:700}
+.panel .prog.full{color:var(--grnD)}
+.panel .go{margin-top:.7rem;font-family:var(--mono);font-size:.72rem;font-weight:700;color:var(--ind)}
+.panel .done-badge{position:absolute;top:12px;right:14px;font-size:1rem}
+
+/* ===== CONVENTION / DEF ===== */
+.conv{background:var(--card);border:1px solid var(--bdr);border-left:4px solid var(--org);
+  border-radius:12px;padding:.8rem 1rem;font-size:.8rem;color:var(--mut);line-height:1.65;
+  box-shadow:0 1px 3px rgba(23,23,46,.05);margin-bottom:1rem}
+.conv strong{color:var(--ink)}
+.def-row{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:.5rem}
+.def-mini{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:.7rem .8rem;
+  box-shadow:0 1px 3px rgba(23,23,46,.05)}
+.def-mini .ltr{font-family:var(--mono);font-size:1.05rem;font-weight:700;color:var(--ind)}
+.def-mini .dl{font-size:.72rem;font-weight:600;margin:1px 0 2px}
+.def-mini .dd{font-size:.66rem;color:var(--mut);line-height:1.45}
+
+/* ===== LEVEL VIEW ===== */
+.back{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.7rem;
+  font-weight:700;color:var(--ind);text-decoration:none;cursor:pointer;margin-bottom:1rem;
+  background:var(--card);border:1px solid var(--bdr);padding:6px 13px;border-radius:999px;
+  box-shadow:0 1px 3px rgba(23,23,46,.05);transition:all .15s}
+.back:hover{border-color:var(--ind)}
+.moti{background:linear-gradient(135deg,var(--indL),var(--card));border:1px solid var(--bdr);
+  border-left:4px solid var(--ind);border-radius:13px;padding:.95rem 1.15rem;margin-bottom:1rem;
+  box-shadow:0 1px 3px rgba(23,23,46,.05)}
+.moti .mq{font-family:var(--disp);font-size:.95rem;font-weight:600;line-height:1.5;color:var(--ink)}
+.moti .ma{font-family:var(--mono);font-size:.64rem;color:var(--mut);margin-top:5px;letter-spacing:.5px}
+.lvl-head{display:flex;align-items:center;gap:14px;margin-bottom:1rem;flex-wrap:wrap}
+.lvl-num{font-family:var(--disp);font-size:2.5rem;font-weight:700;line-height:1;opacity:.14}
+.lvl-head h2{font-family:var(--disp);font-size:1.4rem;font-weight:700}
+.lvl-head .at{margin-left:auto}
+.theory-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:1rem}
+.tcard{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:.75rem .85rem;
+  box-shadow:0 1px 3px rgba(23,23,46,.05)}
+.tcard h5{font-family:var(--mono);font-size:.58rem;letter-spacing:1px;color:var(--mut);margin-bottom:5px;text-transform:uppercase}
+.tcard .tv{font-size:.75rem;line-height:1.55}
+.tcard .tv code{font-family:var(--mono);font-size:.7rem;background:var(--indL);color:var(--indD);
+  padding:1px 5px;border-radius:4px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.chip{font-family:var(--mono);font-size:.66rem;font-weight:700;padding:5px 12px;border-radius:999px;
+  border:1.5px solid var(--bdr);background:var(--card);cursor:pointer;color:var(--mut);transition:all .13s}
+.chip:hover{border-color:var(--ind);color:var(--ind)}
+.chip.cur{border-color:var(--ind);background:var(--indL);color:var(--indD)}
+.chip.ok{border-color:var(--grn);background:var(--grnL);color:var(--grnD)}
+
+/* ===== SIMULATOR ===== */
+.sim-grid{display:grid;grid-template-columns:240px 1fr;gap:12px}
+.wcard{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:1rem;
+  box-shadow:0 1px 3px rgba(23,23,46,.06)}
+.ref-panel h4{font-family:var(--mono);font-size:.6rem;letter-spacing:1px;color:var(--mut);margin-bottom:9px;text-transform:uppercase}
+.ref-sec{margin-bottom:9px}
+.ref-lbl{font-size:.66rem;color:var(--mut);margin-bottom:4px;font-weight:600}
+.ref-toks{display:flex;flex-wrap:wrap;gap:3px}
+#rp{max-height:170px;overflow-y:auto}
+.ref-rule{font-family:var(--mono);font-size:.72rem;color:var(--mut);padding:1px 0}
+.ref-rule .rv{color:var(--indD);font-weight:700}.ref-rule .rt{color:var(--grnD)}.ref-rule .ra{color:var(--org)}
+.pv{display:inline-flex;padding:2px 8px;border-radius:5px;background:var(--indL);color:var(--indD);
+  border:1px solid var(--ind);font-family:var(--mono);font-size:.76rem;font-weight:700}
+.pt{display:inline-flex;padding:2px 8px;border-radius:5px;background:var(--grnL);color:var(--grnD);
+  border:1px solid var(--grn);font-family:var(--mono);font-size:.76rem}
+.legend{font-size:.64rem;color:var(--mut);line-height:1.9;border-top:1px solid var(--bdr);padding-top:9px;margin-top:9px}
+.sim-main{display:flex;flex-direction:column;gap:9px}
+.tgt-bar{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:8px 12px;
+  display:flex;align-items:center;gap:9px;font-size:.8rem;flex-wrap:wrap;box-shadow:0 1px 3px rgba(23,23,46,.05)}
+.tgt-lbl{color:var(--mut);font-size:.72rem;font-weight:600}
+.tgt-val{font-family:var(--mono);font-weight:700;color:var(--orgD)}
+.tgt-hint{font-size:.66rem;color:var(--mut);margin-left:auto}
+.instruct{font-size:.72rem;color:var(--mut)}
+.form-box{background:var(--card);border:2px solid var(--bdr);border-radius:14px;padding:1.15rem;
+  min-height:78px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:7px;
+  transition:border-color .3s;box-shadow:0 1px 3px rgba(23,23,46,.05)}
+.form-box.ok{border-color:var(--grn)}.form-box.err{border-color:var(--red)}
+.tok{display:inline-flex;padding:6px 12px;border-radius:8px;font-family:var(--mono);font-weight:700;
+  font-size:.86rem;animation:tin .24s ease-out}
+@keyframes tin{from{opacity:0;transform:scale(.5) translateY(-8px)}to{opacity:1;transform:none}}
+.tok.vt{background:var(--indL);color:var(--indD);border:2px solid var(--ind);cursor:pointer;
+  animation:tin .24s ease-out,vp 2s .5s infinite}
+@keyframes vp{0%,100%{box-shadow:0 0 0 0 rgba(91,79,232,.3)}50%{box-shadow:0 0 0 6px rgba(91,79,232,0)}}
+.tok.vt:hover{background:var(--ind);color:#fff;transform:scale(1.06)}
+.tok.ct{background:var(--grnL);color:var(--grnD);border:2px solid var(--org);cursor:pointer;
+  animation:tin .24s ease-out,ap 2s .5s infinite}
+@keyframes ap{0%,100%{box-shadow:0 0 0 0 rgba(232,147,12,.35)}50%{box-shadow:0 0 0 6px rgba(232,147,12,0)}}
+.tok.ct:hover{background:var(--org);color:#fff;transform:scale(1.06)}
+.tok.vd{background:var(--indL);color:var(--indD);border:2px dashed var(--bdr);opacity:.5}
+.tok.tt{background:var(--grnL);color:var(--grnD);border:2px solid var(--grn)}
+.tok.et{background:var(--bg);color:var(--mut);border:2px dashed var(--bdr);font-style:italic}
+.rule-picker{background:var(--indL);border:1px solid var(--ind);border-radius:12px;padding:.9rem;display:none}
+.rule-picker.on{display:block}
+.rule-picker h5{font-family:var(--mono);font-size:.7rem;color:var(--indD);margin-bottom:7px;font-weight:700}
+.ropts{display:flex;flex-direction:column;gap:5px}
+.ropt{padding:8px 12px;background:var(--card);border:1px solid var(--bdr);border-radius:8px;
+  font-family:var(--mono);font-size:.78rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .12s}
+.ropt:hover{border-color:var(--ind);color:var(--indD);background:#F7F6FE}
+.ropt small{color:var(--mut);font-size:.64rem}
+.trace-box{max-height:150px;overflow-y:auto}
+.trace-box h5{font-family:var(--mono);font-size:.6rem;letter-spacing:1px;color:var(--mut);margin-bottom:7px;text-transform:uppercase}
+.tstep{display:flex;align-items:center;gap:7px;padding:3px 0;font-family:var(--mono);font-size:.72rem;border-bottom:1px solid var(--bdr)}
+.tstep:last-child{border-bottom:none}
+.tn{color:var(--mut);min-width:18px}.tv-c{color:var(--indD);font-weight:700}.tt-c{color:var(--grnD)}
+.tr-c{color:var(--orgD);margin-left:auto;white-space:nowrap;padding-left:8px;font-size:.66rem}
+.win-box{background:var(--grnL);border:1px solid var(--grn);border-radius:12px;padding:.95rem;text-align:center;display:none}
+.win-box.on{display:block}
+.win-box p{font-size:.86rem;font-weight:700;color:var(--grnD);margin-bottom:3px}
+.xpg{font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--orgD);margin-bottom:.5rem}
+.warn-box{background:var(--redL);border:1px solid var(--red);border-radius:12px;padding:.8rem;
+  text-align:center;display:none;font-size:.76rem;color:var(--red);line-height:1.5}
+.warn-box.on{display:block}
+.lvl-done{background:linear-gradient(135deg,var(--indL),var(--grnL));border:1px solid var(--ind);
+  border-radius:14px;padding:1.1rem;text-align:center;display:none;margin-top:9px}
+.lvl-done.on{display:block}
+.lvl-done .big{font-family:var(--disp);font-size:1.1rem;font-weight:700;color:var(--indD)}
+.lvl-done .sm{font-size:.76rem;color:var(--mut);margin-top:3px}
+.ctrl{display:flex;gap:7px;flex-wrap:wrap}
+.autonote{display:none;font-family:var(--mono);font-size:.62rem;color:var(--mut);margin-left:10px}
+.autonote.on{display:inline}
+
+/* ===== QUIZ ===== */
+.qprog{height:5px;background:#DEDEEC;border-radius:3px;margin-bottom:1rem;overflow:hidden}
+.qpfil{height:100%;background:linear-gradient(90deg,var(--ind),var(--grn));border-radius:3px;transition:width .4s}
+.qmeta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.68rem;color:var(--mut);margin-bottom:.9rem}
+.qcard{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:1.4rem;
+  box-shadow:0 1px 3px rgba(23,23,46,.06)}
+.qtext{font-size:.95rem;font-weight:600;line-height:1.55;margin-bottom:3px}
+.qctx{font-family:var(--mono);font-size:.78rem;background:var(--orgL);color:var(--orgD);
+  padding:5px 11px;border-radius:7px;margin:7px 0;display:inline-block}
+.qopts{display:flex;flex-direction:column;gap:6px;margin-top:11px}
+.qopt{padding:10px 13px;background:#FAFAFE;border:1.5px solid var(--bdr);border-radius:9px;
+  font-size:.85rem;cursor:pointer;text-align:left;font-family:var(--sans);color:var(--ink);transition:all .12s}
+.qopt:hover:not(:disabled){border-color:var(--ind);background:var(--indL)}
+.qopt.cor{border-color:var(--grn);background:var(--grnL);color:var(--grnD);font-weight:600}
+.qopt.wrn{border-color:var(--red);background:var(--redL);color:var(--red)}
+.qopt:disabled{cursor:default}
+.qfb{margin-top:10px;padding:10px 13px;border-radius:9px;font-size:.83rem;line-height:1.55;display:none}
+.qfb.ok{background:var(--grnL);border:1px solid var(--grn);color:var(--grnD);display:block}
+.qfb.bad{background:var(--redL);border:1px solid var(--red);color:var(--red);display:block}
+.nxt{display:none;margin-top:11px}.nxt.on{display:inline-block}
+.final{text-align:center;padding:2.2rem 1rem;display:none}.final.on{display:block}
+.sring{width:106px;height:106px;border-radius:50%;border:4px solid var(--ind);display:flex;align-items:center;
+  justify-content:center;margin:0 auto 1.1rem;font-family:var(--mono);font-size:1.5rem;font-weight:700;
+  color:var(--indD);background:var(--indL)}
+.stit{font-family:var(--disp);font-size:1.35rem;font-weight:700;margin-bottom:5px}
+.ssub{font-size:.85rem;color:var(--mut);margin-bottom:1.3rem}
+.badges{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin-bottom:1.3rem}
+.badge{padding:5px 14px;border-radius:999px;font-size:.76rem;font-weight:600;border:1px solid}
+.bg-b{background:var(--orgL);color:var(--orgD);border-color:var(--org)}
+.bs-b{background:var(--nvyL);color:var(--nvy);border-color:#C9C9DC}
+.bp-b{background:var(--indL);color:var(--indD);border-color:var(--ind)}
+
+/* ===== REFERENCES / FOOTER ===== */
+.refs{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:1.2rem 1.4rem;
+  box-shadow:0 1px 3px rgba(23,23,46,.05)}
+.refs ol{margin-left:1.1rem}
+.refs li{font-size:.78rem;color:var(--mut);line-height:1.65;margin-bottom:.55rem}
+.refs li em{color:var(--ink);font-style:italic}
+footer{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--bdr);display:flex;
+  justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+footer .cr{font-size:.72rem;color:var(--mut)}
+footer .cr strong{color:var(--ink)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#CFCFE2;border-radius:3px}
+@media(max-width:680px){
+  .panels{grid-template-columns:1fr}.def-row{grid-template-columns:1fr 1fr}
+  .goal-grid{grid-template-columns:1fr}.how{grid-template-columns:1fr}
+  .theory-row{grid-template-columns:1fr}.sim-grid{grid-template-columns:1fr}
+  h1.big{font-size:1.9rem}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="topbar">
+  <span class="brand" onclick="goWelcome()">GRAMÁTICAS FORMALES</span>
+  <div class="hdr-tools">
+    <div class="xp-pill">⭐ <span id="xpv">0</span> XP</div>
+    <button class="snd-btn" id="sndb" onclick="toggleSnd()" title="Activar / silenciar sonidos">🔊</button>
+  </div>
+</div>
+
+<!-- ================= BIENVENIDA ================= -->
+<div id="v-welcome" class="view on">
+  <div class="hero">
+    <span class="eyebrow">OBJETO DE APRENDIZAJE · MATEMÁTICA DISCRETA</span>
+    <h1 class="big">El lenguaje secreto de<br>las <em>computadoras</em>.</h1>
+    <p class="sub">Cada vez que tu celular valida un correo, tu navegador dibuja una página o Python entiende tu código, hay una <strong>gramática formal</strong> trabajando. Hoy vas a aprender a construirlas y usarlas — <strong>jugando</strong>.</p>
+    <div class="stats">
+      <div class="stat"><div class="n">4</div><div class="l">NIVELES</div></div>
+      <div class="stat"><div class="n">11</div><div class="l">RETOS</div></div>
+      <div class="stat"><div class="n">1</div><div class="l">QUIZ FINAL</div></div>
+    </div>
+  </div>
+
+  <div class="sec-h"><span class="num">◆</span><span class="t">¿Qué lograrás?</span></div>
+  <div class="goal-grid">
+    <div class="goal"><span class="gi">🧩</span><div><div class="gt">Construir derivaciones paso a paso</div><div class="gd">Aplicarás producciones con clics hasta generar la cadena meta, como lo hace un compilador.</div></div></div>
+    <div class="goal"><span class="gi">🗺</span><div><div class="gt">Distinguir los 4 tipos de gramáticas</div><div class="gd">Identificarás la jerarquía de Chomsky: regular, libre de contexto, sensible al contexto y sin restricciones.</div></div></div>
+    <div class="goal"><span class="gi">🤖</span><div><div class="gt">Conectar gramáticas con autómatas</div><div class="gd">Verás qué máquina reconoce cada tipo: del autómata finito hasta la Máquina de Turing.</div></div></div>
+    <div class="goal"><span class="gi">🌍</span><div><div class="gt">Reconocerlas en el mundo real</div><div class="gd">Correos, HTML, oraciones en español, código if/else… las gramáticas están en todas partes.</div></div></div>
+  </div>
+
+  <div class="sec-h"><span class="num">◆</span><span class="t">¿Cómo funciona?</span></div>
+  <div class="how">
+    <div class="step"><div class="sn">PASO 1</div><div class="st"><b>Explora</b> la teoría breve de cada nivel: forma de las reglas y ejemplos reales.</div></div>
+    <div class="step"><div class="sn">PASO 2</div><div class="st"><b>Deriva</b> la cadena meta haciendo clic en los símbolos resaltados. Cada acierto suena 🎵 y suma XP.</div></div>
+    <div class="step"><div class="sn">PASO 3</div><div class="st"><b>Avanza</b> automáticamente al completar cada reto y demuestra todo en el quiz final.</div></div>
+  </div>
+
+  <div class="cta-row">
+    <button class="btn btn-pri btn-big" id="startBtn" onclick="startJourney()">🚀 Comenzar mi ruta</button>
+    <button class="btn btn-ghost" onclick="goHome()">Ver mi ruta completa</button>
+  </div>
+</div>
+
+<!-- ================= MI RUTA (dashboard) ================= -->
+<div id="v-home" class="view">
+  <a class="back" onclick="goWelcome()">← Portada</a>
+  <div class="route-head">Mi ruta de aprendizaje</div>
+  <div class="route-sub">Completa los retos de cada nivel a tu ritmo. Puedes entrar a cualquiera y repetirlos las veces que quieras.</div>
+  <div class="rbar"><div class="rfill" id="rfill" style="width:0%"></div></div>
+
+  <div class="conv">
+    <strong>Convención de notación:</strong> los símbolos en <strong>MAYÚSCULA</strong> son
+    <span class="pv" style="font-size:.66rem;padding:1px 6px">no terminales</span> (variables que se expanden)
+    y los símbolos en <strong>minúscula</strong> son
+    <span class="pt" style="font-size:.66rem;padding:1px 6px">terminales</span> (alfabeto final).
+    Toda gramática se define como G = (V, T, P, S).
+  </div>
+  <div class="def-row">
+    <div class="def-mini"><div class="ltr">V</div><div class="dl">Variables</div><div class="dd">No terminales. Se expanden con reglas.</div></div>
+    <div class="def-mini"><div class="ltr">T</div><div class="dl">Terminales</div><div class="dd">Símbolos finales. V ∩ T = ∅.</div></div>
+    <div class="def-mini"><div class="ltr">P</div><div class="dl">Producciones</div><div class="dd">Reglas α → β de reemplazo.</div></div>
+    <div class="def-mini"><div class="ltr">S</div><div class="dl">Símbolo inicial</div><div class="dd">Punto de partida. S ∈ V.</div></div>
+  </div>
+
+  <div class="sec-h"><span class="num">01</span><span class="t">Niveles</span><span class="r" id="hprog">0 / 11 retos</span></div>
+  <div class="panels" id="panels"></div>
+
+  <div class="sec-h"><span class="num">02</span><span class="t">Evaluación final</span><span class="r">10 preguntas</span></div>
+  <div class="panels">
+    <div class="panel pind" onclick="startQuiz()" style="grid-column:1/-1">
+      <span class="pill grn">QUIZ</span>
+      <h3>Quiz de la jerarquía de Chomsky</h3>
+      <p class="pd">Demuestra lo aprendido: tipos de gramáticas, autómatas, reglas de contexto y contención de lenguajes. Con retroalimentación explicada.</p>
+      <div class="meta"><span>🎯 10 preguntas</span><span>⭐ hasta 220 XP</span><span class="prog" id="qbest"></span></div>
+      <div class="go">Comenzar quiz →</div>
+    </div>
+  </div>
+
+  <div class="sec-h"><span class="num">03</span><span class="t">Referencias</span><span class="r">APA 7.ª ed.</span></div>
+  <div class="refs">
+    <ol>
+      <li>Chomsky, N. (1956). Three models for the description of language. <em>IRE Transactions on Information Theory, 2</em>(3), 113–124. https://doi.org/10.1109/TIT.1956.1056813</li>
+      <li>Hopcroft, J. E., Motwani, R., &amp; Ullman, J. D. (2007). <em>Introduction to automata theory, languages, and computation</em> (3.ª ed.). Pearson Addison-Wesley.</li>
+      <li>Sipser, M. (2013). <em>Introduction to the theory of computation</em> (3.ª ed.). Cengage Learning.</li>
+      <li>Kelley, D. (1995). <em>Teoría de autómatas y lenguajes formales</em>. Prentice Hall Hispanoamericana.</li>
+      <li>Rosen, K. H. (2019). <em>Discrete mathematics and its applications</em> (8.ª ed.). McGraw-Hill Education.</li>
+    </ol>
+  </div>
+
+  <footer>
+    <div class="cr">Recurso interactivo del curso · <strong>Dr. José Herrera Quispe</strong> · Matemática Discreta</div>
+    <button class="btn btn-ghost" onclick="resetAll()">↺ Reiniciar progreso</button>
+  </footer>
+</div>
+
+<!-- ================= NIVEL ================= -->
+<div id="v-lvl" class="view">
+  <a class="back" onclick="goHome()">← Mi ruta</a>
+  <div class="moti"><div class="mq" id="mq"></div><div class="ma" id="ma"></div></div>
+  <div class="lvl-head">
+    <span class="lvl-num" id="lnum">1</span>
+    <div>
+      <span class="pill" id="lpill">NIVEL 1</span>
+      <h2 id="ltitle">Regular</h2>
+    </div>
+    <span class="pill nvy at" id="lauto">DFA / NFA</span>
+  </div>
+  <div class="theory-row">
+    <div class="tcard"><h5>Forma de las reglas</h5><div class="tv" id="tforma"></div></div>
+    <div class="tcard"><h5>Poder / memoria</h5><div class="tv" id="tpoder"></div></div>
+    <div class="tcard"><h5>Usos reales</h5><div class="tv" id="tusos"></div></div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="sim-grid">
+    <div class="wcard ref-panel">
+      <h4>📋 Gramática activa</h4>
+      <div class="ref-sec"><div class="ref-lbl">Variables (V)</div><div class="ref-toks" id="rv"></div></div>
+      <div class="ref-sec"><div class="ref-lbl">Terminales (T)</div><div class="ref-toks" id="rt"></div></div>
+      <div class="ref-sec"><div class="ref-lbl">Producciones (P)</div><div id="rp"></div></div>
+      <div class="ref-sec"><div class="ref-lbl">Símbolo inicial (S)</div><div style="margin-top:4px"><span class="pv" id="rs">S</span></div></div>
+      <div class="legend">
+        <span class="pv" style="font-size:.58rem;padding:1px 5px">A</span> no terminal expandible<br>
+        <span style="display:inline-flex;padding:1px 5px;border-radius:4px;background:var(--grnL);color:var(--grnD);border:1px solid var(--org);font-family:var(--mono);font-size:.58rem">a</span> terminal en regla de contexto<br>
+        <span class="pt" style="font-size:.58rem;padding:1px 5px">a</span> terminal fijo
+      </div>
+    </div>
+    <div class="sim-main">
+      <div class="tgt-bar"><span class="tgt-lbl">🎯 Meta:</span><span class="tgt-val" id="tv"></span><span class="tgt-hint" id="th"></span></div>
+      <div class="instruct">Haz clic en un símbolo <span style="color:var(--indD);font-family:var(--mono);font-weight:700">resaltado</span> para aplicar una producción:</div>
+      <div class="form-box" id="fa"></div>
+      <div class="rule-picker" id="rp2"><h5 id="rpt"></h5><div class="ropts" id="ro"></div></div>
+      <div class="win-box" id="wb">
+        <div style="font-size:1.6rem;margin-bottom:3px">🎉</div>
+        <p id="wt"></p><div class="xpg" id="wg"></div>
+        <button class="btn btn-grn" id="wnext" onclick="nextCh()">Siguiente reto →</button>
+        <span class="autonote on" id="wauto">avance automático…</span>
+      </div>
+      <div class="warn-box" id="db2"></div>
+      <div class="lvl-done" id="ld">
+        <div class="big" id="ldt">🏆 ¡Nivel completado!</div>
+        <div class="sm" id="lds">Pasando al siguiente nivel…</div>
+      </div>
+      <div class="wcard trace-box"><h5>📜 Traza de derivación</h5><div id="tc"></div></div>
+      <div class="ctrl">
+        <button class="btn btn-pri" onclick="RS()">↺ Reiniciar reto</button>
+        <button class="btn btn-ghost" onclick="goHome()">← Mi ruta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= QUIZ ================= -->
+<div id="v-quiz" class="view">
+  <a class="back" onclick="goHome()">← Mi ruta</a>
+  <div class="lvl-head">
+    <span class="lvl-num">Q</span>
+    <div><span class="pill grn">EVALUACIÓN</span><h2>Quiz de la jerarquía</h2></div>
+  </div>
+  <div class="qprog"><div class="qpfil" id="qpf" style="width:0%"></div></div>
+  <div class="qmeta"><span id="qm"></span><span id="qs"></span></div>
+  <div id="qa"></div>
+  <div class="final" id="fin">
+    <div class="sring" id="sr">0%</div>
+    <div class="stit" id="stit"></div>
+    <div class="ssub" id="ssub"></div>
+    <div class="badges" id="sbd"></div>
+    <div class="ctrl" style="justify-content:center">
+      <button class="btn btn-pri" onclick="RQ()">↺ Intentar de nuevo</button>
+      <button class="btn btn-ghost" onclick="goHome()">← Mi ruta</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+/* =================== SONIDOS (Web Audio API) =================== */
+var AC=null,muted=false;
+function actx(){
+  if(muted)return null;
+  if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}
+  if(AC.state==='suspended'){try{AC.resume()}catch(e){}}
+  return AC;
+}
+function tone(f,dur,type,vol,delay){
+  var a=actx();if(!a)return;
+  var t=a.currentTime+(delay||0);
+  var o=a.createOscillator(),g=a.createGain();
+  o.type=type||'sine';o.frequency.setValueAtTime(f,t);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol||0.12,t+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g);g.connect(a.destination);
+  o.start(t);o.stop(t+dur+0.03);
+}
+function sClick(){tone(760,.05,'square',.04)}
+function sApply(){tone(520,.07,'sine',.1);tone(784,.09,'sine',.08,.05)}
+function sWin(){[523,659,784,1047].forEach(function(f,i){tone(f,.16,'triangle',.13,i*.09)})}
+function sErr(){tone(196,.2,'sawtooth',.09);tone(147,.26,'sawtooth',.08,.09)}
+function sOk(){tone(659,.1,'sine',.13);tone(988,.16,'sine',.12,.09)}
+function sBad(){tone(311,.14,'sine',.11);tone(220,.2,'sine',.11,.11)}
+function sLevel(){[392,523,659,784,1047,1319].forEach(function(f,i){tone(f,.2,'triangle',.13,i*.11)})}
+function toggleSnd(){muted=!muted;document.getElementById('sndb').textContent=muted?'🔇':'🔊';if(!muted)sClick()}
+
+/* =================== PERSISTENCIA (segura) =================== */
+function loadSt(){try{return JSON.parse(localStorage.getItem('gq_state'))||{}}catch(e){return{}}}
+function saveSt(){try{localStorage.setItem('gq_state',JSON.stringify({xp:xp,done:done,qb:qbest}))}catch(e){}}
+var _st=loadSt();
+var xp=_st.xp||0, done=_st.done||{}, qbest=(_st.qb===0||_st.qb)?_st.qb:null;
+
+/* =================== UTIL =================== */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function addXP(n){xp+=n;var e=document.getElementById('xpv');e.textContent=xp;
+  e.style.transition='transform .15s';e.style.transform='scale(1.4)';
+  setTimeout(function(){e.style.transform='scale(1)'},240);saveSt()}
+
+/* =================== GRAMÁTICAS (producciones verificadas) =================== */
+/* Convención: MAYÚSCULAS = no terminales · minúsculas = terminales */
+var GR={
+ dig:{nm:'Dígitos · 2026',vars:['S'],terms:['0','2','6'],start:'S',
+  rules:[
+   {l:['S'],r:['2','S'],n:'S → 2S'},{l:['S'],r:['0','S'],n:'S → 0S'},{l:['S'],r:['6','S'],n:'S → 6S'},
+   {l:['S'],r:['2'],n:'S → 2'},{l:['S'],r:['0'],n:'S → 0'},{l:['S'],r:['6'],n:'S → 6'}],
+  ts:'2026',disp:'2026',hint:'S→2S→20S→202S→2026 · ¡el año actual!',bxp:15},
+ mail:{nm:'Correo ✉',vars:['S','A','D','P','U'],terms:['jose','ana','@','unmsm','gmail','.','pe','com'],start:'S',
+  rules:[
+   {l:['S'],r:['jose','A'],n:'S → jose A'},{l:['S'],r:['ana','A'],n:'S → ana A'},
+   {l:['A'],r:['@','D'],n:'A → @ D'},
+   {l:['D'],r:['unmsm','P'],n:'D → unmsm P'},{l:['D'],r:['gmail','P'],n:'D → gmail P'},
+   {l:['P'],r:['.','U'],n:'P → . U'},
+   {l:['U'],r:['pe'],n:'U → pe'},{l:['U'],r:['com'],n:'U → com'}],
+  ts:'jose@unmsm.pe',disp:'jose@unmsm.pe',hint:'Lineal derecha: nombre → @ → dominio → . → tld',bxp:20},
+ abn:{nm:'aⁿbⁿ',vars:['S'],terms:['a','b'],start:'S',
+  rules:[{l:['S'],r:['a','S','b'],n:'S → aSb'},{l:['S'],r:['a','b'],n:'S → ab'}],
+  ts:'aabb',disp:'aabb',hint:'S→aSb una vez, luego S→ab',bxp:30},
+ html:{nm:'HTML anidado',vars:['S'],terms:['<div>','</div>','<p>','</p>','hola'],start:'S',
+  rules:[
+   {l:['S'],r:['<div>','S','</div>'],n:'S → <div> S </div>'},
+   {l:['S'],r:['<p>','S','</p>'],n:'S → <p> S </p>'},
+   {l:['S'],r:['hola'],n:'S → hola'}],
+  ts:'<div><p>hola</p></div>',disp:'<div><p>hola</p></div>',
+  hint:'Anida <div>, luego <p>, luego el texto. ¡Así valida un navegador!',bxp:25},
+ sum:{nm:'Suma 1+2=3',vars:['S','R'],terms:['a','+','='],start:'S',
+  rules:[
+   {l:['S'],r:['a','S','a'],n:'S → aSa'},{l:['S'],r:['+','R'],n:'S → +R'},
+   {l:['R'],r:['a','R','a'],n:'R → aRa'},{l:['R'],r:['='],n:'R → ='}],
+  ts:'a+aa=aaa',disp:'a+aa=aaa  (1+2=3)',
+  hint:'Cada "a" vale 1. La gramática garantiza que la suma cuadre',bxp:35},
+ pal:{nm:'Palíndromos',vars:['S'],terms:['a','b'],start:'S',
+  rules:[
+   {l:['S'],r:['a','S','a'],n:'S → aSa'},{l:['S'],r:['b','S','b'],n:'S → bSb'},
+   {l:['S'],r:['a'],n:'S → a'},{l:['S'],r:['b'],n:'S → b'},{l:['S'],r:[],n:'S → ε'}],
+  ts:'abba',disp:'abba',hint:'S→aSa→abSba→abba (S→ε al final)',bxp:35},
+ ora:{nm:'Oración 🐱',vars:['O','SN','SV','DET','N','V'],terms:['el','la','gato','gata','pescado','come','duerme'],start:'O',
+  rules:[
+   {l:['O'],r:['SN','SV'],n:'O → SN SV'},
+   {l:['SN'],r:['DET','N'],n:'SN → DET N'},
+   {l:['SV'],r:['V'],n:'SV → V'},{l:['SV'],r:['V','SN'],n:'SV → V SN'},
+   {l:['DET'],r:['el'],n:'DET → el'},{l:['DET'],r:['la'],n:'DET → la'},
+   {l:['N'],r:['gato'],n:'N → gato'},{l:['N'],r:['gata'],n:'N → gata'},{l:['N'],r:['pescado'],n:'N → pescado'},
+   {l:['V'],r:['come'],n:'V → come'},{l:['V'],r:['duerme'],n:'V → duerme'}],
+  ts:'elgatocome',disp:'el gato come',
+  hint:'Oración = Sujeto (SN) + Predicado (SV). ¡Así analiza un traductor!',bxp:30},
+ cod:{nm:'if / else',vars:['S','C','B'],terms:['if','(',')','{','}','else','x','>','0','print'],start:'S',
+  rules:[
+   {l:['S'],r:['if','(','C',')','{','B','}','else','{','B','}'],n:'S → if (C) {B} else {B}'},
+   {l:['S'],r:['if','(','C',')','{','B','}'],n:'S → if (C) {B}'},
+   {l:['C'],r:['x','>','0'],n:'C → x > 0'},
+   {l:['B'],r:['print'],n:'B → print'},{l:['B'],r:['S'],n:'B → S (¡if anidado!)'}],
+  ts:'if(x>0){print}else{print}',disp:'if (x>0) {print} else {print}',
+  hint:'Así analiza tu código el parser de Python o Java',bxp:30},
+ expr:{nm:'Expresiones',vars:['E','T','F'],terms:['+','*','(',')','a','b'],start:'E',
+  rules:[
+   {l:['E'],r:['E','+','T'],n:'E → E+T'},{l:['E'],r:['T'],n:'E → T'},
+   {l:['T'],r:['T','*','F'],n:'T → T*F'},{l:['T'],r:['F'],n:'T → F'},
+   {l:['F'],r:['(','E',')'],n:'F → (E)'},{l:['F'],r:['a'],n:'F → a'},{l:['F'],r:['b'],n:'F → b'}],
+  ts:'a*b',disp:'a*b',hint:'E→T→T*F→F*F→a*F→a*b',bxp:40},
+ csg:{nm:'aⁿbⁿcⁿ',vars:['S','B','C'],terms:['a','b','c'],start:'S',
+  rules:[
+   {l:['S'],r:['a','S','B','C'],n:'S → aSBC'},{l:['S'],r:['a','B','C'],n:'S → aBC'},
+   {l:['C','B'],r:['B','C'],n:'CB → BC'},
+   {l:['a','B'],r:['a','b'],n:'aB → ab'},{l:['b','B'],r:['b','b'],n:'bB → bb'},
+   {l:['b','C'],r:['b','c'],n:'bC → bc'},{l:['c','C'],r:['c','c'],n:'cC → cc'}],
+  ts:'aabbcc',disp:'aabbcc',
+  hint:'⚠ Orden: primero CB→BC para ordenar, luego convierte de izquierda a derecha',bxp:55},
+ dup:{nm:'Duplicadora ⚙',vars:['S','A','B','C','D','E'],terms:['a'],start:'S',
+  rules:[
+   {l:['S'],r:['A','C','a','B'],n:'S → ACaB'},
+   {l:['C','a'],r:['a','a','C'],n:'Ca → aaC  (duplica)'},
+   {l:['C','B'],r:['D','B'],n:'CB → DB  (otra pasada)'},
+   {l:['C','B'],r:['E'],n:'CB → E  (terminar)'},
+   {l:['a','D'],r:['D','a'],n:'aD → Da  (regresa)'},
+   {l:['A','D'],r:['A','C'],n:'AD → AC'},
+   {l:['a','E'],r:['E','a'],n:'aE → Ea  (barre)'},
+   {l:['A','E'],r:[],n:'AE → ε  (¡borra!)'}],
+  ts:'aa',disp:'aa  (2¹)',
+  hint:'C es el cabezal de la MT: duplica la a. CB→E termina, E barre a la izquierda y AE→ε borra',bxp:60}
+};
+
+/* =================== NIVELES =================== */
+var LV={
+ l3:{num:1,tipo:3,cls:'grn',pcls:'pgrn',name:'Regular',auto:'DFA / NFA',next:'l2',ch:['dig','mail'],
+   desc:'Patrones que usas a diario sin saberlo: dígitos, tokens y correos electrónicos.',
+   moti:'Cada vez que tu celular valida un correo o un número, un autómata finito trabaja en silencio. Hoy vas a construir uno con reglas.',
+   forma:'<code>A → aB</code> &nbsp;o&nbsp; <code>A → a</code><br>Lineal derecha: un no terminal a la izquierda; a la derecha un terminal y a lo sumo UNA variable al final.',
+   poder:'Autómata finito: solo estados, <b>sin memoria</b>. No puede contar ni anidar.',
+   usos:'Tokens de un lexer, validación de correos y números, expresiones regulares (grep, Python re).'},
+ l2:{num:2,tipo:2,cls:'ind',pcls:'pind',name:'Libre de contexto',auto:'Autómata de pila (PDA)',next:'l1',ch:['abn','html','sum','pal','ora','cod','expr'],
+   desc:'El nivel de los lenguajes de programación: anidamiento, balance y estructura.',
+   moti:'Python, Java, HTML… todos los lenguajes que usarás como ingeniero viven en este nivel. Aquí aprendes a pensar como un compilador.',
+   forma:'<code>A → α</code><br>UN solo no terminal a la izquierda; cualquier cadena de variables y terminales a la derecha.',
+   poder:'Autómata de pila: memoria de <b>una pila</b> (LIFO). Puede aparear y anidar, pero no sincronizar 3 contadores.',
+   usos:'Sintaxis de Java/Python/C, HTML/XML anidado, expresiones aritméticas, oraciones del lenguaje natural.'},
+ l1:{num:3,tipo:1,cls:'org',pcls:'porg',name:'Sensible al contexto',auto:'Autómata lineal acotado (LBA)',next:'l0',ch:['csg'],
+   desc:'Aquí las reglas miran a sus vecinos: el contexto importa.',
+   moti:'Pocas personas han derivado aⁿbⁿcⁿ a mano. Tú lo harás hoy, moviendo símbolos como piezas de un rompecabezas. Confía en el proceso.',
+   forma:'<code>αAβ → αγβ</code> con <code>|izq| ≤ |der|</code><br>El reemplazo de A depende de sus vecinos. Las reglas nunca acortan la cadena.',
+   poder:'LBA: una Máquina de Turing cuya cinta está <b>acotada</b> al tamaño de la entrada.',
+   usos:'Concordancia gramatical (género/número), sincronizar 3 o más contadores como aⁿbⁿcⁿ.'},
+ l0:{num:4,tipo:0,cls:'nvy',pcls:'pnvy',name:'Sin restricciones',auto:'Máquina de Turing',next:'quiz',ch:['dup'],
+   desc:'El poder máximo: reglas equivalentes a una Máquina de Turing.',
+   moti:'Última etapa. Los símbolos que moverás son el cabezal de una Máquina de Turing. Si completas esto, habrás tocado el límite mismo de lo computable.',
+   forma:'<code>α → β</code> sin restricción alguna<br>Incluso reglas que ENCOGEN la cadena, como <code>AE → ε</code>. Prohibidas en Tipo 1.',
+   poder:'Máquina de Turing: cinta infinita, cabezal que lee/escribe. <b>Todo lo computable</b> (Church-Turing).',
+   usos:'Cualquier cómputo: los símbolos C, D, E del reto actúan como el cabezal de la MT recorriendo la cinta.'}
+};
+var ORDER=['l3','l2','l1','l0'];
+
+/* =================== ESTADO =================== */
+var cg='dig',curLvl='l3',sf=[],tr=[],simDone=false,autoT=null;
+
+/* =================== NAVEGACIÓN =================== */
+function V(id){
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('on')});
+  document.getElementById('v-'+id).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function goWelcome(){clearTimeout(autoT);sClick();updateStartBtn();V('welcome')}
+function goHome(){clearTimeout(autoT);sClick();drawHome();V('home')}
+function startJourney(){
+  sClick();
+  var target='l3',chk=null;
+  for(var i=0;i<ORDER.length;i++){
+    var L=LV[ORDER[i]];
+    var pend=firstPending(L);
+    if(pend){target=ORDER[i];chk=pend;break}
+    if(i===ORDER.length-1){startQuiz();return}
+  }
+  openLevel(target,chk);
+}
+function updateStartBtn(){
+  var any=false;for(var k in done){if(done[k]){any=true;break}}
+  document.getElementById('startBtn').textContent=any?'▶ Continuar mi ruta':'🚀 Comenzar mi ruta';
+}
+function openLevel(lid,chKey){
+  clearTimeout(autoT);
+  curLvl=lid;var L=LV[lid];
+  document.getElementById('mq').textContent=L.moti;
+  document.getElementById('ma').textContent='NIVEL '+L.num+' · '+L.name.toUpperCase()+' · '+L.auto.toUpperCase();
+  document.getElementById('lnum').textContent=L.num;
+  var pill=document.getElementById('lpill');
+  pill.textContent='NIVEL '+L.num;
+  pill.className='pill '+L.cls;
+  document.getElementById('ltitle').textContent=L.name;
+  document.getElementById('lauto').textContent=L.auto;
+  document.getElementById('tforma').innerHTML=L.forma;
+  document.getElementById('tpoder').innerHTML=L.poder;
+  document.getElementById('tusos').innerHTML=L.usos;
+  cg=chKey||firstPending(L)||L.ch[0];
+  drawChips();IS();V('lvl');
+}
+function firstPending(L){for(var i=0;i<L.ch.length;i++){if(!done[L.ch[i]])return L.ch[i]}return null}
+
+/* =================== RUTA =================== */
+function drawHome(){
+  var tot=0,ok=0,html='';
+  ORDER.forEach(function(lid){
+    var L=LV[lid],d=0;
+    L.ch.forEach(function(k){tot++;if(done[k]){d++;ok++}});
+    var full=d===L.ch.length;
+    html+='<div class="panel '+L.pcls+'" onclick="openLevel(\''+lid+'\')">'
+      +(full?'<span class="done-badge">✅</span>':'')
+      +'<span class="pill '+L.cls+'">NIVEL '+L.num+'</span>'
+      +'<h3>'+L.name+'</h3>'
+      +'<p class="pd">'+L.desc+'</p>'
+      +'<div class="meta"><span>'+L.auto+'</span><span class="prog'+(full?' full':'')+'">'+d+' / '+L.ch.length+' retos'+(full?' ✓':'')+'</span></div>'
+      +'<div class="go">Entrar →</div></div>';
+  });
+  document.getElementById('panels').innerHTML=html;
+  document.getElementById('hprog').textContent=ok+' / '+tot+' retos';
+  document.getElementById('rfill').style.width=Math.round(ok/tot*100)+'%';
+  document.getElementById('qbest').textContent=(qbest===null)?'sin intentos':('mejor: '+qbest+'%');
+}
+
+/* =================== MOTOR DE DERIVACIÓN =================== */
+function FM(){
+  var g=GR[cg],m=[];
+  g.rules.forEach(function(r,ri){
+    for(var p=0;p+r.l.length<=sf.length;p++){
+      var okk=true;
+      for(var k=0;k<r.l.length;k++){if(sf[p+k]!==r.l[k]){okk=false;break}}
+      if(okk)m.push({ri:ri,pos:p});
+    }
+  });
+  return m;
+}
+function drawChips(){
+  var L=LV[curLvl],h='';
+  L.ch.forEach(function(k){
+    var g=GR[k];
+    var cls='chip'+(k===cg?' cur':'')+(done[k]?' ok':'');
+    h+='<button class="'+cls+'" onclick="pick(\''+k+'\')">'+(done[k]?'✓ ':'')+esc(g.nm)+'</button>';
+  });
+  document.getElementById('chips').innerHTML=h;
+}
+function pick(k){clearTimeout(autoT);sClick();cg=k;drawChips();IS()}
+function IS(){
+  var g=GR[cg];
+  document.getElementById('rv').innerHTML=g.vars.map(function(v){return'<span class="pv" style="margin:2px">'+esc(v)+'</span>'}).join('');
+  document.getElementById('rt').innerHTML=g.terms.map(function(t){return'<span class="pt" style="margin:2px">'+esc(t)+'</span>'}).join('');
+  var rh='';
+  g.rules.forEach(function(r){
+    var lhs=r.l.map(function(t){return g.vars.indexOf(t)>=0?'<span class="rv">'+esc(t)+'</span>':'<span class="rt">'+esc(t)+'</span>'}).join('');
+    var rhs=r.r.length?r.r.map(function(t){return g.vars.indexOf(t)>=0?'<span class="rv">'+esc(t)+'</span>':'<span class="rt">'+esc(t)+'</span>'}).join(' '):'<span class="rt">ε</span>';
+    rh+='<div class="ref-rule">'+lhs+' <span class="ra">→</span> '+rhs+'</div>';
+  });
+  document.getElementById('rp').innerHTML=rh;
+  document.getElementById('rs').textContent=g.start;
+  document.getElementById('tv').textContent=g.disp;
+  document.getElementById('th').textContent=g.hint;
+  sf=[g.start];tr=[{f:[g.start],r:'inicio'}];simDone=false;
+  document.getElementById('wb').classList.remove('on');
+  document.getElementById('db2').classList.remove('on');
+  document.getElementById('ld').classList.remove('on');
+  document.getElementById('rp2').classList.remove('on');
+  document.getElementById('fa').classList.remove('ok','err');
+  RF();RT();
+}
+function RS(){clearTimeout(autoT);sClick();IS()}
+function RF(){
+  var g=GR[cg],b=document.getElementById('fa');b.innerHTML='';
+  var M=simDone?[]:FM();
+  var cov={};
+  M.forEach(function(m){var L=g.rules[m.ri].l.length;for(var k=0;k<L;k++)cov[m.pos+k]=1});
+  sf.forEach(function(tok,idx){
+    var p=document.createElement('span');
+    var isV=g.vars.indexOf(tok)>=0,covered=!!cov[idx];
+    if(tok==='ε'){p.className='tok et';p.textContent='ε';}
+    else if(isV&&covered){p.className='tok vt';p.textContent=tok;
+      p.onclick=(function(i){return function(){OP(i)}})(idx);p.title='Aplicar regla aquí';}
+    else if(isV){p.className='tok vd';p.textContent=tok;p.title='Sin regla aplicable aquí (por ahora)';}
+    else if(covered){p.className='tok ct';p.textContent=tok;
+      p.onclick=(function(i){return function(){OP(i)}})(idx);p.title='Terminal dentro de una regla de contexto';}
+    else{p.className='tok tt';p.textContent=tok;}
+    b.appendChild(p);
+  });
+}
+function RT(){
+  var g=GR[cg],c=document.getElementById('tc');c.innerHTML='';
+  tr.forEach(function(s,i){
+    var d=document.createElement('div');d.className='tstep';
+    var fm=s.f.map(function(t){
+      if(g.vars.indexOf(t)>=0)return'<span class="tv-c">'+esc(t)+'</span>';
+      if(t==='ε')return'<span style="color:var(--mut)">ε</span>';
+      return'<span class="tt-c">'+esc(t)+'</span>';
+    }).join(' ');
+    d.innerHTML='<span class="tn">'+(i+1)+'.</span><span style="flex:1;font-family:var(--mono);font-size:.72rem">'+fm+'</span><span class="tr-c">'+esc(s.r)+'</span>';
+    c.appendChild(d);
+  });
+  c.scrollTop=c.scrollHeight;
+}
+function OP(idx){
+  var g=GR[cg];
+  var opts=FM().filter(function(m){var L=g.rules[m.ri].l.length;return m.pos<=idx&&idx<m.pos+L});
+  if(!opts.length)return;
+  sClick();
+  document.getElementById('rpt').textContent='Reglas aplicables en "'+sf[idx]+'":';
+  var oc=document.getElementById('ro');oc.innerHTML='';
+  opts.forEach(function(m){
+    var r=g.rules[m.ri];
+    var b=document.createElement('button');b.className='ropt';
+    var extra=(r.l.length>1||opts.length>1)?'  ·  posición '+(m.pos+1):'';
+    b.innerHTML=esc(r.n)+(extra?'<small>'+esc(extra)+'</small>':'');
+    b.onclick=(function(mm){return function(){AR(mm)}})(m);
+    oc.appendChild(b);
+  });
+  document.getElementById('rp2').classList.add('on');
+}
+function AR(m){
+  var g=GR[cg],r=g.rules[m.ri];
+  sApply();
+  var args=[m.pos,r.l.length].concat(r.r);
+  Array.prototype.splice.apply(sf,args);
+  if(sf.length===0)sf=['ε'];
+  tr.push({f:sf.slice(),r:r.n});
+  document.getElementById('rp2').classList.remove('on');
+  RF();RT();
+  var hasV=sf.some(function(t){return g.vars.indexOf(t)>=0});
+  if(!hasV){CR();return}
+  if(FM().length===0){
+    sErr();
+    var db=document.getElementById('db2');
+    db.textContent='⚠ Callejón sin salida: quedan no terminales pero ninguna regla aplica. Aquí el ORDEN importa. Pulsa Reiniciar reto — es parte de aprender.';
+    db.classList.add('on');
+    document.getElementById('fa').classList.add('err');
+  }
+}
+function CR(){
+  var g=GR[cg];
+  var cs=sf.filter(function(t){return t!=='ε'}).join('');
+  simDone=true;RF();
+  if(cs===g.ts){
+    sWin();
+    document.getElementById('fa').classList.add('ok');
+    var first=!done[cg];
+    var gain=g.bxp+Math.max(0,15-tr.length*2);
+    if(!first)gain=Math.round(gain/4);
+    done[cg]=1;saveSt();drawChips();
+    document.getElementById('wg').textContent='+'+gain+' XP'+(first?'':' (repetición)');
+    document.getElementById('wt').textContent='¡Derivaste "'+g.disp+'" correctamente!';
+    document.getElementById('wb').classList.add('on');
+    addXP(gain);
+    var L=LV[curLvl];
+    var pending=L.ch.some(function(k){return !done[k]});
+    if(!pending){
+      autoT=setTimeout(function(){levelComplete()},1400);
+      document.getElementById('wnext').textContent='Nivel completado 🏆';
+    } else {
+      document.getElementById('wnext').textContent='Siguiente reto →';
+      autoT=setTimeout(function(){nextCh()},2600);
+    }
+  } else {
+    sErr();
+    document.getElementById('fa').classList.add('err');
+    var db=document.getElementById('db2');
+    db.textContent='✗ Generaste "'+cs+'" pero la meta era "'+g.ts+'". ¡Igual es una cadena válida de L(G)! Reinicia para intentar la meta.';
+    db.classList.add('on');
+    simDone=false;
+    setTimeout(function(){document.getElementById('fa').classList.remove('err')},1800);
+  }
+}
+function nextCh(){
+  clearTimeout(autoT);
+  var L=LV[curLvl];
+  var i=L.ch.indexOf(cg);
+  var nxt=null;
+  for(var k=1;k<=L.ch.length;k++){var c=L.ch[(i+k)%L.ch.length];if(!done[c]){nxt=c;break}}
+  if(!nxt){levelComplete();return}
+  cg=nxt;drawChips();IS();
+}
+function levelComplete(){
+  clearTimeout(autoT);
+  sLevel();
+  var L=LV[curLvl];
+  var ld=document.getElementById('ld');
+  document.getElementById('wb').classList.remove('on');
+  if(L.next==='quiz'){
+    document.getElementById('ldt').textContent='🏆 ¡Completaste los 4 niveles!';
+    document.getElementById('lds').textContent='Pasando al quiz final…';
+  } else {
+    document.getElementById('ldt').textContent='🏆 ¡Nivel '+L.num+' completado!';
+    document.getElementById('lds').textContent='Pasando al Nivel '+LV[L.next].num+' · '+LV[L.next].name+'…';
+  }
+  ld.classList.add('on');
+  autoT=setTimeout(function(){
+    if(L.next==='quiz'){startQuiz()}else{openLevel(L.next)}
+  },2200);
+}
+
+/* =================== QUIZ =================== */
+var QS=[
+  {q:'¿Qué tipo de gramática (Chomsky) genera el lenguaje { aⁿbⁿ | n≥1 }?',
+   opts:['Tipo 0 — Sin restricciones','Tipo 1 — Sensible al contexto','Tipo 2 — Libre de contexto','Tipo 3 — Regular'],
+   ok:2,xp:20,
+   fb:{y:'✓ aⁿbⁿ es libre de contexto (Tipo 2). Su gramática S→aSb | ab cumple la forma A→α.',
+       n:'✗ aⁿbⁿ NO puede generarse con una gramática regular (Tipo 3), pero SÍ con una libre de contexto (Tipo 2).'}},
+  {q:'El formato simple nombre@dominio.tld (sin anidamiento) ¿de qué tipo es?',
+   ctx:'jose@unmsm.pe',
+   opts:['Tipo 3 — Regular: un DFA lo valida','Tipo 2 — necesita una pila','Tipo 1 — sensible al contexto','Tipo 0 — necesita Máquina de Turing'],
+   ok:0,xp:20,
+   fb:{y:'✓ Es un patrón secuencial sin anidamiento. Un autómata finito lo reconoce — por eso las regex validan correos.',
+       n:'✗ No hay nada que contar ni anidar: es una secuencia fija de partes. Basta un DFA → Tipo 3 regular.'}},
+  {q:'Para validar etiquetas HTML correctamente anidadas como &lt;div&gt;&lt;p&gt;&lt;/p&gt;&lt;/div&gt;, ¿qué necesitas como mínimo?',
+   opts:['Una expresión regular (Tipo 3)','Un autómata de pila — es Tipo 2','Una Máquina de Turing obligatoriamente','No es un lenguaje formal'],
+   ok:1,xp:25,
+   fb:{y:'✓ El anidamiento requiere una pila que recuerde qué etiquetas siguen abiertas. Es Tipo 2, igual que los paréntesis balanceados.',
+       n:'✗ Las regex NO verifican anidamiento arbitrario (¡famoso error: parsear HTML con regex!). Se necesita una pila → Tipo 2.'}},
+  {q:'El lenguaje { aⁿbⁿcⁿ | n≥1 } (igual número de a, b, c) pertenece a qué tipo:',
+   opts:['Tipo 3 — Regular','Tipo 2 — Libre de contexto','Tipo 1 — Sensible al contexto','Tipo 0 — Sin restricciones'],
+   ok:2,xp:25,
+   fb:{y:'✓ aⁿbⁿcⁿ es sensible al contexto (Tipo 1). Sincronizar 3 contadores excede lo que puede una sola pila.',
+       n:'✗ Un PDA tiene UNA pila: aparea a con b, pero no puede verificar también las c. Se necesita Tipo 1 (LBA).'}},
+  {q:'La gramática S → aS | a genera un lenguaje regular. ¿Qué cadenas genera?',
+   ctx:'S → aS | a',
+   opts:['Cualquier mezcla de a\'s y b\'s','Solo cadenas de una o más a\'s: {aⁿ | n≥1}','Solo la cadena "a"','Cadenas que terminan en aa'],
+   ok:1,xp:15,
+   fb:{y:'✓ S→aS añade a\'s; S→a termina. Resultado: a, aa, aaa, … = {aⁿ | n≥1}.',
+       n:'✗ Aplica las reglas: S→aS→aaS→…→aⁿ. Solo genera cadenas de a\'s.'}},
+  {q:'Empareja: ¿qué máquina reconoce los lenguajes de Tipo 0 (sin restricciones)?',
+   opts:['Autómata finito (DFA/NFA)','Autómata de pila (PDA)','Autómata lineal acotado (LBA)','Máquina de Turing'],
+   ok:3,xp:15,
+   fb:{y:'✓ Tipo 0 ↔ Máquina de Turing. Jerarquía completa: T3→DFA · T2→PDA · T1→LBA · T0→MT.',
+       n:'✗ La correspondencia es: Tipo 3→DFA/NFA · Tipo 2→PDA · Tipo 1→LBA · Tipo 0→Máquina de Turing.'}},
+  {q:'En la gramática de aⁿbⁿcⁿ existe la regla CB → BC. ¿Qué la hace diferente de una regla libre de contexto?',
+   ctx:'CB → BC',
+   opts:['Usa letras mayúsculas','Tiene DOS símbolos en el lado izquierdo','Es recursiva','No genera terminales'],
+   ok:1,xp:25,
+   fb:{y:'✓ En Tipo 2 el lado izquierdo es UN solo no terminal (A→α). CB→BC exige que C esté justo antes de B: el contexto importa.',
+       n:'✗ Lo clave es el lado izquierdo: "CB" son dos símbolos. Las gramáticas libres de contexto solo permiten UNO.'}},
+  {q:'¿Cuál cadena NO puede generar la gramática de palíndromos S → aSa | bSb | a | b | ε?',
+   opts:['aba','abba','ab','bab'],ok:2,xp:20,
+   fb:{y:'✓ "ab" no es palíndromo (al revés es "ba"). La gramática solo genera cadenas simétricas.',
+       n:'✗ Verifica: "aba"→sí. "abba"→sí. "bab"→sí. "ab"→NO (al revés es "ba").'}},
+  {q:'En la gramática duplicadora (Tipo 0), la regla AE → ε elimina símbolos. ¿Por qué esto NO está permitido en Tipo 1?',
+   ctx:'AE → ε   (la cadena se ENCOGE)',
+   opts:['Porque usa la letra E','Tipo 1 exige reglas no contractivas: |α| ≤ |β|','Porque ε no es un símbolo','Sí está permitido en Tipo 1'],
+   ok:1,xp:30,
+   fb:{y:'✓ En Tipo 1 las reglas nunca acortan la cadena (|izq| ≤ |der|). Poder BORRAR es el superpoder exclusivo del Tipo 0 — como una MT que limpia su cinta.',
+       n:'✗ Diferencia clave T1 vs T0: las reglas de Tipo 1 son no contractivas. AE→ε reduce 2 símbolos a 0: solo válido en Tipo 0.'}},
+  {q:'Si un lenguaje es Tipo 3 (regular), ¿también es Tipo 2, Tipo 1 y Tipo 0?',
+   opts:['No, cada tipo es exclusivo','Sí: Tipo3 ⊂ Tipo2 ⊂ Tipo1 ⊂ Tipo0','Solo es Tipo 2 además','Solo es Tipo 0 además'],
+   ok:1,xp:25,
+   fb:{y:'✓ La jerarquía es de inclusión: todo lenguaje regular ES también libre de contexto, sensible al contexto y recursivamente enumerable.',
+       n:'✗ La jerarquía de Chomsky es inclusiva: Tipo 3 ⊆ Tipo 2 ⊆ Tipo 1 ⊆ Tipo 0.'}}
+];
+var qi=0,qsc=0,qans=false,qT=null;
+function startQuiz(){clearTimeout(autoT);sClick();RQ();V('quiz')}
+function RQ(){clearTimeout(qT);qi=0;qsc=0;qans=false;
+  document.getElementById('fin').classList.remove('on');
+  document.getElementById('qa').style.display='block';renderQ();}
+function renderQ(){
+  clearTimeout(qT);
+  var c=document.getElementById('qa'),fin=document.getElementById('fin');
+  if(qi>=QS.length){
+    c.style.display='none';fin.classList.add('on');
+    var pct=Math.round(qsc/QS.length*100);
+    if(qbest===null||pct>qbest){qbest=pct;saveSt()}
+    document.getElementById('sr').textContent=pct+'%';
+    var tit,sub,bds;
+    if(pct===100){tit='¡Perfecto! 🏆';sub='Dominas la jerarquía de Chomsky y las gramáticas formales.';bds=['🥇 Maestro de Chomsky','⭐ 100%','🚀 Sin errores'];sLevel();}
+    else if(pct>=75){tit='¡Muy bien! 🎉';sub='Sólida comprensión. Revisa los tipos que fallaste.';bds=['🥈 Experto','💡 Buen dominio'];sWin();}
+    else if(pct>=50){tit='¡Bien! 👍';sub='Practica más en los niveles y vuelve a intentarlo.';bds=['🥉 Aprendiz avanzado'];sOk();}
+    else{tit='Sigue practicando 📚';sub='Repasa la teoría de cada nivel y las derivaciones. ¡Cada intento te acerca!';bds=['🌱 Aprendiz'];}
+    document.getElementById('stit').textContent=tit;
+    document.getElementById('ssub').textContent=sub;
+    document.getElementById('sbd').innerHTML=bds.map(function(b,i){var cl=i===0?'bg-b':i===1?'bs-b':'bp-b';return'<span class="badge '+cl+'">'+b+'</span>'}).join('');
+    document.getElementById('qpf').style.width='100%';
+    return;
+  }
+  fin.classList.remove('on');c.style.display='block';
+  var q=QS[qi];qans=false;
+  document.getElementById('qm').textContent='PREGUNTA '+(qi+1)+' DE '+QS.length;
+  document.getElementById('qs').textContent='PUNTOS: '+qsc+'/'+QS.length;
+  document.getElementById('qpf').style.width=(qi/QS.length*100)+'%';
+  var oh=q.opts.map(function(o,i){return'<button class="qopt" onclick="AQ('+i+')" id="qo'+i+'">'+o+'</button>'}).join('');
+  c.innerHTML='<div class="qcard"><span class="pill ind">CHOMSKY</span><div class="qtext">'+q.q+'</div>'
+    +(q.ctx?'<div class="qctx">'+esc(q.ctx)+'</div>':'')
+    +'<div class="qopts">'+oh+'</div><div class="qfb" id="qfb"></div>'
+    +'<button class="btn btn-pri nxt" id="nxt" onclick="NQ()">'+(qi<QS.length-1?'Siguiente →':'Ver resultados →')+'</button>'
+    +'<span class="autonote" id="anote">avance automático…</span></div>';
+}
+function AQ(idx){
+  if(qans)return;qans=true;
+  var q=QS[qi];
+  document.querySelectorAll('.qopt').forEach(function(o){o.disabled=true});
+  var cor=idx===q.ok;
+  document.getElementById('qo'+idx).classList.add(cor?'cor':'wrn');
+  if(!cor)document.getElementById('qo'+q.ok).classList.add('cor');
+  var fb=document.getElementById('qfb');
+  fb.className='qfb '+(cor?'ok':'bad');fb.textContent=cor?q.fb.y:q.fb.n;
+  if(cor){qsc++;addXP(q.xp);sOk();}else{sBad();}
+  document.getElementById('qs').textContent='PUNTOS: '+qsc+'/'+(qi+1);
+  document.getElementById('nxt').classList.add('on');
+  document.getElementById('anote').classList.add('on');
+  qT=setTimeout(function(){NQ()},cor?2800:5200);
+}
+function NQ(){clearTimeout(qT);qi++;renderQ();}
+
+/* =================== RESET =================== */
+function resetAll(){
+  if(!confirm('¿Reiniciar todo el progreso (XP, retos y quiz)?'))return;
+  xp=0;done={};qbest=null;saveSt();
+  document.getElementById('xpv').textContent='0';
+  drawHome();sClick();
+}
+
+/* =================== INIT =================== */
+document.getElementById('xpv').textContent=xp;
+updateStartBtn();
+</script>
+</body>
+</html>
